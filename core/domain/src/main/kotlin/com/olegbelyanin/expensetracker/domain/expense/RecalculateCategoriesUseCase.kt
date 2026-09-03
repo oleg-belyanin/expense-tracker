@@ -5,11 +5,7 @@ import com.olegbelyanin.expensetracker.domain.LocationRepository
 import com.olegbelyanin.expensetracker.domain.PersistExpenseRequest
 import com.olegbelyanin.expensetracker.model.CategoryAssignmentSource
 
-data class RecalculateCategoriesResult(
-    val updated: Int,
-    val unchanged: Int,
-    val skippedExplicit: Int,
-)
+data class RecalculateCategoriesResult(val updated: Int, val unchanged: Int, val skippedExplicit: Int)
 
 /**
  * Фоновый пересчёт категорий движком.

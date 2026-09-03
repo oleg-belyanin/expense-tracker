@@ -16,18 +16,23 @@ class ObserveExpenseListUseCase(
     private val clock: Clock,
     private val zoneId: ZoneId,
 ) {
-    fun observe(filter: ExpenseListFilter): Flow<ExpenseListSlice> = combine(
-        expenses.observeAll(),
-        categories.observeAll(),
-        locations.observeAll(),
-    ) { expenseRows, categoryRows, locationRows ->
-        ExpenseListAssembler.build(
-            expenses = expenseRows,
-            categories = categoryRows,
-            locations = locationRows,
-            filter = filter,
-            today = LocalDate.now(clock.withZone(zoneId)),
-            zoneId = zoneId,
-        )
+    fun observe(filter: ExpenseListFilter): Flow<ExpenseListSlice> {
+        val today = LocalDate.now(clock.withZone(zoneId))
+        return combine(
+            expenses.observeMatching(ExpenseSearchQuery.from(filter, today, zoneId)),
+            expenses.observeCount(),
+            categories.observeAll(),
+            locations.observeAll(),
+        ) { expenseRows, storedCount, categoryRows, locationRows ->
+            ExpenseListAssembler.build(
+                expenses = expenseRows,
+                categories = categoryRows,
+                locations = locationRows,
+                filter = filter,
+                today = today,
+                zoneId = zoneId,
+                storedCount = storedCount,
+            )
+        }
     }
 }

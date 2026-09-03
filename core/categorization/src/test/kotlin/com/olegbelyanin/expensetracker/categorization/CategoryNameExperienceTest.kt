@@ -23,6 +23,13 @@ class CategoryNameExperienceTest {
     }
 
     @Test
+    fun stomatologyNameAddsSingleDerivedFeature() {
+        val features = CategoryNameExperience.features(normalizer, "Стоматология")
+        assertEquals(listOf(KeywordFeature("стоматолог", KeywordKind.WORD)), features)
+        assertEquals(normalizer.analyze("стоматология").normalizedName, features.single().value)
+    }
+
+    @Test
     fun usesDedicatedSource() {
         assertEquals("category_name", CategoryNameExperience.SOURCE)
     }

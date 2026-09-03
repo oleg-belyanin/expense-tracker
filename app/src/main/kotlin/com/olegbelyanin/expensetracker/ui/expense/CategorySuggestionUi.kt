@@ -40,6 +40,8 @@ object CategorySuggestionUi {
         return result.orderedCandidates.filter { it.score > 0.0 }.take(limit)
     }
 
+    fun replaceAutofill(locked: Boolean, replaceCategory: Boolean): Boolean = replaceCategory && !locked
+
     private fun captionForResult(result: CategorizationResult): CategorySourceCaption = when (result.source) {
         CategoryAssignmentSource.EXACT_USER -> CategorySourceCaption.UserRule
 

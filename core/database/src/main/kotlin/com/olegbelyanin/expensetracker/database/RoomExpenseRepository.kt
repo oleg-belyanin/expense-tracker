@@ -3,13 +3,17 @@ package com.olegbelyanin.expensetracker.database
 import androidx.room3.withWriteTransaction
 import com.olegbelyanin.expensetracker.categorization.TextNormalizer
 import com.olegbelyanin.expensetracker.database.entities.ExpenseEntity
+import com.olegbelyanin.expensetracker.database.entities.ExpenseFtsEntity
 import com.olegbelyanin.expensetracker.database.entities.LocationEntity
 import com.olegbelyanin.expensetracker.database.entities.LocationFtsEntity
 import com.olegbelyanin.expensetracker.database.learning.LearningFingerprint
 import com.olegbelyanin.expensetracker.database.learning.LearningPlanner
 import com.olegbelyanin.expensetracker.database.learning.LearningWriter
+import com.olegbelyanin.expensetracker.database.search.FtsQuery
+import com.olegbelyanin.expensetracker.database.search.LikeQuery
 import com.olegbelyanin.expensetracker.domain.ExpenseRepository
 import com.olegbelyanin.expensetracker.domain.PersistExpenseRequest
+import com.olegbelyanin.expensetracker.domain.expense.ExpenseSearchQuery
 import com.olegbelyanin.expensetracker.model.Expense
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -33,6 +37,53 @@ class RoomExpenseRepository(
     override fun observeAll(): Flow<List<Expense>> =
         database.expenseDao().observeAll().map { rows -> rows.map { it.toDomain() } }
 
+    override fun observeCount(): Flow<Int> = database.expenseDao().observeCount()
+
+    override fun observeMatching(query: ExpenseSearchQuery): Flow<List<Expense>> {
+        val categoryIds = query.categoryIds.toList().ifEmpty { listOf(UNUSED_ID) }
+        val hasCategories = if (query.categoryIds.isEmpty()) 0 else 1
+        val hasLocation = if (query.locationId == null) 0 else 1
+        val locationId = query.locationId ?: UNUSED_ID
+        val text = query.text.trim()
+        val rows = if (text.isEmpty()) {
+            database.expenseDao().observeMatching(
+                fromMs = query.spentAtFromInclusive,
+                toMsExclusive = query.spentAtToExclusive,
+                hasCategories = hasCategories,
+                categoryIds = categoryIds,
+                hasLocation = hasLocation,
+                locationId = locationId,
+            )
+        } else {
+            val prepared = normalizer.normalizePlain(text).ifEmpty { text.lowercase() }
+            val like = LikeQuery.contains(prepared)
+            val match = FtsQuery.prefixMatch(prepared)
+            if (match == null) {
+                database.expenseDao().observeMatchingLike(
+                    fromMs = query.spentAtFromInclusive,
+                    toMsExclusive = query.spentAtToExclusive,
+                    hasCategories = hasCategories,
+                    categoryIds = categoryIds,
+                    hasLocation = hasLocation,
+                    locationId = locationId,
+                    like = like,
+                )
+            } else {
+                database.expenseDao().observeMatchingFts(
+                    fromMs = query.spentAtFromInclusive,
+                    toMsExclusive = query.spentAtToExclusive,
+                    hasCategories = hasCategories,
+                    categoryIds = categoryIds,
+                    hasLocation = hasLocation,
+                    locationId = locationId,
+                    ftsMatch = match,
+                    like = like,
+                )
+            }
+        }
+        return rows.map { entities -> entities.map { it.toDomain() } }
+    }
+
     override suspend fun persist(request: PersistExpenseRequest): Expense = database.withWriteTransaction {
         persistInTransaction(request)
     }
@@ -41,6 +92,7 @@ class RoomExpenseRepository(
         database.withWriteTransaction {
             val existing = database.expenseDao().findById(id) ?: return@withWriteTransaction
             existing.locationId?.let { decrementLocationUsage(it, Instant.now(clock).toEpochMilli()) }
+            deleteExpenseFts(id)
             database.expenseDao().deleteById(id)
         }
     }
@@ -48,6 +100,7 @@ class RoomExpenseRepository(
     override suspend fun clearHistory(): Int = database.withWriteTransaction {
         val deleted = database.expenseDao().getAll().size
         database.learningDao().detachExamplesFromExpenses()
+        database.expenseFtsDao().deleteAll()
         database.expenseDao().deleteAll()
         deleted
     }
@@ -106,8 +159,10 @@ class RoomExpenseRepository(
         )
         if (existing == null) {
             database.expenseDao().insert(entity)
+            syncExpenseFts(entity)
         } else if (!unchangedExpense) {
             database.expenseDao().update(entity)
+            syncExpenseFts(entity)
         }
         learningWriter.apply(
             expenseId = request.id,
@@ -177,6 +232,25 @@ class RoomExpenseRepository(
         )
     }
 
+    private suspend fun syncExpenseFts(entity: ExpenseEntity) {
+        val rowId = database.expenseDao().rowIdById(entity.id) ?: return
+        val ftsRowId = rowId.toInt()
+        database.expenseFtsDao().deleteByRowId(ftsRowId)
+        database.expenseFtsDao().upsert(
+            ExpenseFtsEntity(
+                rowid = ftsRowId,
+                name = entity.name,
+                normalizedName = entity.normalizedName,
+                comment = entity.comment.orEmpty(),
+            ),
+        )
+    }
+
+    private suspend fun deleteExpenseFts(id: String) {
+        val rowId = database.expenseDao().rowIdById(id) ?: return
+        database.expenseFtsDao().deleteByRowId(rowId.toInt())
+    }
+
     private suspend fun syncLocationFts(id: Long, name: String, normalizedName: String) {
         val rowId = id.toInt()
         database.locationFtsDao().deleteByRowId(rowId)
@@ -190,6 +264,8 @@ class RoomExpenseRepository(
     }
 
     companion object {
+        const val UNUSED_ID = -1L
+
         fun userDedupKey(id: String): String = "user:$id"
     }
 }

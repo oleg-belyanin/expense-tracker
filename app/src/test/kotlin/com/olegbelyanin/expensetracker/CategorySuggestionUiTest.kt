@@ -72,6 +72,13 @@ class CategorySuggestionUiTest {
     }
 
     @Test
+    fun autofillDoesNotReplaceLockedOrEditLoad() {
+        assertTrue(CategorySuggestionUi.replaceAutofill(locked = false, replaceCategory = true))
+        assertTrue(!CategorySuggestionUi.replaceAutofill(locked = true, replaceCategory = true))
+        assertTrue(!CategorySuggestionUi.replaceAutofill(locked = false, replaceCategory = false))
+    }
+
+    @Test
     fun rankedCandidatesTakeTopThreeWithScore() {
         val ranked = CategorySuggestionUi.rankedCandidates(
             result(

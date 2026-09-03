@@ -10,6 +10,7 @@ class QueryEscapingTest {
         assertEquals("мага\\%зин%", LikeQuery.prefix("мага%зин"))
         assertEquals("foo\\_bar%", LikeQuery.prefix("foo_bar"))
         assertEquals("a\\\\b%", LikeQuery.prefix("a\\b"))
+        assertEquals("%мага\\%зин%", LikeQuery.contains("мага%зин"))
     }
 
     @Test

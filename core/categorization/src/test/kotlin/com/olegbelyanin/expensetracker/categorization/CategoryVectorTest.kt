@@ -74,6 +74,19 @@ class CategoryVectorTest {
     }
 
     @Test
+    fun newActiveCategoryAddsScoreDimensionWithoutMigratingCounts() {
+        val counts = listOf(FeatureCount(health, CategoryVector.SOURCE_SEED, 10))
+        val before = CategoryVector.fromCounts(counts, setOf(health, other), config)!!
+        val stomatology = 8L
+        val after = CategoryVector.fromCounts(counts, setOf(health, other, stomatology), config)!!
+        assertEquals(setOf(health, other), before.scores.keys)
+        assertEquals(setOf(health, other, stomatology), after.scores.keys)
+        assertEquals(1.0, after.scores.values.sum(), 1e-9)
+        assertEquals(0.0, after.score(stomatology), 1e-9)
+        assertEquals(before.score(health), after.score(health), 1e-9)
+    }
+
+    @Test
     fun fromCountsReturnsNullForUnknownFeature() {
         assertNull(CategoryVector.fromCounts(emptyList(), active, config))
         assertNull(CategoryVector.fromCounts(listOf(FeatureCount(99, CategoryVector.SOURCE_SEED, 3)), active, config))

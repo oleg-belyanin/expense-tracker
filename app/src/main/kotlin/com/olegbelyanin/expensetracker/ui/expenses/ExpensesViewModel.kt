@@ -34,6 +34,7 @@ class ExpensesViewModel(
     private val preset = MutableStateFlow(ExpensePeriodPreset.ALL)
     private val customPeriod = MutableStateFlow<Period?>(null)
     private val categoryIds = MutableStateFlow<Set<Long>>(emptySet())
+    private val locationId = MutableStateFlow<Long?>(null)
     private val _toast = MutableStateFlow<SavedExpenseToast?>(null)
     private val _categoryFilterOpen = MutableStateFlow(false)
     private var toastJob: Job? = null
@@ -42,6 +43,7 @@ class ExpensesViewModel(
     val periodPreset: StateFlow<ExpensePeriodPreset> = preset.asStateFlow()
     val customPeriodRange: StateFlow<Period?> = customPeriod.asStateFlow()
     val selectedCategoryIds: StateFlow<Set<Long>> = categoryIds.asStateFlow()
+    val selectedLocationId: StateFlow<Long?> = locationId.asStateFlow()
     val toast: StateFlow<SavedExpenseToast?> = _toast.asStateFlow()
     val categoryFilterOpen: StateFlow<Boolean> = _categoryFilterOpen.asStateFlow()
 
@@ -54,12 +56,13 @@ class ExpensesViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val slice: StateFlow<ExpenseListSlice?> =
-        combine(query, preset, customPeriod, categoryIds) { text, period, custom, ids ->
+        combine(query, preset, customPeriod, categoryIds, locationId) { text, period, custom, ids, place ->
             ExpenseListFilter(
                 query = text,
                 preset = period,
                 customPeriod = custom,
                 categoryIds = ids,
+                locationId = place,
             )
         }.flatMapLatest { observeList.observe(it) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -80,6 +83,7 @@ class ExpensesViewModel(
         preset.value = filter.preset
         customPeriod.value = filter.customPeriod
         categoryIds.value = filter.categoryIds
+        locationId.value = filter.locationId
     }
 
     fun onToggleCategory(id: Long) {
@@ -103,6 +107,7 @@ class ExpensesViewModel(
         preset.value = ExpensePeriodPreset.ALL
         customPeriod.value = null
         categoryIds.value = emptySet()
+        locationId.value = null
     }
 
     fun onExpenseSaved(expenseId: String) {

@@ -106,7 +106,7 @@ class ExpenseEditViewModel(
 
     private suspend fun load() {
         if (expenseId == null) {
-            applySuggestion(suggestCategory("", null), lock = false)
+            applySuggestion(suggest(name = "", locationName = null), replaceCategory = true)
             _state.update { it.copy(isReady = true) }
             return
         }
@@ -128,9 +128,9 @@ class ExpenseEditViewModel(
                 category = category,
                 categoryLocked = expense.categoryAssignmentSource == CategoryAssignmentSource.EXPLICIT,
                 originalSource = expense.categoryAssignmentSource,
-                suggestion = null,
             )
         }
+        applySuggestion(suggest(expense.name, locationName), replaceCategory = false)
     }
 
     fun onAmountKey(key: KeypadKey) {
@@ -151,6 +151,9 @@ class ExpenseEditViewModel(
             }
             it.copy(sheet = sheet, createCategoryName = createName, createCategoryError = null)
         }
+        if (sheet == ExpenseEditSheet.Category) {
+            refreshSuggestion(replaceCategory = false)
+        }
     }
 
     fun onDismissSheet() {
@@ -163,7 +166,7 @@ class ExpenseEditViewModel(
     }
 
     fun onNameChange(value: String) {
-        _state.update { it.copy(name = value, nameTouched = true, categoryLocked = false) }
+        _state.update { it.copy(name = value, nameTouched = true) }
         scheduleSuggest()
     }
 
@@ -172,7 +175,7 @@ class ExpenseEditViewModel(
     }
 
     fun onLocationChange(value: String) {
-        _state.update { it.copy(locationName = value, locationFocused = true, categoryLocked = false) }
+        _state.update { it.copy(locationName = value, locationFocused = true) }
         scheduleLocations(value)
         scheduleSuggest()
     }
@@ -190,7 +193,6 @@ class ExpenseEditViewModel(
                 locationName = location.name,
                 locationSuggestions = emptyList(),
                 locationFocused = false,
-                categoryLocked = false,
             )
         }
         scheduleSuggest()
@@ -244,7 +246,7 @@ class ExpenseEditViewModel(
                     spentAt = current.spentAt,
                     name = current.name,
                     categoryId = category.id,
-                    locationName = current.locationName,
+                    locationName = current.locationName.ifBlank { null },
                     comment = current.comment,
                     categoryAssignmentSource = source,
                     proposedCategoryId = current.suggestion?.selectedCategoryId,
@@ -296,14 +298,19 @@ class ExpenseEditViewModel(
     )
 
     private fun scheduleSuggest() {
-        if (_state.value.categoryLocked) return
         suggestJob?.cancel()
         suggestJob =
             viewModelScope.launch {
                 delay(250)
-                val current = _state.value
-                if (current.categoryLocked) return@launch
-                applySuggestion(suggestCategory(current.name, current.locationName), lock = false)
+                applySuggestion(suggestCurrent(), replaceCategory = true)
+            }
+    }
+
+    private fun refreshSuggestion(replaceCategory: Boolean) {
+        suggestJob?.cancel()
+        suggestJob =
+            viewModelScope.launch {
+                applySuggestion(suggestCurrent(), replaceCategory = replaceCategory)
             }
     }
 
@@ -317,16 +324,26 @@ class ExpenseEditViewModel(
             }
     }
 
-    private fun applySuggestion(result: CategorizationResult, lock: Boolean) {
-        viewModelScope.launch {
-            val category = categories.findById(result.selectedCategoryId)
-            _state.update {
-                it.copy(
-                    suggestion = result,
-                    category = category ?: it.category,
-                    categoryLocked = lock,
-                )
-            }
+    private suspend fun suggestCurrent(): CategorizationResult {
+        val current = _state.value
+        return suggest(current.name, current.locationName)
+    }
+
+    private suspend fun suggest(name: String, locationName: String?): CategorizationResult =
+        suggestCategory(name, locationName?.ifBlank { null })
+
+    private suspend fun applySuggestion(result: CategorizationResult, replaceCategory: Boolean) {
+        val suggested = categories.findById(result.selectedCategoryId)
+        _state.update { current ->
+            current.copy(
+                suggestion = result,
+                category =
+                if (CategorySuggestionUi.replaceAutofill(current.categoryLocked, replaceCategory)) {
+                    suggested ?: current.category
+                } else {
+                    current.category
+                },
+            )
         }
     }
 

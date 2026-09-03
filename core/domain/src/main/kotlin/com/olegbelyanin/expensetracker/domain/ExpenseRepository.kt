@@ -1,9 +1,11 @@
 package com.olegbelyanin.expensetracker.domain
 
+import com.olegbelyanin.expensetracker.domain.expense.ExpenseSearchQuery
 import com.olegbelyanin.expensetracker.model.CategoryAssignmentSource
 import com.olegbelyanin.expensetracker.model.Expense
 import com.olegbelyanin.expensetracker.model.Money
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.time.Instant
 
 data class PersistExpenseRequest(
@@ -28,6 +30,10 @@ interface ExpenseRepository {
     suspend fun findByDedupKey(dedupKey: String): Expense?
 
     fun observeAll(): Flow<List<Expense>>
+
+    fun observeCount(): Flow<Int> = observeAll().map { it.size }
+
+    fun observeMatching(query: ExpenseSearchQuery): Flow<List<Expense>> = observeAll()
 
     suspend fun persist(request: PersistExpenseRequest): Expense
 

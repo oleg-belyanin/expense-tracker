@@ -15,6 +15,7 @@ object ExpenseListAssembler {
         filter: ExpenseListFilter,
         today: LocalDate,
         zoneId: ZoneId,
+        storedCount: Int? = null,
     ): ExpenseListSlice {
         val categoriesById = categories.associateBy { it.id }
         val locationsById = locations.associateBy { it.id }
@@ -31,6 +32,7 @@ object ExpenseListAssembler {
                 categoryName = category.name,
                 categoryIcon = category.icon,
                 categoryColor = category.color,
+                locationId = expense.locationId,
                 locationName = location?.name,
                 comment = expense.comment,
                 amountMinor = expense.amount.minor,
@@ -54,7 +56,7 @@ object ExpenseListAssembler {
             groups = groups,
             totalMinor = items.sumOf { it.amountMinor },
             matchedCount = items.size,
-            storedCount = expenses.size,
+            storedCount = storedCount ?: expenses.size,
         )
     }
 
@@ -65,6 +67,9 @@ object ExpenseListAssembler {
             return false
         }
         if (filter.categoryIds.isNotEmpty() && item.categoryId !in filter.categoryIds) {
+            return false
+        }
+        if (filter.locationId != null && item.locationId != filter.locationId) {
             return false
         }
         if (query.isNotEmpty()) {

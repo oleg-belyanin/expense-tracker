@@ -14,6 +14,9 @@ class RoomLocationRepository(private val database: AppDatabase, private val norm
     override fun observeAll(): Flow<List<Location>> =
         database.locationDao().observeAll().map { rows -> rows.map { it.toDomain() } }
 
+    override fun observeUsed(): Flow<List<Location>> =
+        database.locationDao().observeUsed().map { rows -> rows.map { it.toDomain() } }
+
     override suspend fun findById(id: Long): Location? = database.locationDao().findById(id)?.toDomain()
 
     override suspend fun suggest(query: String, limit: Int): List<Location> {

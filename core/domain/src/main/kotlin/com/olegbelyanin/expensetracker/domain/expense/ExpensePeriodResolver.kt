@@ -3,6 +3,7 @@ package com.olegbelyanin.expensetracker.domain.expense
 import com.olegbelyanin.expensetracker.model.Period
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneId
 
 object ExpensePeriodResolver {
     fun resolve(preset: ExpensePeriodPreset, custom: Period?, today: LocalDate): Period? = when (preset) {
@@ -42,4 +43,12 @@ object ExpensePeriodResolver {
         val start = YearMonth.from(today).minusMonths(1).atDay(1)
         return Period(start, today)
     }
+
+    fun toEpochRange(period: Period, zoneId: ZoneId): EpochRange {
+        val start = period.startInclusive.atStartOfDay(zoneId).toInstant().toEpochMilli()
+        val endExclusive = period.endInclusive.plusDays(1).atStartOfDay(zoneId).toInstant().toEpochMilli()
+        return EpochRange(startInclusive = start, endExclusive = endExclusive)
+    }
 }
+
+data class EpochRange(val startInclusive: Long, val endExclusive: Long)

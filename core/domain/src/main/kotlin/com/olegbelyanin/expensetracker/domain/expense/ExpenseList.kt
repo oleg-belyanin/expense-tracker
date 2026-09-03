@@ -17,12 +17,14 @@ data class ExpenseListFilter(
     val preset: ExpensePeriodPreset = ExpensePeriodPreset.ALL,
     val customPeriod: Period? = null,
     val categoryIds: Set<Long> = emptySet(),
+    val locationId: Long? = null,
 ) {
     val hasActiveConstraints: Boolean
         get() = query.isNotBlank() ||
             preset != ExpensePeriodPreset.ALL ||
             customPeriod != null ||
-            categoryIds.isNotEmpty()
+            categoryIds.isNotEmpty() ||
+            locationId != null
 }
 
 enum class DayRelative {
@@ -38,6 +40,7 @@ data class ExpenseListItem(
     val categoryName: String,
     val categoryIcon: String,
     val categoryColor: String,
+    val locationId: Long?,
     val locationName: String?,
     val comment: String?,
     val amountMinor: Long,

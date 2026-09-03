@@ -66,6 +66,32 @@ class ExpenseListAssemblerTest {
     }
 
     @Test
+    fun locationFilterCombinesWithPeriodAndCategory() {
+        val park = location(11, "Парк")
+        val expenses = listOf(
+            expense("home-food", groceries.id, today, "Хлеб", 1_000, home.id),
+            expense("park-food", groceries.id, today, "Пикник", 3_000, park.id),
+            expense("home-aug", groceries.id, LocalDate.of(2026, 8, 15), "Арбуз", 4_000, home.id),
+            expense("cafe", cafe.id, today, "Латте", 2_000, home.id),
+        )
+        val slice = ExpenseListAssembler.build(
+            expenses = expenses,
+            categories = listOf(groceries, cafe),
+            locations = listOf(home, park),
+            filter = ExpenseListFilter(
+                preset = ExpensePeriodPreset.CURRENT_MONTH,
+                categoryIds = setOf(groceries.id),
+                locationId = home.id,
+            ),
+            today = today,
+            zoneId = zone,
+        )
+        assertEquals(listOf("Хлеб"), slice.groups.flatMap { it.items }.map { it.name })
+        assertEquals(1_000, slice.totalMinor)
+        assertEquals(home.id, slice.groups.first().items.first().locationId)
+    }
+
+    @Test
     fun currentMonthAndCategoryFiltersCombine() {
         val expenses = listOf(
             expense("aug", groceries.id, LocalDate.of(2026, 8, 31), "Арбуз", 4_000),
@@ -141,6 +167,22 @@ class ExpenseListAssemblerTest {
         assertTrue(emptyDb.isDatabaseEmpty)
         assertTrue(noHits.isFilterEmpty)
         assertEquals(0, noHits.totalMinor)
+    }
+
+    @Test
+    fun storedCountCanComeFromRepositoryTotal() {
+        val slice = ExpenseListAssembler.build(
+            expenses = listOf(expense("1", groceries.id, today, "Хлеб", 1_000)),
+            categories = listOf(groceries),
+            locations = emptyList(),
+            filter = ExpenseListFilter(query = "латте"),
+            today = today,
+            zoneId = zone,
+            storedCount = 5_000,
+        )
+        assertEquals(5_000, slice.storedCount)
+        assertTrue(slice.isFilterEmpty)
+        assertEquals(0, slice.matchedCount)
     }
 
     private fun names(expenses: List<Expense>, filter: ExpenseListFilter): List<String> = ExpenseListAssembler.build(

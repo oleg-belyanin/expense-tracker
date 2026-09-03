@@ -62,6 +62,24 @@ class CategorizationEngineTest {
     }
 
     @Test
+    fun createdStomatologyCategoryAliasesPurchaseOverHealthSeed() {
+        val stomatology = 8L
+        val feature = KeywordFeature("стоматолог", KeywordKind.WORD)
+        val healthHeavy = CategoryVector(mapOf(health to 0.90, stomatology to 0.05, other to 0.05))
+        val result = engine.categorize(
+            query("стоматолог", feature),
+            snapshot(
+                activeCategoryIds = active + stomatology,
+                seedExact = ExactMatch(health, CategoryVector.SOURCE_SEED),
+                categoryAliasId = stomatology,
+                featureVectors = mapOf(feature to healthHeavy),
+            ),
+        )
+        assertEquals(stomatology, result.selectedCategoryId)
+        assertEquals(CategoryAssignmentSource.PROBABILISTIC, result.source)
+    }
+
+    @Test
     fun archivedAliasIsIgnored() {
         val result = engine.categorize(
             query("каф"),

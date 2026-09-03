@@ -15,6 +15,8 @@ object LikeQuery {
     }
 
     fun prefix(raw: String): String = "${escape(raw)}%"
+
+    fun contains(raw: String): String = "%${escape(raw)}%"
 }
 
 object FtsQuery {

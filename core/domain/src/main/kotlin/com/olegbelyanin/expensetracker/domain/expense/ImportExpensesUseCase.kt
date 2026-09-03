@@ -20,11 +20,7 @@ data class ImportExpenseDraft(
     val dedupKey: String? = null,
 )
 
-data class ImportExpensesResult(
-    val imported: List<Expense>,
-    val skippedDuplicate: Int,
-    val skippedInvalid: Int,
-)
+data class ImportExpensesResult(val imported: List<Expense>, val skippedDuplicate: Int, val skippedInvalid: Int)
 
 /**
  * Пакетная вставка расходов с автокатегоризацией.

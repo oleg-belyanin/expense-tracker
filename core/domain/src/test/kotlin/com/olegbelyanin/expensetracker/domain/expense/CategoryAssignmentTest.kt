@@ -26,6 +26,16 @@ class CategoryAssignmentTest {
     }
 
     @Test
+    fun acceptedUserRuleStaysExactUser() {
+        val source = CategoryAssignment.sourceForSave(
+            userPicked = false,
+            suggestionSource = CategoryAssignmentSource.EXACT_USER,
+            originalSource = CategoryAssignmentSource.EXPLICIT,
+        )
+        assertEquals(CategoryAssignmentSource.EXACT_USER, source)
+    }
+
+    @Test
     fun editWithoutNewPickKeepsOriginalSource() {
         val source = CategoryAssignment.sourceForSave(
             userPicked = false,

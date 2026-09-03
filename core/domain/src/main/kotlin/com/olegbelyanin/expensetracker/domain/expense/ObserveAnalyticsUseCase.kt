@@ -14,16 +14,20 @@ class ObserveAnalyticsUseCase(
     private val clock: Clock,
     private val zoneId: ZoneId,
 ) {
-    fun observe(filter: ExpenseListFilter): Flow<AnalyticsSlice> = combine(
-        expenses.observeAll(),
-        categories.observeAll(),
-    ) { expenseRows, categoryRows ->
-        AnalyticsAssembler.build(
-            expenses = expenseRows,
-            categories = categoryRows,
-            filter = filter,
-            today = LocalDate.now(clock.withZone(zoneId)),
-            zoneId = zoneId,
-        )
+    fun observe(filter: ExpenseListFilter): Flow<AnalyticsSlice> {
+        val today = LocalDate.now(clock.withZone(zoneId))
+        val periodFilter = ExpenseListFilter(preset = filter.preset, customPeriod = filter.customPeriod)
+        return combine(
+            expenses.observeMatching(ExpenseSearchQuery.from(periodFilter, today, zoneId)),
+            categories.observeAll(),
+        ) { expenseRows, categoryRows ->
+            AnalyticsAssembler.build(
+                expenses = expenseRows,
+                categories = categoryRows,
+                filter = periodFilter,
+                today = today,
+                zoneId = zoneId,
+            )
+        }
     }
 }

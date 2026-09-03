@@ -54,6 +54,15 @@ interface LocationDao {
     @Query("SELECT * FROM location ORDER BY id ASC")
     fun observeAll(): Flow<List<LocationEntity>>
 
+    @Query(
+        """
+        SELECT * FROM location
+        WHERE archived_at IS NULL AND usage_count > 0
+        ORDER BY last_used_at DESC, usage_count DESC, id ASC
+        """,
+    )
+    fun observeUsed(): Flow<List<LocationEntity>>
+
     @Query("SELECT * FROM location WHERE id = :id LIMIT 1")
     suspend fun findById(id: Long): LocationEntity?
 

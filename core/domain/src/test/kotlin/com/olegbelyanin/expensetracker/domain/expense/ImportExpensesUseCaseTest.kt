@@ -83,11 +83,7 @@ class ImportExpensesUseCaseTest {
         zoneId = zone,
     )
 
-    private fun draft(
-        id: String? = null,
-        name: String = "Латте",
-        spentAt: Instant = this.spentAt,
-    ) = ImportExpenseDraft(
+    private fun draft(id: String? = null, name: String = "Латте", spentAt: Instant = this.spentAt) = ImportExpenseDraft(
         id = id,
         amount = Money(15_000),
         spentAt = spentAt,

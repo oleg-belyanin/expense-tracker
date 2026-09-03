@@ -6,6 +6,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneOffset
 
 class ExpensePeriodResolverTest {
     private val today = LocalDate.of(2026, 9, 3)
@@ -50,5 +51,16 @@ class ExpensePeriodResolverTest {
             ExpensePeriodPreset.CUSTOM to Period(LocalDate.of(2026, 7, 1), LocalDate.of(2026, 7, 31)),
             ExpensePeriodResolver.monthSelection(YearMonth.of(2026, 7), today),
         )
+    }
+
+    @Test
+    fun epochRangeIsStartOfFirstDayToStartOfDayAfterLast() {
+        val zone = ZoneOffset.UTC
+        val range = ExpensePeriodResolver.toEpochRange(
+            Period(LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 31)),
+            zone,
+        )
+        assertEquals(LocalDate.of(2026, 8, 1).atStartOfDay(zone).toInstant().toEpochMilli(), range.startInclusive)
+        assertEquals(LocalDate.of(2026, 9, 1).atStartOfDay(zone).toInstant().toEpochMilli(), range.endExclusive)
     }
 }
