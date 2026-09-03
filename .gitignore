@@ -30,6 +30,10 @@ render.experimental.xml
 # Transient Figma exports used while converting vectors
 .tmp-figma-assets/
 
+# Python
+__pycache__/
+*.py[cod]
+
 # Keystore files — debug uses the machine default (~/.android/debug.keystore)
 *.jks
 *.keystore
