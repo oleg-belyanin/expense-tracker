@@ -128,6 +128,8 @@ repository, затем подключение use case. Эмулятор нуж�
 
 ### Этап I0. Локальное окружение — 1–1,5 ч
 
+Статус: выполнено 2026-09-03.
+
 - JDK 17, Android Studio, Android SDK, platform-tools.
 - Gradle Wrapper в репозитории; версии только в `libs.versions.toml`.
 - `local.properties` в `.gitignore`; в README — шаблон без секретов.
