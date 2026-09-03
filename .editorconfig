@@ -13,6 +13,7 @@ ktlint_code_style = intellij_idea
 ij_kotlin_allow_trailing_comma = true
 ij_kotlin_allow_trailing_comma_on_call_site = true
 max_line_length = 120
+ktlint_function_naming_ignore_when_annotated_with = Composable
 
 [*.md]
 max_line_length = off

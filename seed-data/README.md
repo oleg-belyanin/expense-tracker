@@ -9,8 +9,8 @@
 | Набор | Строк | На категорию |
 |---|---:|---:|
 | **Итого** | 1 000 | 100 |
-| train (`raw/train.csv`) | 800 | 80 |
-| validation (`raw/validation.csv`) | 200 | 20 |
+| train (`raw/train.csv`) | 30 сейчас, цель 800 | 80 |
+| validation (`raw/validation.csv`) | 0 сейчас, цель 200 | 20 |
 
 10 категорий — см. [`categories.yaml`](./categories.yaml).
 

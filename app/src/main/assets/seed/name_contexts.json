@@ -1,0 +1,9 @@
+[
+  {"normalized_name": "латте", "category_code": "CAFE", "keywords": ["латте"]},
+  {"normalized_name": "кетостерил", "category_code": "HEALTH", "keywords": ["кетостерил"]},
+  {"normalized_name": "бензин", "category_code": "TRANSPORT", "keywords": ["бензин"]},
+  {"normalized_name": "аптека", "category_code": "HEALTH", "keywords": ["аптека"]},
+  {"normalized_name": "хлеб", "category_code": "GROCERIES", "keywords": ["хлеб"]},
+  {"normalized_name": "врач", "category_code": "HEALTH", "keywords": ["врач"]},
+  {"normalized_name": "стоматолог", "category_code": "HEALTH", "keywords": ["стоматолог"]}
+]

@@ -1,0 +1,85 @@
+package com.olegbelyanin.expensetracker.ui.theme
+
+import androidx.compose.runtime.Immutable
+import androidx.compose.ui.graphics.Color
+
+@Immutable
+data class ExpenseColors(
+    val background: Color,
+    val surface: Color,
+    val surfaceSubtle: Color,
+    val textPrimary: Color,
+    val textSecondary: Color,
+    val icon: Color,
+    val action: Color,
+    val onAction: Color,
+    val border: Color,
+    val onCategory: Color,
+    val danger: Color,
+    val scrim: Color,
+    val groceries: Color,
+    val cafe: Color,
+    val transport: Color,
+    val health: Color,
+    val housing: Color,
+    val comms: Color,
+    val funColor: Color,
+    val clothes: Color,
+    val home: Color,
+    val other: Color,
+    val isDark: Boolean,
+)
+
+internal val LightExpenseColors =
+    ExpenseColors(
+        background = Color(0xFFF7F8F4),
+        surface = Color(0xFFFFFFFF),
+        surfaceSubtle = Color(0xFFECEEE8),
+        textPrimary = Color(0xFF151B22),
+        textSecondary = Color(0xFF5F655D),
+        icon = Color(0xFF30352F),
+        action = Color(0xFF2D6CDF),
+        onAction = Color(0xFFFFFFFF),
+        border = Color(0xFFECEEE8),
+        onCategory = Color(0xFF151B22),
+        danger = Color(0xFFD9534F),
+        scrim = Color(0x8A0D131A),
+        groceries = Color(0xFFE6B84A),
+        cafe = Color(0xFFE8894A),
+        transport = Color(0xFF4A9D8F),
+        health = Color(0xFFD76073),
+        housing = Color(0xFF6E7FC5),
+        comms = Color(0xFF4F9ACF),
+        funColor = Color(0xFFA76CC1),
+        clothes = Color(0xFFD477A6),
+        home = Color(0xFF7EA85B),
+        other = Color(0xFF858A82),
+        isDark = false,
+    )
+
+internal val DarkExpenseColors =
+    ExpenseColors(
+        background = Color(0xFF0D131A),
+        surface = Color(0xFF151B22),
+        surfaceSubtle = Color(0xFF30352F),
+        textPrimary = Color(0xFFFFFFFF),
+        textSecondary = Color(0xFFECEEE8),
+        icon = Color(0xFFECEEE8),
+        action = Color(0xFF81A9F8),
+        onAction = Color(0xFF0D131A),
+        border = Color(0xFF30352F),
+        onCategory = Color(0xFF151B22),
+        danger = Color(0xFFD9534F),
+        scrim = Color(0x8A0D131A),
+        groceries = Color(0xFFE6B84A),
+        cafe = Color(0xFFE8894A),
+        transport = Color(0xFF4A9D8F),
+        health = Color(0xFFD76073),
+        housing = Color(0xFF6E7FC5),
+        comms = Color(0xFF4F9ACF),
+        funColor = Color(0xFFA76CC1),
+        clothes = Color(0xFFD477A6),
+        home = Color(0xFF7EA85B),
+        other = Color(0xFF858A82),
+        isDark = true,
+    )

@@ -1,1 +1,31 @@
 name,location,category_code
+Латте,Шоколадница,CAFE
+Капучино,Starbucks,CAFE
+Кофе,Coffee Like,CAFE
+Чай,Шоколадница,CAFE
+Кетостерил,Столичка на Чкалова,HEALTH
+Аспирин,Столичка,HEALTH
+Врач,Поликлиника,HEALTH
+Стоматолог,Стоматология,HEALTH
+Аптека,,HEALTH
+Бензин,Лукойл,TRANSPORT
+Метро,,TRANSPORT
+Такси,Яндекс Go,TRANSPORT
+Хлеб,,GROCERIES
+Молоко,Пятёрочка,GROCERIES
+Яйца,Магнит,GROCERIES
+Йогурт,ВкусВилл,GROCERIES
+Аренда,,HOUSING
+Коммуналка,УК,HOUSING
+МТС,МТС,COMMUNICATION
+Интернет,Ростелеком,COMMUNICATION
+Кино,Кинопарк,ENTERTAINMENT
+Подписка,Steam,ENTERTAINMENT
+Футболка,H&M,CLOTHING
+Джинсы,Zara,CLOTHING
+Полка,IKEA,HOME
+Краска,Леруа Мерлен,HOME
+Лампочка,OBI,HOME
+Непонятная покупка,,OTHER
+Сбор,,OTHER
+Перевод,,OTHER

@@ -1,0 +1,4 @@
+Golos Text
+https://github.com/googlefonts/golos-text
+License: SIL Open Font License 1.1 (see OFL.txt)
+Weights used: Regular, Medium, SemiBold, Bold

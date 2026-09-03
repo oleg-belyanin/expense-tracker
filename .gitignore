@@ -27,6 +27,9 @@ render.experimental.xml
 # Kotlin
 .kotlin/
 
+# Transient Figma exports used while converting vectors
+.tmp-figma-assets/
+
 # Keystore files — debug uses the machine default (~/.android/debug.keystore)
 *.jks
 *.keystore

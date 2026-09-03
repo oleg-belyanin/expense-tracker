@@ -1,0 +1,8 @@
+[
+  {"location": "Шоколадница", "category_code": "CAFE", "count": 2},
+  {"location": "Столичка", "category_code": "HEALTH", "count": 1},
+  {"location": "Столичка на Чкалова", "category_code": "HEALTH", "count": 1},
+  {"location": "Лукойл", "category_code": "TRANSPORT", "count": 1},
+  {"location": "Пятёрочка", "category_code": "GROCERIES", "count": 1},
+  {"location": "36,6", "category_code": "HEALTH", "count": 1}
+]

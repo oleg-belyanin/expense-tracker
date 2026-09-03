@@ -1,0 +1,10 @@
+{
+  "seedDataVersion": 1,
+  "normalizerVersion": 1,
+  "generatedAt": "2026-09-03",
+  "trainRows": 30,
+  "validationRows": 0,
+  "validationTop1Accuracy": null,
+  "keywordFeatures": 12,
+  "locationFeatures": 6
+}

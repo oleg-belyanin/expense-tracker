@@ -1,0 +1,6 @@
+[
+  {"normalized_name": "латте", "category_code": "CAFE"},
+  {"normalized_name": "бензин", "category_code": "TRANSPORT"},
+  {"normalized_name": "аптека", "category_code": "HEALTH"},
+  {"normalized_name": "кетостерил", "category_code": "HEALTH"}
+]

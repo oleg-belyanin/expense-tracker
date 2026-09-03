@@ -236,6 +236,8 @@ DoD: красный PR при падении теста или lint; debug APK �
 
 ### Этап B0. Каркас модулей — 3–4 ч
 
+Статус: выполнено 2026-09-03.
+
 - Gradle-проект, Version Catalog, модули из `AD-ANDROID-001`.
 - `:core:model`: `Expense`, `Category`, `Location`, `Money`, `Period`,
   `CategorizationResult`.
@@ -355,6 +357,8 @@ DoD: сценарии F-09…F-11 из §5 ТЗ закрыты тестами ro
 ## 7. Фронтенд (`:app`)
 
 ### Этап F0. Оболочка и дизайн-система — 3–4 ч
+
+Статус: выполнено 2026-09-03.
 
 - Material 3 + токены/типографика файла (Golos Text, color variables).
 - Light / Dark / System через DataStore.

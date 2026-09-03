@@ -14,6 +14,19 @@
 
 Версии библиотек и плагинов задаются только в [`gradle/libs.versions.toml`](gradle/libs.versions.toml).
 
+## Модули
+
+```text
+:app                  UI, Application, AppContainer
+:core:model           Expense, Category, Location, Money, Period
+:core:categorization  TextNormalizer (Snowball — этап B3)
+:core:domain          use case и интерфейсы repository
+:core:database        Room 3, Bundled SQLite, FTS5, seed import
+```
+
+`:seed-generator` появится на этапе B3. Встроенные категории — [`seed-data/categories.yaml`](seed-data/categories.yaml).
+Stub seed: [`app/src/main/assets/seed/`](app/src/main/assets/seed/).
+
 ## Локальная машина
 
 1. Установите JDK 17 (Temurin, OpenJDK или JBR 17) и задайте `JAVA_HOME`.

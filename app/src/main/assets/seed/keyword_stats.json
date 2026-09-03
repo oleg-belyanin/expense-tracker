@@ -1,0 +1,14 @@
+[
+  {"keyword": "латте", "kind": "word", "category_code": "CAFE", "count": 1},
+  {"keyword": "капучино", "kind": "word", "category_code": "CAFE", "count": 1},
+  {"keyword": "кофе", "kind": "word", "category_code": "CAFE", "count": 1},
+  {"keyword": "кетостерил", "kind": "word", "category_code": "HEALTH", "count": 1},
+  {"keyword": "аспирин", "kind": "word", "category_code": "HEALTH", "count": 1},
+  {"keyword": "врач", "kind": "word", "category_code": "HEALTH", "count": 1},
+  {"keyword": "стоматолог", "kind": "word", "category_code": "HEALTH", "count": 1},
+  {"keyword": "аптека", "kind": "word", "category_code": "HEALTH", "count": 1},
+  {"keyword": "бензин", "kind": "word", "category_code": "TRANSPORT", "count": 1},
+  {"keyword": "хлеб", "kind": "word", "category_code": "GROCERIES", "count": 1},
+  {"keyword": "молоко", "kind": "word", "category_code": "GROCERIES", "count": 1},
+  {"keyword": "непонятная", "kind": "word", "category_code": "OTHER", "count": 1}
+]
