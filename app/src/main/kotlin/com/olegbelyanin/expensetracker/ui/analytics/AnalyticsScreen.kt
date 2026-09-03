@@ -26,15 +26,11 @@ import com.olegbelyanin.expensetracker.R
 import com.olegbelyanin.expensetracker.domain.expense.AnalyticsCategoryRow
 import com.olegbelyanin.expensetracker.domain.expense.AnalyticsSlice
 import com.olegbelyanin.expensetracker.domain.expense.ExpenseListFilter
-import com.olegbelyanin.expensetracker.domain.expense.ExpensePeriodPreset
-import com.olegbelyanin.expensetracker.model.Period
-import com.olegbelyanin.expensetracker.ui.components.BottomSheetSize
 import com.olegbelyanin.expensetracker.ui.components.CategoryAvatar
-import com.olegbelyanin.expensetracker.ui.components.ExpenseBottomSheet
 import com.olegbelyanin.expensetracker.ui.components.ExpenseDatePicker
 import com.olegbelyanin.expensetracker.ui.components.FilterChip
+import com.olegbelyanin.expensetracker.ui.components.PeriodSheet
 import com.olegbelyanin.expensetracker.ui.components.PrimaryButton
-import com.olegbelyanin.expensetracker.ui.components.SelectionRow
 import com.olegbelyanin.expensetracker.ui.components.toVisual
 import com.olegbelyanin.expensetracker.ui.format.ExpenseFormat
 import com.olegbelyanin.expensetracker.ui.navigation.AppTab
@@ -142,6 +138,7 @@ fun AnalyticsScreen(
             onPreset = viewModel::onDraftPreset,
             onApply = viewModel::onApplyPeriod,
             onDismiss = viewModel::onDismissDialog,
+            title = stringResource(R.string.analytics_period_title),
         )
     }
     if (dialog == AnalyticsDialog.CustomStart) {
@@ -346,36 +343,3 @@ private fun EmptyAnalytics(
     }
 }
 
-@Composable
-private fun PeriodSheet(
-    today: LocalDate,
-    draftPreset: ExpensePeriodPreset,
-    draftCustom: Period?,
-    onPreset: (ExpensePeriodPreset) -> Unit,
-    onApply: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val colors = ExpenseTheme.colors
-    val spacing = ExpenseTheme.spacing
-    ExpenseBottomSheet(onDismiss = onDismiss, size = BottomSheetSize.Tall) {
-        Text(
-            text = stringResource(R.string.analytics_period_title),
-            style = ExpenseTheme.typography.titleSection,
-            color = colors.textPrimary,
-            modifier = Modifier.padding(bottom = spacing.xs),
-        )
-        ExpensePeriodPreset.entries.forEach { preset ->
-            SelectionRow(
-                title = ExpenseFormat.periodCaption(preset),
-                subtitle = ExpenseFormat.periodDetail(preset, today, draftCustom),
-                selected = draftPreset == preset,
-                onClick = { onPreset(preset) },
-                modifier = Modifier.padding(bottom = spacing.xs),
-            )
-        }
-        PrimaryButton(
-            label = stringResource(R.string.apply),
-            onClick = onApply,
-        )
-    }
-}

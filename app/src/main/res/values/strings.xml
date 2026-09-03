@@ -132,6 +132,14 @@
     <string name="filter_category_hint">Можно выбрать несколько</string>
     <string name="filter_category_selected">Выбрана</string>
     <string name="filter_category_unselected">Не выбрана</string>
+    <string name="filter_period">Период</string>
+    <string name="filter_period_title">Период</string>
+    <string name="filter_place">Место</string>
+    <string name="filter_place_title">Место</string>
+    <string name="filter_place_hint">Только расходы в выбранном месте</string>
+    <string name="filter_place_empty">Места появятся после расходов с указанием места</string>
+    <string name="filter_place_selected">Выбрано</string>
+    <string name="filter_place_unselected">Не выбрано</string>
     <string name="category_picker_title">Выберите категорию</string>
     <string name="category_picker_hint">Сначала — подходящие к «%1$s»</string>
     <string name="category_picker_hint_empty">Подходящие появятся после названия</string>

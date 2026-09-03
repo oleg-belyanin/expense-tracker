@@ -110,7 +110,14 @@ class AppContainer(context: Context) {
     )
     val themeRepository: ThemeRepository = ThemeRepository(context)
 
-    fun expensesViewModelFactory() = ExpensesViewModel.factory(observeExpenseList, deleteExpense, categoryRepository)
+    fun expensesViewModelFactory() = ExpensesViewModel.factory(
+        observeExpenseList,
+        deleteExpense,
+        categoryRepository,
+        locationRepository,
+        clock,
+        zoneId,
+    )
 
     fun analyticsViewModelFactory() = AnalyticsViewModel.factory(observeAnalytics, clock, zoneId)
 

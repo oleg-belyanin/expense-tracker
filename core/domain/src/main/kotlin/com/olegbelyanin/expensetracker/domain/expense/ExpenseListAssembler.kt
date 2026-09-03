@@ -20,7 +20,6 @@ object ExpenseListAssembler {
         val categoriesById = categories.associateBy { it.id }
         val locationsById = locations.associateBy { it.id }
         val period = ExpensePeriodResolver.resolve(filter.preset, filter.customPeriod, today)
-        val query = filter.query.trim()
         val items = expenses.mapNotNull { expense ->
             val category = categoriesById[expense.categoryId] ?: return@mapNotNull null
             val location = expense.locationId?.let { locationsById[it] }
@@ -39,7 +38,7 @@ object ExpenseListAssembler {
                 spentAt = expense.spentAt,
                 spentOn = spentOn,
             )
-            item.takeIf { matches(it, filter, period, query) }
+            item.takeIf { matchesConstraints(it, filter, period) }
         }.sortedWith(compareByDescending<ExpenseListItem> { it.spentOn }.thenByDescending { it.spentAt })
         val groups = items
             .groupBy { it.spentOn }
@@ -60,7 +59,7 @@ object ExpenseListAssembler {
         )
     }
 
-    private fun matches(item: ExpenseListItem, filter: ExpenseListFilter, period: Period?, query: String): Boolean {
+    private fun matchesConstraints(item: ExpenseListItem, filter: ExpenseListFilter, period: Period?): Boolean {
         if (period != null &&
             (item.spentOn.isBefore(period.startInclusive) || item.spentOn.isAfter(period.endInclusive))
         ) {
@@ -71,12 +70,6 @@ object ExpenseListAssembler {
         }
         if (filter.locationId != null && item.locationId != filter.locationId) {
             return false
-        }
-        if (query.isNotEmpty()) {
-            val haystack = listOfNotNull(item.name, item.locationName, item.comment, item.categoryName)
-            if (haystack.none { it.contains(query, ignoreCase = true) }) {
-                return false
-            }
         }
         return true
     }

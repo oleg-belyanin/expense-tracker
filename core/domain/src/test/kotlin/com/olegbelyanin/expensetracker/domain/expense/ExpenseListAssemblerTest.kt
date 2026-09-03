@@ -46,22 +46,14 @@ class ExpenseListAssemblerTest {
     }
 
     @Test
-    fun searchMatchesNamePlaceCommentAndCategory() {
+    fun textQueryDoesNotDropNormalizedRepositoryHits() {
         val expenses = listOf(
             expense("1", groceries.id, today, "Молоко", 1_000, home.id, "для каши"),
             expense("2", cafe.id, today, "Латте", 2_000),
         )
         assertEquals(
-            listOf("Молоко"),
-            names(expenses, ExpenseListFilter(query = "мага")),
-        )
-        assertEquals(
-            listOf("Молоко"),
-            names(expenses, ExpenseListFilter(query = "КАШИ")),
-        )
-        assertEquals(
-            listOf("Латте"),
-            names(expenses, ExpenseListFilter(query = "кафе")),
+            listOf("Молоко", "Латте"),
+            names(expenses, ExpenseListFilter(query = "молока")),
         )
     }
 
@@ -157,12 +149,13 @@ class ExpenseListAssemblerTest {
             zoneId = zone,
         )
         val noHits = ExpenseListAssembler.build(
-            expenses = listOf(expense("1", groceries.id, today, "Хлеб", 1_000)),
+            expenses = emptyList(),
             categories = listOf(groceries),
             locations = emptyList(),
             filter = ExpenseListFilter(query = "латте"),
             today = today,
             zoneId = zone,
+            storedCount = 1,
         )
         assertTrue(emptyDb.isDatabaseEmpty)
         assertTrue(noHits.isFilterEmpty)
@@ -172,7 +165,7 @@ class ExpenseListAssemblerTest {
     @Test
     fun storedCountCanComeFromRepositoryTotal() {
         val slice = ExpenseListAssembler.build(
-            expenses = listOf(expense("1", groceries.id, today, "Хлеб", 1_000)),
+            expenses = emptyList(),
             categories = listOf(groceries),
             locations = emptyList(),
             filter = ExpenseListFilter(query = "латте"),

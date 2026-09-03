@@ -1,6 +1,7 @@
 package com.olegbelyanin.expensetracker
 
 import com.olegbelyanin.expensetracker.domain.expense.ExpensePeriodPreset
+import com.olegbelyanin.expensetracker.model.Period
 import com.olegbelyanin.expensetracker.ui.analytics.AnalyticsSelection
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -40,5 +41,16 @@ class AnalyticsSelectionTest {
         val filter = selection.toCategoryFilter(7)
         assertEquals(ExpensePeriodPreset.PREVIOUS_MONTH, filter.preset)
         assertEquals(setOf(7L), filter.categoryIds)
+        assertEquals("", filter.query)
+        assertEquals(null, filter.locationId)
+    }
+
+    @Test
+    fun categoryFilterKeepsCustomRange() {
+        val range = Period(LocalDate.of(2026, 8, 1), LocalDate.of(2026, 9, 2))
+        val filter = AnalyticsSelection(ExpensePeriodPreset.CUSTOM, range).toCategoryFilter(3)
+        assertEquals(ExpensePeriodPreset.CUSTOM, filter.preset)
+        assertEquals(range, filter.customPeriod)
+        assertEquals(setOf(3L), filter.categoryIds)
     }
 }
