@@ -13,6 +13,7 @@ import com.olegbelyanin.expensetracker.ui.theme.ExpenseTheme
 enum class ButtonTone {
     Primary,
     Destructive,
+    Subtle,
 }
 
 @Composable
@@ -25,10 +26,15 @@ fun PrimaryButton(
 ) {
     val colors = ExpenseTheme.colors
     val enabledContainer =
-        if (tone == ButtonTone.Destructive) colors.danger else colors.action
+        when (tone) {
+            ButtonTone.Destructive -> colors.danger
+            ButtonTone.Subtle -> colors.surfaceSubtle
+            ButtonTone.Primary -> colors.action
+        }
     val disabledContainer = colors.surfaceSubtle
-    val content =
-        if (enabled) colors.onAction else colors.textSecondary
+    val enabledContent =
+        if (tone == ButtonTone.Subtle) colors.textPrimary else colors.onAction
+    val content = if (enabled) enabledContent else colors.textSecondary
     Button(
         onClick = onClick,
         modifier =
@@ -40,7 +46,7 @@ fun PrimaryButton(
         colors =
         ButtonDefaults.buttonColors(
             containerColor = enabledContainer,
-            contentColor = colors.onAction,
+            contentColor = enabledContent,
             disabledContainerColor = disabledContainer,
             disabledContentColor = content,
         ),

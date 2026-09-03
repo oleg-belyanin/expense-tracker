@@ -12,6 +12,7 @@ import com.olegbelyanin.expensetracker.database.entities.LocationCategoryStatEnt
 import com.olegbelyanin.expensetracker.database.entities.LocationEntity
 import com.olegbelyanin.expensetracker.database.entities.NameCategoryContextEntity
 import com.olegbelyanin.expensetracker.database.entities.NameCategoryContextKeywordEntity
+import com.olegbelyanin.expensetracker.database.learning.CategoryNameExperienceWriter
 import com.olegbelyanin.expensetracker.model.BuiltinCategories
 import com.olegbelyanin.expensetracker.model.KeywordKind
 import kotlinx.serialization.json.Json
@@ -44,12 +45,13 @@ class SeedImporter(
     private suspend fun insertBuiltinCategoriesIfEmpty() {
         if (database.categoryDao().count() > 0) return
         val now = Instant.now().toEpochMilli()
+        val experience = CategoryNameExperienceWriter(database, normalizer)
         BuiltinCategories.all.forEach { spec ->
-            database.categoryDao().insert(
+            val id = database.categoryDao().insert(
                 CategoryEntity(
                     code = spec.code,
                     name = spec.name,
-                    normalizedName = normalizer.normalizePlain(spec.name),
+                    normalizedName = normalizer.analyze(spec.name).normalizedName,
                     color = spec.color,
                     icon = spec.icon,
                     isBuiltin = true,
@@ -57,6 +59,7 @@ class SeedImporter(
                     updatedAt = now,
                 ),
             )
+            experience.writeIfMissing(id, spec.name)
         }
     }
 

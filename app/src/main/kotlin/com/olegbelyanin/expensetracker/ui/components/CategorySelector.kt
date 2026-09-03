@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.olegbelyanin.expensetracker.R
@@ -33,6 +34,7 @@ fun CategorySelector(
     modifier: Modifier = Modifier,
     letter: String = "",
     sourceLabel: String? = null,
+    containerColor: Color? = null,
 ) {
     val colors = ExpenseTheme.colors
     val typography = ExpenseTheme.typography
@@ -70,7 +72,7 @@ fun CategorySelector(
         ) {
             CategoryAvatar(
                 glyph = glyph,
-                containerColor = colors.colorForGlyph(glyph),
+                containerColor = containerColor ?: colors.colorForGlyph(glyph),
                 letter = letter,
             )
             Column(

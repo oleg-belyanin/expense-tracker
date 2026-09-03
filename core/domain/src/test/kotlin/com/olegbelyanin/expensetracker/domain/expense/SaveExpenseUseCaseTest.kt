@@ -156,9 +156,23 @@ private class FakeCategoryRepository(private val categories: List<Category>) : C
 
     override fun observeActiveCategories(): Flow<List<Category>> = MutableStateFlow(categories.filter { it.isActive })
 
+    override fun observeAll(): Flow<List<Category>> = MutableStateFlow(categories)
+
+    override fun observeArchivedCategories(): Flow<List<Category>> =
+        MutableStateFlow(categories.filter { !it.isActive })
+
     override suspend fun findById(id: Long): Category? = categories.find { it.id == id }
 
     override suspend fun requireFallback(): Category = categories.first { it.isFallback }
+
+    override suspend fun createUserCategory(name: String, color: String, icon: String): Category = error("not used")
+
+    override suspend fun updateUserCategory(id: Long, name: String, color: String, icon: String): Category =
+        error("not used")
+
+    override suspend fun archive(id: Long): Category = error("not used")
+
+    override suspend fun restore(id: Long): Category = error("not used")
 }
 
 private class FakeExpenseRepository(vararg initial: Expense) : ExpenseRepository {

@@ -28,6 +28,7 @@ fun PlaceAutocomplete(
     onSuggestionClick: (PlaceSuggestion) -> Unit,
     modifier: Modifier = Modifier,
     error: String? = null,
+    onFocusChange: ((Boolean) -> Unit)? = null,
 ) {
     val colors = ExpenseTheme.colors
     val typography = ExpenseTheme.typography
@@ -42,6 +43,7 @@ fun PlaceAutocomplete(
             onValueChange = onQueryChange,
             kind = FormFieldKind.Text,
             error = error,
+            onFocusChange = onFocusChange,
         )
         if (suggestions.isNotEmpty()) {
             Column(

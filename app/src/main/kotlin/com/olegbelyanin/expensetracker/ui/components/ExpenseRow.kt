@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.olegbelyanin.expensetracker.ui.theme.ExpenseTheme
 
@@ -24,6 +25,7 @@ fun ExpenseRow(
     glyph: CategoryGlyphKey,
     modifier: Modifier = Modifier,
     letter: String = "",
+    containerColor: Color? = null,
     onClick: (() -> Unit)? = null,
 ) {
     val colors = ExpenseTheme.colors
@@ -43,7 +45,7 @@ fun ExpenseRow(
     ) {
         CategoryAvatar(
             glyph = glyph,
-            containerColor = colors.colorForGlyph(glyph),
+            containerColor = containerColor ?: colors.colorForGlyph(glyph),
             letter = letter,
         )
         Column(

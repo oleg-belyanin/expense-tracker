@@ -60,6 +60,7 @@ fun DestructiveDialog(
                 PrimaryButton(
                     label = cancelLabel,
                     onClick = onDismiss,
+                    tone = ButtonTone.Subtle,
                 )
             }
         }

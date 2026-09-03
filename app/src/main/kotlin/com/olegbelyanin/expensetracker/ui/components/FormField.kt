@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -34,6 +35,7 @@ fun FormField(
     kind: FormFieldKind = FormFieldKind.Text,
     error: String? = null,
     onClick: (() -> Unit)? = null,
+    onFocusChange: ((Boolean) -> Unit)? = null,
 ) {
     val colors = ExpenseTheme.colors
     val typography = ExpenseTheme.typography
@@ -69,7 +71,16 @@ fun FormField(
             BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
-                modifier = Modifier.fillMaxWidth(),
+                modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (onFocusChange != null) {
+                            Modifier.onFocusChanged { onFocusChange(it.isFocused) }
+                        } else {
+                            Modifier
+                        },
+                    ),
                 textStyle = typography.bodyPrimary.copy(color = colors.textPrimary),
                 singleLine = true,
                 cursorBrush = SolidColor(colors.action),

@@ -50,6 +50,12 @@ interface LearningDao {
     )
     suspend fun deleteKeywordStat(keywordId: Long, categoryId: Long, source: String)
 
+    @Query("SELECT COUNT(*) FROM keyword_category_stat WHERE category_id = :categoryId AND source = :source")
+    suspend fun countKeywordStats(categoryId: Long, source: String): Long
+
+    @Query("DELETE FROM keyword_category_stat WHERE category_id = :categoryId AND source = :source")
+    suspend fun deleteKeywordStats(categoryId: Long, source: String)
+
     @Query(
         """
         SELECT * FROM location_category_stat
