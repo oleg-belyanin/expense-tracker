@@ -209,8 +209,8 @@ Seed-артефакт **обязан** содержать не только аг
 | S3 | Полный train.csv | 800 строк | B0/B3 | готово 2026-09-03 |
 | S4 | validation.csv | 200 строк | B0/B3 | готово 2026-09-03 |
 | S5 | Валидация формата (скрипт/тест) | CI + `generate_raw_dataset.py` | B3 | скрипт есть, CI — B3 |
-| S6 | Подбор параметров на validation | grid search | B3 | не начат |
-| S7 | Финальный seed-артефакт v1 | assets/seed/ | B3 | не начат |
+| S6 | Подбор параметров на validation | grid search | B3 | готово 2026-09-04 |
+| S7 | Финальный seed-артефакт v1 | assets/seed/ | B3 | готово 2026-09-04 |
 
 Воспроизведение raw CSV: `python3 seed-data/scripts/generate_raw_dataset.py`.
 

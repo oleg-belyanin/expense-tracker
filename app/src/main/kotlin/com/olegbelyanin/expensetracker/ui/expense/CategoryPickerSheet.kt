@@ -54,11 +54,11 @@ fun CategoryPickerSheet(
         } else {
             categories.filter { it.name.contains(needle, ignoreCase = true) }
         }
-    val candidateIds = suggestion?.orderedCandidates?.map { it.categoryId }.orEmpty()
-    val candidates =
-        candidateIds.mapNotNull { id -> visible.find { it.id == id } }
-            .ifEmpty { visible.take(1) }
-    val rest = visible.filter { category -> candidates.none { it.id == category.id } }
+    val ranked = CategorySuggestionUi.rankedCandidates(suggestion)
+    val candidates = ranked.mapNotNull { candidate ->
+        visible.find { it.id == candidate.categoryId }?.let { category -> category to candidate.score }
+    }
+    val rest = visible.filter { category -> candidates.none { it.first.id == category.id } }
         .sortedBy { it.name.lowercase() }
     ExpenseBottomSheet(onDismiss = onDismiss, size = BottomSheetSize.Tall) {
         Text(
@@ -91,8 +91,7 @@ fun CategoryPickerSheet(
         ) {
             if (candidates.isNotEmpty() && needle.isEmpty()) {
                 SectionLabel(stringResource(R.string.category_picker_best))
-                candidates.forEach { category ->
-                    val score = suggestion?.orderedCandidates?.firstOrNull { it.categoryId == category.id }?.score
+                candidates.forEach { (category, score) ->
                     CategoryPickRow(
                         category = category,
                         selected = category.id == selectedId,

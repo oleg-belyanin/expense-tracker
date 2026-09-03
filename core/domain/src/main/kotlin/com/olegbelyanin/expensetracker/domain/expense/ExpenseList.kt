@@ -7,6 +7,9 @@ import java.time.LocalDate
 enum class ExpensePeriodPreset {
     ALL,
     CURRENT_MONTH,
+    PREVIOUS_MONTH,
+    YEAR,
+    CUSTOM,
 }
 
 data class ExpenseListFilter(

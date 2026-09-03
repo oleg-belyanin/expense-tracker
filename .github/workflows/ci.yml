@@ -36,12 +36,13 @@ jobs:
       - name: Check
         run: ./gradlew check
 
-      # После B3: генератор появится в репозитории, шаг начнёт проверять assets.
       - name: Generate and verify committed seed
-        if: hashFiles('seed-generator/build.gradle.kts') != ''
         run: |
           ./gradlew :seed-generator:generateSeed
-          git diff --exit-code -- app/src/main/assets/seed/
+          git diff --exit-code -- \
+            app/src/main/assets/seed/ \
+            seed-data/categorization-config.json \
+            seed-data/reports/seed-v1-validation.json
 
       - name: Assemble debug APK
         run: ./gradlew :app:assembleDebug

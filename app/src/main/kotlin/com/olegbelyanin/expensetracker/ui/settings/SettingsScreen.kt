@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -44,6 +45,7 @@ fun SettingsScreen(themePreference: ThemePreference, onBack: () -> Unit, modifie
     val spacing = ExpenseTheme.spacing
     val container = LocalAppContainer.current
     val scope = rememberCoroutineScope()
+    val rememberedRuleCount by container.observeRememberedRuleCount().collectAsStateWithLifecycle(0)
     var showThemeSheet by remember { mutableStateOf(false) }
     Column(
         modifier =
@@ -101,7 +103,7 @@ fun SettingsScreen(themePreference: ThemePreference, onBack: () -> Unit, modifie
             SettingsRow(
                 title = stringResource(R.string.settings_rules),
                 subtitle = stringResource(R.string.settings_rules_subtitle),
-                value = "0 ›",
+                value = stringResource(R.string.settings_rules_value, rememberedRuleCount),
             )
             SettingsRow(
                 title = stringResource(R.string.settings_clear),

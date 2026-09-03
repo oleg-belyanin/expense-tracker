@@ -14,13 +14,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +34,7 @@ import com.olegbelyanin.expensetracker.ui.components.CategorySelector
 import com.olegbelyanin.expensetracker.ui.components.CategorySelectorState
 import com.olegbelyanin.expensetracker.ui.components.DestructiveDialog
 import com.olegbelyanin.expensetracker.ui.components.ExpenseBottomSheet
+import com.olegbelyanin.expensetracker.ui.components.ExpenseDatePicker
 import com.olegbelyanin.expensetracker.ui.components.FormField
 import com.olegbelyanin.expensetracker.ui.components.FormFieldKind
 import com.olegbelyanin.expensetracker.ui.components.Keypad
@@ -51,10 +46,8 @@ import com.olegbelyanin.expensetracker.ui.components.TextAction
 import com.olegbelyanin.expensetracker.ui.components.toVisual
 import com.olegbelyanin.expensetracker.ui.format.ExpenseFormat
 import com.olegbelyanin.expensetracker.ui.theme.ExpenseTheme
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.ZoneOffset
 
 @Composable
 fun ExpenseEditScreen(
@@ -150,7 +143,11 @@ fun ExpenseEditScreen(
                     if (state.categoryLocked) CategorySelectorState.Manual else CategorySelectorState.Auto,
                     onClick = { viewModel.onOpenSheet(ExpenseEditSheet.Category) },
                     letter = visual.letter,
-                    sourceLabel = sourceLabel(state.categoryLocked, state.suggestion),
+                    sourceLabel = sourceLabel(
+                        locked = state.categoryLocked,
+                        suggestion = state.suggestion,
+                        originalSource = state.originalSource,
+                    ),
                     containerColor = visual.containerColor,
                 )
             }
@@ -294,45 +291,6 @@ private fun AmountSheet(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ExpenseDatePicker(
-    selected: LocalDate,
-    today: LocalDate,
-    onSelected: (LocalDate) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val todayMillis = today.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
-    val state =
-        rememberDatePickerState(
-            initialSelectedDateMillis = selected.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
-            selectableDates =
-            object : SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long): Boolean = utcTimeMillis <= todayMillis
-            },
-        )
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val millis = state.selectedDateMillis ?: return@TextButton
-                    onSelected(Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate())
-                },
-            ) {
-                Text(stringResource(R.string.done))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
-    ) {
-        DatePicker(state = state)
-    }
-}
-
 @Composable
 private fun CreateCategorySheet(
     name: String,
@@ -381,19 +339,26 @@ private fun CategoryNameError.toMessage(): String = when (this) {
 }
 
 @Composable
-private fun sourceLabel(locked: Boolean, suggestion: CategorizationResult?): String {
-    if (locked) return stringResource(R.string.category_source_manual)
-    val result = suggestion ?: return stringResource(R.string.category_source_auto)
-    return when (result.source) {
-        CategoryAssignmentSource.EXACT_USER -> stringResource(R.string.category_source_rule)
+private fun sourceLabel(
+    locked: Boolean,
+    suggestion: CategorizationResult?,
+    originalSource: CategoryAssignmentSource?,
+): String = when (val caption = CategorySuggestionUi.caption(locked, suggestion, originalSource)) {
+    CategorySourceCaption.Manual -> stringResource(R.string.category_source_manual)
 
-        CategoryAssignmentSource.PROBABILISTIC ->
-            stringResource(R.string.category_source_dictionary, ExpenseFormat.scorePercent(result.confidence))
+    CategorySourceCaption.Fallback -> stringResource(R.string.category_source_auto)
 
-        CategoryAssignmentSource.FALLBACK,
-        CategoryAssignmentSource.EXPLICIT,
-        -> stringResource(R.string.category_source_auto)
-    }
+    CategorySourceCaption.UserRule -> stringResource(R.string.category_source_rule)
+
+    is CategorySourceCaption.Dictionary ->
+        if (caption.confidence == null) {
+            stringResource(R.string.category_source_dictionary_plain)
+        } else {
+            stringResource(R.string.category_source_dictionary, ExpenseFormat.scorePercent(caption.confidence))
+        }
+
+    is CategorySourceCaption.Place ->
+        stringResource(R.string.category_source_place, ExpenseFormat.scorePercent(caption.confidence))
 }
 
 private fun amountFieldValue(raw: String): String {

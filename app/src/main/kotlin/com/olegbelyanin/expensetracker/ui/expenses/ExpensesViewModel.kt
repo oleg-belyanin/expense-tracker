@@ -10,6 +10,7 @@ import com.olegbelyanin.expensetracker.domain.expense.ExpenseListSlice
 import com.olegbelyanin.expensetracker.domain.expense.ExpensePeriodPreset
 import com.olegbelyanin.expensetracker.domain.expense.ObserveExpenseListUseCase
 import com.olegbelyanin.expensetracker.model.Category
+import com.olegbelyanin.expensetracker.model.Period
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -31,6 +32,7 @@ class ExpensesViewModel(
 ) : ViewModel() {
     private val query = MutableStateFlow("")
     private val preset = MutableStateFlow(ExpensePeriodPreset.ALL)
+    private val customPeriod = MutableStateFlow<Period?>(null)
     private val categoryIds = MutableStateFlow<Set<Long>>(emptySet())
     private val _toast = MutableStateFlow<SavedExpenseToast?>(null)
     private val _categoryFilterOpen = MutableStateFlow(false)
@@ -38,6 +40,7 @@ class ExpensesViewModel(
 
     val queryText: StateFlow<String> = query.asStateFlow()
     val periodPreset: StateFlow<ExpensePeriodPreset> = preset.asStateFlow()
+    val customPeriodRange: StateFlow<Period?> = customPeriod.asStateFlow()
     val selectedCategoryIds: StateFlow<Set<Long>> = categoryIds.asStateFlow()
     val toast: StateFlow<SavedExpenseToast?> = _toast.asStateFlow()
     val categoryFilterOpen: StateFlow<Boolean> = _categoryFilterOpen.asStateFlow()
@@ -51,8 +54,13 @@ class ExpensesViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val slice: StateFlow<ExpenseListSlice?> =
-        combine(query, preset, categoryIds) { text, period, ids ->
-            ExpenseListFilter(query = text, preset = period, categoryIds = ids)
+        combine(query, preset, customPeriod, categoryIds) { text, period, custom, ids ->
+            ExpenseListFilter(
+                query = text,
+                preset = period,
+                customPeriod = custom,
+                categoryIds = ids,
+            )
         }.flatMapLatest { observeList.observe(it) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -62,6 +70,16 @@ class ExpensesViewModel(
 
     fun onPeriodPreset(value: ExpensePeriodPreset) {
         preset.value = value
+        if (value != ExpensePeriodPreset.CUSTOM) {
+            customPeriod.value = null
+        }
+    }
+
+    fun applyFromAnalytics(filter: ExpenseListFilter) {
+        query.value = ""
+        preset.value = filter.preset
+        customPeriod.value = filter.customPeriod
+        categoryIds.value = filter.categoryIds
     }
 
     fun onToggleCategory(id: Long) {
@@ -83,6 +101,7 @@ class ExpensesViewModel(
     fun onResetFilters() {
         query.value = ""
         preset.value = ExpensePeriodPreset.ALL
+        customPeriod.value = null
         categoryIds.value = emptySet()
     }
 

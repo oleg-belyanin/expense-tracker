@@ -1,0 +1,21 @@
+{
+  "top1Accuracy": 0.8500,
+  "top3Recall": 0.8900,
+  "fallbackRate": 0.1000,
+  "top1Hits": 170,
+  "top3Hits": 178,
+  "fallbackHits": 20,
+  "rows": 200,
+  "keywordFeatures": 940,
+  "locationFeatures": 78,
+  "exactRules": 800,
+  "nameContexts": 800,
+  "params": {
+    "MIN_SEED_SUPPORT": 1,
+    "MIN_SEED_PROBABILITY": 0.55,
+    "MAX_SEED_STRENGTH": 10.00,
+    "NAME_WEIGHT": 1.00,
+    "LOCATION_WEIGHT": 1.00,
+    "LAPLACE_ALPHA": 0.10
+  }
+}

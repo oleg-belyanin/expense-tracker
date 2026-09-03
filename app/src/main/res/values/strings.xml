@@ -20,6 +20,9 @@
     <string name="analytics_empty_title">За %1$s расходов нет</string>
     <string name="analytics_empty_description">Перейдите к соседнему месяцу или выберите другой период.</string>
     <string name="choose_period">Выбрать период</string>
+    <string name="analytics_loading">Считаем структуру расходов</string>
+    <string name="analytics_period_title">Период аналитики</string>
+    <string name="apply">Применить</string>
     <string name="categories_empty_subtitle">0 активных · 0 запомненных правил</string>
     <string name="categories_empty_title">Категорий пока нет</string>
     <string name="categories_empty_description">Встроенный справочник появится вместе с данными.</string>
@@ -70,6 +73,7 @@
     <string name="settings_restore_subtitle">Из файла резервной копии</string>
     <string name="settings_rules">Запомненные правила</string>
     <string name="settings_rules_subtitle">Для автоподстановки</string>
+    <string name="settings_rules_value">%1$d ›</string>
     <string name="settings_clear">Очистить историю</string>
     <string name="settings_clear_subtitle">Категории и правила сохранятся</string>
     <string name="theme_sheet_title">Тема оформления</string>
@@ -89,11 +93,14 @@
     <string name="field_name">Название</string>
     <string name="field_comment">Комментарий</string>
     <string name="field_category">Категория</string>
+    <string name="field_category_auto">Категория · подобрана автоматически</string>
     <string name="field_place">Место</string>
     <string name="field_category_name">Название категории</string>
     <string name="category_source_auto">Определено автоматически</string>
     <string name="category_source_manual">Выбрано вручную</string>
     <string name="category_source_dictionary">по словарю · уверенность %1$s</string>
+    <string name="category_source_dictionary_plain">по словарю</string>
+    <string name="category_source_place">по месту · уверенность %1$s</string>
     <string name="category_source_rule">по вашему правилу</string>
     <string name="keypad_backspace">⌫</string>
     <string name="cancel">Отмена</string>

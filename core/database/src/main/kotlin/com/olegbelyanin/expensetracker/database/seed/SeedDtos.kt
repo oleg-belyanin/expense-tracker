@@ -34,3 +34,10 @@ data class SeedNameContextDto(
 
 @Serializable
 data class SeedExactRuleDto(val normalized_name: String, val category_code: String)
+
+data class SeedSnapshot(
+    val keywordStats: List<SeedKeywordStatDto> = emptyList(),
+    val locationStats: List<SeedLocationStatDto> = emptyList(),
+    val contexts: List<SeedNameContextDto> = emptyList(),
+    val exactRules: List<SeedExactRuleDto> = emptyList(),
+)

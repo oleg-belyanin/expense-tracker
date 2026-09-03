@@ -188,7 +188,7 @@ DoD: `./gradlew check` зелёный на пустом каркасе и ост
 
 ### Этап I3. CI/CD — 1,5–2 ч
 
-Статус: выполнено 2026-09-03 (каркас). Шаги seed включатся после B3.
+Статус: выполнено 2026-09-03 (каркас), seed-шаги включены 2026-09-04.
 
 GitHub Actions (или аналог хостинга репозитория). Публикация в магазины
 не входит.
@@ -287,6 +287,8 @@ DoD: удаление категории не теряет расходы; ре�
 
 ### Этап B3. Категоризация, seed-генератор и runtime-обучение — 8–10 ч
 
+Статус: выполнено 2026-09-04.
+
 Чистый `:core:categorization`, без Android API, плюс `:seed-generator` по
 [`seed-dataset-plan.md`](./seed-dataset-plan.md).
 
@@ -295,18 +297,32 @@ DoD: удаление категории не теряет расходы; ре�
 1. `TextNormalizer` + Snowball (скопированный исходник, не Lucene). Сделано 2026-09-03:
    официальный `libstemmer_java-3.1.1`, только runtime + `russianStemmer`.
 2. Последовательность §10.1: local exact → alias → seed exact → векторы → fallback.
-3. Exact rule только после явного выбора или исправления.
+   Сделано 2026-09-03: чистый `CategorizationEngine` + `RoomCategorizationCatalog`.
+3. Exact rule только после явного выбора или исправления. Сделано 2026-09-03:
+   `EXPLICIT`/`CORRECTION`; правка расхода больше не помечает сохранение как явный выбор.
 4. Принятая автоподстановка пишет `learning_example` и `name_category_context`,
-   но не exact rule.
-5. Транзиты для полностью перешедших слов.
+   но не exact rule. Сделано 2026-09-04: `AUTO_ACCEPTED` пишет example+context
+   и пользовательские агрегаты; exact rule только у `EXPLICIT`/`CORRECTION`.
+5. Транзиты для полностью перешедших слов. Сделано 2026-09-04: полный переход
+   по `name_category_context`, одно активное слово, деактивация по `Pbase`.
 6. `CategorizationResult` с `source`, `confidence`, `orderedCandidates`,
    `matchedFeatures` — фронт показывает подпись как в `116:6` / `117:2`.
-7. Импорт и фоновый пересчёт не обучают.
-8. F-11: очистка расходов обнуляет `expense_id`, правила остаются.
-9. Счётчик запомненных правил для строки настроек.
+   Сделано 2026-09-04: «по словарю · уверенность 87%», топ-3 в picker.
+7. Импорт и фоновый пересчёт не обучают. Сделано 2026-09-04:
+   `ImportExpensesUseCase` / `RecalculateCategoriesUseCase` пишут `interactive=false`;
+   явный выбор при пересчёте не трогается; exact rule и examples не создаются.
+8. F-11: очистка расходов обнуляет `expense_id`, правила остаются. Сделано 2026-09-04:
+   `ClearExpenseHistoryUseCase` удаляет `expense`; examples отвязываются, exact rules,
+   context, транзиты и пользовательские агрегаты сохраняются.
+9. Счётчик запомненных правил для строки настроек. Сделано 2026-09-04:
+   только `explicit`/`correction`; seed и принятая автоподстановка не входят.
 10. Импорт seed из `assets/seed/` при первом запуске; идempotent update §15 `AD-CAT-001`.
+    Сделано 2026-09-04: `SeedWriter` заменяет только `source=seed`; user context / exact
+    rule не трогает; после обновления перепроверяет активные транзиты.
 
 **Seed-датасет и `:seed-generator`:**
+
+Сделано 2026-09-04.
 
 1. Raw CSV уже в репозитории: train **800** + validation **200**
    (`python3 seed-data/scripts/generate_raw_dataset.py`).
@@ -314,7 +330,7 @@ DoD: удаление категории не теряет расходы; ре�
    для транзитов §19.7), `SeedFilter`, `ValidationRunner`, `SeedArtifactWriter`.
 3. Gradle-задача `:seed-generator:generateSeed` → `app/src/main/assets/seed/`.
 4. Grid search параметров на validation; фиксация в `seed-data/categorization-config.json`.
-5. Целевые метрики: top-1 ≥ 85 %, fallback OTHER < 15 %.
+5. Целевые метрики: top-1 **85 %**, fallback OTHER **10 %**.
 6. Golden-строки из §5.2 seed-плана покрыты unit-тестами.
 
 Параметры — одна версионированная конфигурация, не размазаны по коду.
@@ -428,6 +444,8 @@ DoD: 5 000 записей скроллятся без заметных пауз.
 - «Прочее» без действия архива.
 
 ### Этап F4. Аналитика и F-07 — 3–4 ч
+
+Статус: выполнено 2026-09-03.
 
 Экраны `27:105`–`27:108`.
 

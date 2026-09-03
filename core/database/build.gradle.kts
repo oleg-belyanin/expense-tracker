@@ -38,4 +38,5 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     ksp(libs.androidx.room3.compiler)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

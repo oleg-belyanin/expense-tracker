@@ -3,9 +3,11 @@ package com.olegbelyanin.expensetracker.ui.format
 import com.olegbelyanin.expensetracker.domain.expense.DayRelative
 import com.olegbelyanin.expensetracker.domain.expense.ExpensePeriodPreset
 import com.olegbelyanin.expensetracker.model.Location
+import com.olegbelyanin.expensetracker.model.Period
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 import java.util.Locale
 
@@ -29,10 +31,109 @@ object ExpenseFormat {
         return if (fraction == 0) major.toString() else "$major,${fraction.toString().padStart(2, '0')}"
     }
 
-    fun periodSubtitle(preset: ExpensePeriodPreset, today: LocalDate): String = when (preset) {
+    fun periodSubtitle(preset: ExpensePeriodPreset, today: LocalDate, custom: Period? = null): String = when (preset) {
         ExpensePeriodPreset.ALL -> "За всё время"
+
         ExpensePeriodPreset.CURRENT_MONTH -> "В ${MONTHS_PREPOSITIONAL[today.monthValue - 1]}"
+
+        ExpensePeriodPreset.PREVIOUS_MONTH -> {
+            val month = today.minusMonths(1)
+            "В ${MONTHS_PREPOSITIONAL[month.monthValue - 1]}"
+        }
+
+        ExpensePeriodPreset.YEAR -> "В ${today.year} году"
+
+        ExpensePeriodPreset.CUSTOM -> custom?.let { dateRange(it) } ?: "Произвольный диапазон"
     }
+
+    fun monthYear(month: YearMonth, capitalize: Boolean = false): String {
+        val name = MONTHS_NOMINATIVE[month.monthValue - 1]
+        val label = if (capitalize) name.replaceFirstChar { it.titlecase(Locale("ru")) } else name
+        return "$label ${month.year}"
+    }
+
+    fun periodCaption(preset: ExpensePeriodPreset): String = when (preset) {
+        ExpensePeriodPreset.ALL -> "Всё время"
+        ExpensePeriodPreset.CURRENT_MONTH -> "Текущий месяц"
+        ExpensePeriodPreset.PREVIOUS_MONTH -> "Предыдущий месяц"
+        ExpensePeriodPreset.YEAR -> "Текущий год"
+        ExpensePeriodPreset.CUSTOM -> "Произвольный диапазон"
+    }
+
+    fun periodTitle(preset: ExpensePeriodPreset, today: LocalDate, custom: Period? = null): String = when (preset) {
+        ExpensePeriodPreset.ALL -> "Всё время"
+
+        ExpensePeriodPreset.CURRENT_MONTH -> monthYear(YearMonth.from(today), capitalize = true)
+
+        ExpensePeriodPreset.PREVIOUS_MONTH ->
+            monthYear(YearMonth.from(today).minusMonths(1), capitalize = true)
+
+        ExpensePeriodPreset.YEAR -> yearToDate(today)
+
+        ExpensePeriodPreset.CUSTOM -> custom?.let { dateRange(it) } ?: yearToDate(today)
+    }
+
+    fun periodDetail(preset: ExpensePeriodPreset, today: LocalDate, custom: Period? = null): String = when (preset) {
+        ExpensePeriodPreset.ALL -> "Все сохранённые расходы"
+
+        ExpensePeriodPreset.CURRENT_MONTH -> monthYear(YearMonth.from(today))
+
+        ExpensePeriodPreset.PREVIOUS_MONTH -> monthYear(YearMonth.from(today).minusMonths(1))
+
+        ExpensePeriodPreset.YEAR -> yearToDate(today)
+
+        ExpensePeriodPreset.CUSTOM -> custom?.let { dateRange(it) } ?: dateRange(
+            Period(today.minusMonths(1).withDayOfMonth(1), today),
+        )
+    }
+
+    fun analyticsHeader(
+        totalMinor: Long,
+        preset: ExpensePeriodPreset,
+        today: LocalDate,
+        custom: Period? = null,
+    ): String = "${money(totalMinor)} · ${headerPeriod(preset, today, custom)}"
+
+    fun shareLine(amountMinor: Long, percent: Int): String = "${money(amountMinor)} · $percent%"
+
+    fun dateRange(period: Period): String {
+        val start = period.startInclusive
+        val end = period.endInclusive
+        val startText = "${start.dayOfMonth} ${MONTHS_GENITIVE[start.monthValue - 1]}"
+        val endText = "${end.dayOfMonth} ${MONTHS_GENITIVE[end.monthValue - 1]}"
+        return if (start.year == end.year) {
+            "$startText — $endText"
+        } else {
+            "$startText ${start.year} — $endText ${end.year}"
+        }
+    }
+
+    fun periodChip(preset: ExpensePeriodPreset, today: LocalDate, custom: Period? = null): String = when (preset) {
+        ExpensePeriodPreset.ALL -> "Все"
+
+        ExpensePeriodPreset.CURRENT_MONTH -> "Месяц"
+
+        ExpensePeriodPreset.PREVIOUS_MONTH ->
+            MONTHS_SHORT[today.minusMonths(1).monthValue - 1]
+
+        ExpensePeriodPreset.YEAR -> today.year.toString()
+
+        ExpensePeriodPreset.CUSTOM -> custom?.let { shortRange(it) } ?: "Период"
+    }
+
+    fun emptyPeriodLabel(preset: ExpensePeriodPreset, today: LocalDate, custom: Period? = null): String =
+        when (preset) {
+            ExpensePeriodPreset.ALL -> "всё время"
+
+            ExpensePeriodPreset.CURRENT_MONTH -> MONTHS_NOMINATIVE[today.monthValue - 1]
+
+            ExpensePeriodPreset.PREVIOUS_MONTH ->
+                MONTHS_NOMINATIVE[today.minusMonths(1).monthValue - 1]
+
+            ExpensePeriodPreset.YEAR -> "${today.year} год"
+
+            ExpensePeriodPreset.CUSTOM -> custom?.let { dateRange(it) } ?: "выбранный период"
+        }
 
     fun dayHeader(date: LocalDate, relative: DayRelative): String = when (relative) {
         DayRelative.TODAY -> "Сегодня"
@@ -88,6 +189,30 @@ object ExpenseFormat {
 
     fun scorePercent(score: Double): String = "${(score * 100).toInt()}%"
 
+    private fun headerPeriod(preset: ExpensePeriodPreset, today: LocalDate, custom: Period?): String = when (preset) {
+        ExpensePeriodPreset.ALL -> "всё время"
+        ExpensePeriodPreset.CURRENT_MONTH -> monthYear(YearMonth.from(today))
+        ExpensePeriodPreset.PREVIOUS_MONTH -> monthYear(YearMonth.from(today).minusMonths(1))
+        ExpensePeriodPreset.YEAR -> today.year.toString()
+        ExpensePeriodPreset.CUSTOM -> custom?.let { dateRange(it) } ?: monthYear(YearMonth.from(today))
+    }
+
+    private fun yearToDate(today: LocalDate): String {
+        val start = MONTHS_NOMINATIVE[0].replaceFirstChar { it.titlecase(Locale("ru")) }
+        val end = MONTHS_NOMINATIVE[today.monthValue - 1]
+        return "$start — $end ${today.year}"
+    }
+
+    private fun shortRange(period: Period): String {
+        val start = period.startInclusive
+        val end = period.endInclusive
+        return if (start.month == end.month && start.year == end.year) {
+            MONTHS_SHORT[start.monthValue - 1]
+        } else {
+            "${MONTHS_SHORT[start.monthValue - 1]}–${MONTHS_SHORT[end.monthValue - 1]}"
+        }
+    }
+
     private val MONTHS_PREPOSITIONAL = listOf(
         "январе", "феврале", "марте", "апреле", "мае", "июне",
         "июле", "августе", "сентябре", "октябре", "ноябре", "декабре",
@@ -95,5 +220,13 @@ object ExpenseFormat {
     private val MONTHS_GENITIVE = listOf(
         "января", "февраля", "марта", "апреля", "мая", "июня",
         "июля", "августа", "сентября", "октября", "ноября", "декабря",
+    )
+    private val MONTHS_NOMINATIVE = listOf(
+        "январь", "февраль", "март", "апрель", "май", "июнь",
+        "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь",
+    )
+    private val MONTHS_SHORT = listOf(
+        "Янв", "Фев", "Мар", "Апр", "Май", "Июн",
+        "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек",
     )
 }

@@ -19,13 +19,14 @@
 ```text
 :app                  UI, Application, AppContainer
 :core:model           Expense, Category, Location, Money, Period
-:core:categorization  TextNormalizer + русский Snowball 3.1.1 (не Lucene)
+:core:categorization  TextNormalizer + Snowball 3.1.1, CategorizationEngine (§10.1)
 :core:domain          use case и интерфейсы repository
 :core:database        Room 3, Bundled SQLite, FTS5, seed import
+:seed-generator       CLI: train/validation CSV → assets/seed/
 ```
 
-`:seed-generator` появится на этапе B3. Встроенные категории — [`seed-data/categories.yaml`](seed-data/categories.yaml).
-Stub seed: [`app/src/main/assets/seed/`](app/src/main/assets/seed/).
+Встроенные категории — [`seed-data/categories.yaml`](seed-data/categories.yaml).
+Seed-артефакт: [`app/src/main/assets/seed/`](app/src/main/assets/seed/).
 
 ## Категории (F-02)
 
@@ -111,8 +112,8 @@ Stub seed: [`app/src/main/assets/seed/`](app/src/main/assets/seed/).
 
 1. JDK 17 + Android SDK + кэш Gradle;
 2. `./gradlew check` (ktlint, Android Lint, JVM-тесты);
-3. после этапа B3 — `./gradlew :seed-generator:generateSeed` и сверка
-   `app/src/main/assets/seed/` с генерацией;
+3. `./gradlew :seed-generator:generateSeed` и сверка `app/src/main/assets/seed/`
+   с генерацией;
 4. `./gradlew :app:assembleDebug`;
 5. debug APK как artifact (хранение 7 дней).
 
@@ -171,6 +172,30 @@ $ANDROID_HOME/emulator/emulator -avd ExpenseTracker_360 &
 На эмуляторе проверяют режим полёта (F-08), системную светлую/тёмную тему
 и SAF для экспорта/backup. Инструментальные тесты Room/FTS и Compose UI
 гоняют только на этом AVD, не в CI.
+
+## Категоризация
+
+Это не ML: детерминированный вероятностный словарь из размеченных примеров.
+Один `TextNormalizer` (NFKC, ё→е, стоп-слова, русский Snowball) у приложения
+и у `:seed-generator`.
+
+Последовательность решения (§10.1):
+
+1. пользовательское exact rule;
+2. alias по имени категории;
+3. seed exact rule;
+4. средний вектор слов названия, затем смесь с вектором места;
+5. fallback «Прочее».
+
+Cold start: 800 train + 200 validation строк в [`seed-data/raw/`](seed-data/raw/).
+Генерация артефакта:
+
+```bash
+./gradlew :seed-generator:generateSeed
+```
+
+Записанные параметры — [`seed-data/categorization-config.json`](seed-data/categorization-config.json)
+(копия в assets). Validation seed v1: top-1 **85 %**, fallback **10 %**.
 
 ## Документация
 

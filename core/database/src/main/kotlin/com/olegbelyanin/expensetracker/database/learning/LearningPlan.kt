@@ -5,6 +5,7 @@ import com.olegbelyanin.expensetracker.model.CategoryAssignmentSource
 internal data class LearningFingerprint(val normalizedName: String, val categoryId: Long, val locationId: Long?)
 
 internal data class LearningPlan(
+    /** `learning_example`, `name_category_context` и пользовательские агрегаты. */
     val writeLearning: Boolean,
     val bumpLocationId: Long?,
     val unbumpLocationId: Long?,
@@ -15,6 +16,7 @@ internal data class LearningPlan(
 
 internal object LearningPlanner {
     const val SOURCE_USER = "user"
+    const val SOURCE_SEED = "seed"
     const val AUTO_ACCEPTED = "auto_accepted"
     const val EXPLICIT = "explicit"
     const val CORRECTION = "correction"
@@ -24,7 +26,9 @@ internal object LearningPlanner {
         previous: LearningFingerprint?,
         next: LearningFingerprint,
         source: CategoryAssignmentSource,
+        /** Импорт и фоновый пересчёт: категория пишется, обучение — нет (§11.1 AD-CAT-001). */
         interactive: Boolean,
+        proposedCategoryId: Long? = null,
     ): LearningPlan {
         val locationChanged = previous?.locationId != next.locationId
         val bumpLocationId = when {
@@ -59,9 +63,10 @@ internal object LearningPlanner {
             )
         }
         val previousCategoryId = previous?.categoryId
-        val categoryChanged = previousCategoryId != null && previousCategoryId != next.categoryId
+        val savedCategoryChanged = previousCategoryId != null && previousCategoryId != next.categoryId
+        val proposedCorrection = !hadExpense && proposedCategoryId != null && proposedCategoryId != next.categoryId
         val feedbackType = when {
-            categoryChanged -> CORRECTION
+            savedCategoryChanged || proposedCorrection -> CORRECTION
             source == CategoryAssignmentSource.EXPLICIT -> EXPLICIT
             else -> AUTO_ACCEPTED
         }
@@ -70,8 +75,31 @@ internal object LearningPlanner {
             bumpLocationId = bumpLocationId,
             unbumpLocationId = unbumpLocationId,
             feedbackType = feedbackType,
-            writeExactRule = feedbackType == EXPLICIT || feedbackType == CORRECTION,
-            transitionFromCategoryId = if (categoryChanged) previousCategoryId else null,
+            writeExactRule = writesExactRule(feedbackType),
+            transitionFromCategoryId = when {
+                savedCategoryChanged -> previousCategoryId
+                proposedCorrection -> proposedCategoryId
+                else -> null
+            },
         )
+    }
+
+    fun writesExactRule(feedbackType: String): Boolean = feedbackType == EXPLICIT || feedbackType == CORRECTION
+
+    fun shouldWriteNameContext(normalizedName: String): Boolean = normalizedName.isNotEmpty()
+
+    fun exactRuleSource(feedbackType: String): String = if (feedbackType == CORRECTION) CORRECTION else EXPLICIT
+
+    fun shouldUpsertExactRule(
+        normalizedName: String,
+        existingCategoryId: Long?,
+        existingSource: String?,
+        categoryId: Long,
+        ruleSource: String,
+    ): Boolean {
+        if (normalizedName.isEmpty()) return false
+        if (existingCategoryId == null) return true
+        if (existingCategoryId != categoryId) return true
+        return existingSource != ruleSource
     }
 }

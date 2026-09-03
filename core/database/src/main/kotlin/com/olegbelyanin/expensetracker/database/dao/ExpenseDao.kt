@@ -13,6 +13,12 @@ interface ExpenseDao {
     @Query("SELECT * FROM expense WHERE id = :id LIMIT 1")
     suspend fun findById(id: String): ExpenseEntity?
 
+    @Query("SELECT * FROM expense WHERE dedup_key = :dedupKey LIMIT 1")
+    suspend fun findByDedupKey(dedupKey: String): ExpenseEntity?
+
+    @Query("SELECT * FROM expense ORDER BY spent_at DESC, created_at DESC")
+    suspend fun getAll(): List<ExpenseEntity>
+
     @Query("SELECT * FROM expense ORDER BY spent_at DESC, created_at DESC")
     fun observeAll(): Flow<List<ExpenseEntity>>
 
@@ -24,4 +30,7 @@ interface ExpenseDao {
 
     @Query("DELETE FROM expense WHERE id = :id")
     suspend fun deleteById(id: String)
+
+    @Query("DELETE FROM expense")
+    suspend fun deleteAll()
 }

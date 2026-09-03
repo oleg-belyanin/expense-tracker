@@ -10,6 +10,7 @@ import com.olegbelyanin.expensetracker.domain.category.CategoryNameError
 import com.olegbelyanin.expensetracker.domain.category.CreateCategoryResult
 import com.olegbelyanin.expensetracker.domain.category.CreateCategoryUseCase
 import com.olegbelyanin.expensetracker.domain.expense.AmountFieldError
+import com.olegbelyanin.expensetracker.domain.expense.CategoryAssignment
 import com.olegbelyanin.expensetracker.domain.expense.DeleteExpenseUseCase
 import com.olegbelyanin.expensetracker.domain.expense.ExpenseInputValidator
 import com.olegbelyanin.expensetracker.domain.expense.NameFieldError
@@ -57,6 +58,7 @@ data class ExpenseEditUiState(
     val categories: List<Category> = emptyList(),
     val suggestion: CategorizationResult? = null,
     val categoryLocked: Boolean = false,
+    val originalSource: CategoryAssignmentSource? = null,
     val locationSuggestions: List<Location> = emptyList(),
     val locationFocused: Boolean = false,
     val sheet: ExpenseEditSheet = ExpenseEditSheet.None,
@@ -124,7 +126,8 @@ class ExpenseEditViewModel(
                 locationName = locationName,
                 comment = expense.comment.orEmpty(),
                 category = category,
-                categoryLocked = true,
+                categoryLocked = expense.categoryAssignmentSource == CategoryAssignmentSource.EXPLICIT,
+                originalSource = expense.categoryAssignmentSource,
                 suggestion = null,
             )
         }
@@ -160,7 +163,7 @@ class ExpenseEditViewModel(
     }
 
     fun onNameChange(value: String) {
-        _state.update { it.copy(name = value, nameTouched = true) }
+        _state.update { it.copy(name = value, nameTouched = true, categoryLocked = false) }
         scheduleSuggest()
     }
 
@@ -169,7 +172,7 @@ class ExpenseEditViewModel(
     }
 
     fun onLocationChange(value: String) {
-        _state.update { it.copy(locationName = value, locationFocused = true) }
+        _state.update { it.copy(locationName = value, locationFocused = true, categoryLocked = false) }
         scheduleLocations(value)
         scheduleSuggest()
     }
@@ -187,6 +190,7 @@ class ExpenseEditViewModel(
                 locationName = location.name,
                 locationSuggestions = emptyList(),
                 locationFocused = false,
+                categoryLocked = false,
             )
         }
         scheduleSuggest()
@@ -228,12 +232,11 @@ class ExpenseEditViewModel(
         val category = current.category ?: return
         _state.update { it.copy(attemptedSave = true, saving = true) }
         viewModelScope.launch {
-            val source =
-                if (current.categoryLocked) {
-                    CategoryAssignmentSource.EXPLICIT
-                } else {
-                    current.suggestion?.source ?: CategoryAssignmentSource.FALLBACK
-                }
+            val source = CategoryAssignment.sourceForSave(
+                userPicked = current.categoryLocked,
+                suggestionSource = current.suggestion?.source,
+                originalSource = current.originalSource,
+            )
             val result = saveExpense(
                 SaveExpenseCommand(
                     id = expenseId,

@@ -18,7 +18,7 @@ object ExpenseListAssembler {
     ): ExpenseListSlice {
         val categoriesById = categories.associateBy { it.id }
         val locationsById = locations.associateBy { it.id }
-        val period = resolvePeriod(filter, today)
+        val period = ExpensePeriodResolver.resolve(filter.preset, filter.customPeriod, today)
         val query = filter.query.trim()
         val items = expenses.mapNotNull { expense ->
             val category = categoriesById[expense.categoryId] ?: return@mapNotNull null
@@ -80,13 +80,5 @@ object ExpenseListAssembler {
         today -> DayRelative.TODAY
         today.minusDays(1) -> DayRelative.YESTERDAY
         else -> DayRelative.OTHER
-    }
-
-    private fun resolvePeriod(filter: ExpenseListFilter, today: LocalDate): Period? {
-        filter.customPeriod?.let { return it }
-        return when (filter.preset) {
-            ExpensePeriodPreset.ALL -> null
-            ExpensePeriodPreset.CURRENT_MONTH -> Period(today.withDayOfMonth(1), today)
-        }
     }
 }

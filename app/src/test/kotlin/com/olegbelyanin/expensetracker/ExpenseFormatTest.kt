@@ -2,11 +2,13 @@ package com.olegbelyanin.expensetracker
 
 import com.olegbelyanin.expensetracker.domain.expense.DayRelative
 import com.olegbelyanin.expensetracker.domain.expense.ExpensePeriodPreset
+import com.olegbelyanin.expensetracker.model.Period
 import com.olegbelyanin.expensetracker.ui.format.ExpenseFormat
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
+import java.time.YearMonth
 
 class ExpenseFormatTest {
     private val today = LocalDate.of(2026, 9, 3)
@@ -24,6 +26,24 @@ class ExpenseFormatTest {
     fun periodAndDayLabels() {
         assertEquals("За всё время", ExpenseFormat.periodSubtitle(ExpensePeriodPreset.ALL, today))
         assertEquals("В сентябре", ExpenseFormat.periodSubtitle(ExpensePeriodPreset.CURRENT_MONTH, today))
+        assertEquals("В августе", ExpenseFormat.periodSubtitle(ExpensePeriodPreset.PREVIOUS_MONTH, today))
+        assertEquals("В 2026 году", ExpenseFormat.periodSubtitle(ExpensePeriodPreset.YEAR, today))
+        assertEquals(
+            "1 августа — 2 сентября",
+            ExpenseFormat.periodSubtitle(
+                ExpensePeriodPreset.CUSTOM,
+                today,
+                Period.of(LocalDate.of(2026, 8, 1), LocalDate.of(2026, 9, 2)),
+            ),
+        )
+        assertEquals("Сентябрь 2026", ExpenseFormat.monthYear(YearMonth.of(2026, 9), capitalize = true))
+        val share = ExpenseFormat.shareLine(2_416_000, 50)
+        assertTrue(share.contains("24"))
+        assertTrue(share.endsWith("50%"))
+        assertTrue(
+            ExpenseFormat.analyticsHeader(4_832_000, ExpensePeriodPreset.CURRENT_MONTH, today)
+                .endsWith("сентябрь 2026"),
+        )
         assertEquals("Сегодня", ExpenseFormat.dayHeader(today, DayRelative.TODAY))
         assertEquals("Сегодня, 3 сентября", ExpenseFormat.formDate(today, today))
         assertEquals("Вчера, 2 сентября", ExpenseFormat.formDate(today.minusDays(1), today))
@@ -45,5 +65,12 @@ class ExpenseFormatTest {
         assertEquals("36 расходов", ExpenseFormat.expenseCount(36))
         assertEquals("сегодня", ExpenseFormat.archivedDay(today, today))
         assertEquals("1 сентября", ExpenseFormat.archivedDay(LocalDate.of(2026, 9, 1), today))
+    }
+
+    @Test
+    fun scorePercentMatchesPickerCaption() {
+        assertEquals("87%", ExpenseFormat.scorePercent(0.87))
+        assertEquals("9%", ExpenseFormat.scorePercent(0.09))
+        assertEquals("2%", ExpenseFormat.scorePercent(0.02))
     }
 }

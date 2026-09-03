@@ -5,6 +5,7 @@ import com.olegbelyanin.expensetracker.model.CategoryAssignmentSource
 import com.olegbelyanin.expensetracker.model.Expense
 import com.olegbelyanin.expensetracker.model.Location
 import com.olegbelyanin.expensetracker.model.Money
+import com.olegbelyanin.expensetracker.model.Period
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -86,6 +87,37 @@ class ExpenseListAssemblerTest {
         assertEquals(1_000, slice.totalMinor)
         assertEquals(3, slice.storedCount)
         assertTrue(!slice.isFilterEmpty)
+    }
+
+    @Test
+    fun previousMonthAndInvertedCustomRangeMatchAnalytics() {
+        val expenses = listOf(
+            expense("aug", groceries.id, LocalDate.of(2026, 8, 15), "Арбуз", 4_000),
+            expense("sep", cafe.id, today, "Латте", 2_000),
+        )
+        val previous = ExpenseListAssembler.build(
+            expenses = expenses,
+            categories = listOf(groceries, cafe),
+            locations = emptyList(),
+            filter = ExpenseListFilter(preset = ExpensePeriodPreset.PREVIOUS_MONTH),
+            today = today,
+            zoneId = zone,
+        )
+        val custom = ExpenseListAssembler.build(
+            expenses = expenses,
+            categories = listOf(groceries, cafe),
+            locations = emptyList(),
+            filter = ExpenseListFilter(
+                preset = ExpensePeriodPreset.CUSTOM,
+                customPeriod = Period.of(LocalDate.of(2026, 9, 3), LocalDate.of(2026, 9, 1)),
+                categoryIds = setOf(cafe.id),
+            ),
+            today = today,
+            zoneId = zone,
+        )
+        assertEquals(4_000, previous.totalMinor)
+        assertEquals(2_000, custom.totalMinor)
+        assertEquals(listOf("Латте"), custom.groups.flatMap { it.items }.map { it.name })
     }
 
     @Test

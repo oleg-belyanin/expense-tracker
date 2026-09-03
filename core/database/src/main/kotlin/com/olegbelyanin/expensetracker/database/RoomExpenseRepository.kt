@@ -25,6 +25,11 @@ class RoomExpenseRepository(
 
     override suspend fun get(id: String): Expense? = database.expenseDao().findById(id)?.toDomain()
 
+    override suspend fun getAll(): List<Expense> = database.expenseDao().getAll().map { it.toDomain() }
+
+    override suspend fun findByDedupKey(dedupKey: String): Expense? =
+        database.expenseDao().findByDedupKey(dedupKey)?.toDomain()
+
     override fun observeAll(): Flow<List<Expense>> =
         database.expenseDao().observeAll().map { rows -> rows.map { it.toDomain() } }
 
@@ -38,6 +43,13 @@ class RoomExpenseRepository(
             existing.locationId?.let { decrementLocationUsage(it, Instant.now(clock).toEpochMilli()) }
             database.expenseDao().deleteById(id)
         }
+    }
+
+    override suspend fun clearHistory(): Int = database.withWriteTransaction {
+        val deleted = database.expenseDao().getAll().size
+        database.learningDao().detachExamplesFromExpenses()
+        database.expenseDao().deleteAll()
+        deleted
     }
 
     private suspend fun persistInTransaction(request: PersistExpenseRequest): Expense {
@@ -63,6 +75,7 @@ class RoomExpenseRepository(
             next = nextFingerprint,
             source = request.categoryAssignmentSource,
             interactive = request.interactive,
+            proposedCategoryId = request.proposedCategoryId,
         )
         val unchangedExpense = existing != null &&
             existing.amountMinor == request.amount.minor &&
@@ -87,7 +100,7 @@ class RoomExpenseRepository(
             locationId = locationId,
             comment = request.comment,
             categoryAssignmentSource = request.categoryAssignmentSource.storageValue(),
-            dedupKey = existing?.dedupKey ?: userDedupKey(request.id),
+            dedupKey = existing?.dedupKey ?: request.dedupKey ?: userDedupKey(request.id),
             createdAt = existing?.createdAt ?: now,
             updatedAt = existing?.updatedAt?.takeIf { unchangedExpense } ?: now,
         )
@@ -105,6 +118,7 @@ class RoomExpenseRepository(
             proposedCategoryId = request.proposedCategoryId ?: existing?.categoryId,
             plan = plan,
             now = now,
+            activeCategoryIds = database.categoryDao().getActive().map { it.id }.toSet(),
         )
         return entity.toDomain()
     }

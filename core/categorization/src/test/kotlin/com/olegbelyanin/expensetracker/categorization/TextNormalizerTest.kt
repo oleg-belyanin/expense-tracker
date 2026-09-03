@@ -90,6 +90,20 @@ class TextNormalizerTest {
     }
 
     @Test
+    fun goldenSeedNamesNormalizeAsSpecified() {
+        assertEquals("латт", normalizer.analyze("Латте").normalizedName)
+        assertEquals("кетостер", normalizer.analyze("Кетостерил").normalizedName)
+        assertEquals("бензин", normalizer.analyze("Бензин").normalizedName)
+        assertEquals("хлеб", normalizer.analyze("Хлеб").normalizedName)
+        assertEquals("непонятн покупк", normalizer.analyze("Непонятная покупка").normalizedName)
+        assertEquals("врач", normalizer.analyze("Врач").normalizedName)
+        assertEquals("стоматолог", normalizer.analyze("Стоматолог").normalizedName)
+        assertEquals("шоколадница", normalizer.normalizePlain("Шоколадница"))
+        assertEquals("столичка на чкалова", normalizer.normalizePlain("Столичка на Чкалова"))
+        assertEquals("лукойл", normalizer.normalizePlain("Лукойл"))
+    }
+
+    @Test
     fun honorsStemExceptions() {
         val custom = TextNormalizer(stemExceptions = setOf("латте"))
         assertEquals("латте", custom.analyze("Латте").normalizedName)

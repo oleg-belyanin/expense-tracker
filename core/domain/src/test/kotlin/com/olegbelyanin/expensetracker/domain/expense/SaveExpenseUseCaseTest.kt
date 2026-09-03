@@ -46,6 +46,16 @@ class SaveExpenseUseCaseTest {
         assertEquals("Шоколадница", request.locationName)
         assertEquals(null, request.comment)
         assertEquals(success.expense.id, request.id)
+        assertEquals(CategoryAssignmentSource.PROBABILISTIC, request.categoryAssignmentSource)
+        assertEquals(true, request.interactive)
+    }
+
+    @Test
+    fun nonInteractiveCommandDoesNotMarkPersistAsConsent() = runTest {
+        val expenses = FakeExpenseRepository()
+        val useCase = useCase(expenses)
+        useCase(command().copy(interactive = false))
+        assertEquals(false, expenses.persistCalls.single().interactive)
     }
 
     @Test
@@ -102,6 +112,17 @@ class SaveExpenseUseCaseTest {
         val expenses = FakeExpenseRepository(existing)
         DeleteExpenseUseCase(expenses)("e1")
         assertEquals(null, expenses.get("e1"))
+    }
+
+    @Test
+    fun clearHistoryRemovesAllExpenses() = runTest {
+        val expenses = FakeExpenseRepository(
+            expense(id = "e1", categoryId = cafe.id),
+            expense(id = "e2", categoryId = cafe.id),
+        )
+        val deleted = ClearExpenseHistoryUseCase(expenses)()
+        assertEquals(2, deleted)
+        assertTrue(expenses.getAll().isEmpty())
     }
 
     private fun useCase(expenses: FakeExpenseRepository, categories: List<Category> = listOf(cafe)) =
@@ -181,6 +202,10 @@ private class FakeExpenseRepository(vararg initial: Expense) : ExpenseRepository
 
     override suspend fun get(id: String): Expense? = stored[id]
 
+    override suspend fun getAll(): List<Expense> = stored.values.toList()
+
+    override suspend fun findByDedupKey(dedupKey: String): Expense? = stored.values.find { it.dedupKey == dedupKey }
+
     override fun observeAll(): Flow<List<Expense>> = MutableStateFlow(stored.values.toList())
 
     override suspend fun persist(request: PersistExpenseRequest): Expense {
@@ -195,7 +220,7 @@ private class FakeExpenseRepository(vararg initial: Expense) : ExpenseRepository
             locationId = null,
             comment = request.comment,
             categoryAssignmentSource = request.categoryAssignmentSource,
-            dedupKey = "user:${request.id}",
+            dedupKey = request.dedupKey ?: "user:${request.id}",
         )
         stored[expense.id] = expense
         return expense
@@ -203,5 +228,11 @@ private class FakeExpenseRepository(vararg initial: Expense) : ExpenseRepository
 
     override suspend fun delete(id: String) {
         stored.remove(id)
+    }
+
+    override suspend fun clearHistory(): Int {
+        val deleted = stored.size
+        stored.clear()
+        return deleted
     }
 }

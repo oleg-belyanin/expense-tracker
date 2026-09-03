@@ -46,16 +46,21 @@ fun CategorySelector(
             stringResource(R.string.category_source_manual)
         }
     val subtitle = sourceLabel ?: defaultLabel
-    val subtitleColor =
-        if (state == CategorySelectorState.Auto) colors.action else colors.textSecondary
+    val autofilled = state == CategorySelectorState.Auto
+    val fieldLabel =
+        if (autofilled) {
+            stringResource(R.string.field_category_auto)
+        } else {
+            stringResource(R.string.field_category)
+        }
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(spacing.xxs),
     ) {
         Text(
-            text = stringResource(R.string.field_category),
+            text = fieldLabel,
             style = typography.labelSmall,
-            color = colors.textSecondary,
+            color = if (autofilled) colors.action else colors.textSecondary,
         )
         Row(
             modifier =
@@ -64,7 +69,11 @@ fun CategorySelector(
                 .height(64.dp)
                 .clip(ExpenseTheme.radii.md)
                 .background(colors.surface)
-                .border(1.dp, colors.border, ExpenseTheme.radii.md)
+                .border(
+                    width = if (autofilled) 1.5.dp else 1.dp,
+                    color = if (autofilled) colors.action else colors.border,
+                    shape = ExpenseTheme.radii.md,
+                )
                 .clickable(onClick = onClick)
                 .padding(start = spacing.xs, end = spacing.sm, top = spacing.xs, bottom = spacing.xs),
             verticalAlignment = Alignment.CenterVertically,
@@ -86,8 +95,8 @@ fun CategorySelector(
                 )
                 Text(
                     text = subtitle,
-                    style = typography.labelSmall,
-                    color = subtitleColor,
+                    style = typography.bodySecondary,
+                    color = colors.textSecondary,
                 )
             }
         }

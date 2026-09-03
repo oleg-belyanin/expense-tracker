@@ -11,6 +11,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.olegbelyanin.expensetracker.LocalAppContainer
 import com.olegbelyanin.expensetracker.data.theme.ThemePreference
 import com.olegbelyanin.expensetracker.ui.analytics.AnalyticsScreen
+import com.olegbelyanin.expensetracker.ui.analytics.AnalyticsViewModel
 import com.olegbelyanin.expensetracker.ui.categories.CategoriesScreen
 import com.olegbelyanin.expensetracker.ui.categories.CategoriesViewModel
 import com.olegbelyanin.expensetracker.ui.categories.CategoryFormScreen
@@ -27,6 +28,8 @@ fun ExpenseTrackerNav(themePreference: ThemePreference, modifier: Modifier = Mod
     val expensesListState = rememberLazyListState()
     val expensesViewModel: ExpensesViewModel =
         viewModel(factory = container.expensesViewModelFactory())
+    val analyticsViewModel: AnalyticsViewModel =
+        viewModel(factory = container.analyticsViewModelFactory())
     val categoriesViewModel: CategoriesViewModel =
         viewModel(factory = container.categoriesViewModelFactory())
     val backStack =
@@ -84,8 +87,13 @@ fun ExpenseTrackerNav(themePreference: ThemePreference, modifier: Modifier = Mod
 
                             AppTab.Analytics ->
                                 AnalyticsScreen(
+                                    viewModel = analyticsViewModel,
                                     onOpenSettings = ::openSettings,
                                     onTabSelected = ::selectTab,
+                                    onOpenFilteredExpenses = { filter ->
+                                        expensesViewModel.applyFromAnalytics(filter)
+                                        selectTab(AppTab.Expenses)
+                                    },
                                 )
 
                             AppTab.Categories ->

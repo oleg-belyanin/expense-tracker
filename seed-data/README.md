@@ -46,13 +46,18 @@ golden-строки, edge-case validation и отсутствие коллизи
 
 ## Воспроизведение seed-артефакта
 
-После реализации `:seed-generator`:
-
 ```bash
 ./gradlew :seed-generator:generateSeed
 ```
 
-Артефакт попадает в `app/src/main/assets/seed/`.
+Пишет `app/src/main/assets/seed/`, фиксирует параметры в
+`categorization-config.json` и отчёт в `reports/seed-v1-validation.json`.
+
+CI сверяет, что закоммиченные файлы совпадают с повторной генерацией.
+
+Зафиксированные параметры seed v1: `MIN_SEED_SUPPORT=1`,
+`MIN_SEED_PROBABILITY=0.55`, `MAX_SEED_STRENGTH=10`, равные веса имени и места,
+`LAPLACE_ALPHA=0.1`. Validation: top-1 85 %, fallback 10 %, top-3 89 %.
 
 ## Лицензия
 

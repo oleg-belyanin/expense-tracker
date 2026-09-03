@@ -8,4 +8,9 @@ data class Period(val startInclusive: LocalDate, val endInclusive: LocalDate) {
             "Period end must not be before start"
         }
     }
+
+    companion object {
+        fun of(start: LocalDate, end: LocalDate): Period =
+            if (end.isBefore(start)) Period(end, start) else Period(start, end)
+    }
 }
