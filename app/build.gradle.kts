@@ -33,6 +33,11 @@ android {
     buildFeatures {
         compose = true
     }
+
+    lint {
+        abortOnError = true
+        checkReleaseBuilds = true
+    }
 }
 
 kotlin {

@@ -45,12 +45,28 @@
 | Android SDK | `~/Android/Sdk` |
 | `adb` | `~/Android/Sdk/platform-tools/adb` |
 
-## Сборка
+## Сборка и проверка
+
+Обязательный локальный шлюз после каждого этапа (NFR-8):
+
+```bash
+./gradlew check
+```
+
+`check` = ktlint + Android Lint + JVM unit-тесты всех модулей.
+Инструментальные тесты на эмуляторе в `check` не входят.
+
+Порог — ноль ошибок. Baseline Lint не заведён: свой код должен быть чистым.
+Предупреждения Lint про pinned AGP/targetSdk допустимы, ошибки — нет.
+
+Отдельные команды:
 
 ```bash
 ./gradlew :app:assembleDebug
 ./gradlew test
 ./gradlew lint
+./gradlew ktlintCheck
+./gradlew ktlintFormat
 ./gradlew :app:installDebug
 ```
 

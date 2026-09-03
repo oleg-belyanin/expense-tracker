@@ -9,4 +9,26 @@ buildscript {
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.compose) apply false
+    alias(libs.plugins.ktlint)
+}
+
+val ktlintVersion = libs.versions.ktlint.get()
+
+configureKtlint()
+
+subprojects {
+    apply(plugin = "org.jlleitschuh.gradle.ktlint")
+    configureKtlint()
+}
+
+fun org.gradle.api.Project.configureKtlint() {
+    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        version.set(ktlintVersion)
+        android.set(true)
+        ignoreFailures.set(false)
+        filter {
+            exclude("**/generated/**")
+            exclude("**/build/**")
+        }
+    }
 }
