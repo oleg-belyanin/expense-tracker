@@ -63,13 +63,25 @@ object ExpenseFormat {
         }
     }
 
-    fun usages(count: Int): String {
+    fun usages(count: Int): String = russianCount(count, "использование", "использования", "использований")
+
+    fun categoryCount(count: Int): String = russianCount(count, "категория", "категории", "категорий")
+
+    fun expenseCount(count: Int): String = russianCount(count, "расход", "расхода", "расходов")
+
+    fun archivedDay(date: LocalDate, today: LocalDate): String = when (date) {
+        today -> "сегодня"
+        today.minusDays(1) -> "вчера"
+        else -> calendarDay(date)
+    }
+
+    private fun russianCount(count: Int, one: String, few: String, many: String): String {
         val n10 = count % 10
         val n100 = count % 100
         val word = when {
-            n10 == 1 && n100 != 11 -> "использование"
-            n10 in 2..4 && n100 !in 12..14 -> "использования"
-            else -> "использований"
+            n10 == 1 && n100 != 11 -> one
+            n10 in 2..4 && n100 !in 12..14 -> few
+            else -> many
         }
         return "$count $word"
     }

@@ -47,4 +47,15 @@ object CategoryPalette {
         "#4F9ACF",
         "#A76CC1",
     )
+
+    fun swatchForIcon(icon: String): String = when (CategoryIcons.canonicalize(icon)) {
+        "groceries", "shopping" -> swatches[0]
+        "cafe" -> swatches[1]
+        "transport", "sports", "home" -> swatches[2]
+        "health", "clothes" -> swatches[3]
+        "housing", "education" -> swatches[4]
+        "comms", "travel" -> swatches[5]
+        "fun", "pets" -> swatches[6]
+        else -> swatches.first()
+    }
 }

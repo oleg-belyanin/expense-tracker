@@ -12,6 +12,9 @@ import com.olegbelyanin.expensetracker.LocalAppContainer
 import com.olegbelyanin.expensetracker.data.theme.ThemePreference
 import com.olegbelyanin.expensetracker.ui.analytics.AnalyticsScreen
 import com.olegbelyanin.expensetracker.ui.categories.CategoriesScreen
+import com.olegbelyanin.expensetracker.ui.categories.CategoriesViewModel
+import com.olegbelyanin.expensetracker.ui.categories.CategoryFormScreen
+import com.olegbelyanin.expensetracker.ui.categories.CategoryFormViewModel
 import com.olegbelyanin.expensetracker.ui.expense.ExpenseEditScreen
 import com.olegbelyanin.expensetracker.ui.expense.ExpenseEditViewModel
 import com.olegbelyanin.expensetracker.ui.expenses.ExpensesScreen
@@ -24,6 +27,8 @@ fun ExpenseTrackerNav(themePreference: ThemePreference, modifier: Modifier = Mod
     val expensesListState = rememberLazyListState()
     val expensesViewModel: ExpensesViewModel =
         viewModel(factory = container.expensesViewModelFactory())
+    val categoriesViewModel: CategoriesViewModel =
+        viewModel(factory = container.categoriesViewModelFactory())
     val backStack =
         remember {
             mutableStateListOf<AppDestination>(AppDestination.Tab(AppTab.Expenses))
@@ -46,6 +51,10 @@ fun ExpenseTrackerNav(themePreference: ThemePreference, modifier: Modifier = Mod
 
     fun openExpense(id: String) {
         backStack.add(AppDestination.ExpenseEdit(expenseId = id))
+    }
+
+    fun openCategoryForm(categoryId: Long? = null) {
+        backStack.add(AppDestination.CategoryForm(categoryId = categoryId))
     }
 
     fun pop() {
@@ -81,8 +90,11 @@ fun ExpenseTrackerNav(themePreference: ThemePreference, modifier: Modifier = Mod
 
                             AppTab.Categories ->
                                 CategoriesScreen(
+                                    viewModel = categoriesViewModel,
                                     onOpenSettings = ::openSettings,
                                     onTabSelected = ::selectTab,
+                                    onCreateCategory = { openCategoryForm() },
+                                    onEditCategory = { openCategoryForm(it) },
                                 )
                         }
                     }
@@ -101,6 +113,20 @@ fun ExpenseTrackerNav(themePreference: ThemePreference, modifier: Modifier = Mod
                                 expensesViewModel.onExpenseSaved(savedId)
                                 pop()
                             },
+                        )
+                    }
+
+                is AppDestination.CategoryForm ->
+                    NavEntry(key) {
+                        val formViewModel: CategoryFormViewModel =
+                            viewModel(
+                                key = key.sessionId,
+                                factory = container.categoryFormViewModelFactory(key.categoryId),
+                            )
+                        CategoryFormScreen(
+                            viewModel = formViewModel,
+                            onBack = ::pop,
+                            onSaved = ::pop,
                         )
                     }
 

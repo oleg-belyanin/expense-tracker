@@ -30,6 +30,8 @@ fun TabScaffold(
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
     subtitle: (@Composable ColumnScope.() -> Unit)? = null,
+    leading: (@Composable () -> Unit)? = null,
+    showSettings: Boolean = true,
     showFab: Boolean = false,
     onFabClick: () -> Unit = {},
     overlay: @Composable BoxScope.() -> Unit = {},
@@ -49,9 +51,14 @@ fun TabScaffold(
                 modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(start = spacing.md, end = spacing.xs, top = spacing.md),
+                    .padding(
+                        start = if (leading != null) spacing.xs else spacing.md,
+                        end = spacing.xs,
+                        top = spacing.md,
+                    ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                leading?.invoke()
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = title,
@@ -60,7 +67,9 @@ fun TabScaffold(
                     )
                     subtitle?.invoke(this)
                 }
-                SettingsAction(onClick = onOpenSettings)
+                if (showSettings) {
+                    SettingsAction(onClick = onOpenSettings)
+                }
             }
             Column(
                 modifier =

@@ -23,6 +23,8 @@ import com.olegbelyanin.expensetracker.domain.expense.ObserveExpenseListUseCase
 import com.olegbelyanin.expensetracker.domain.expense.SaveExpenseUseCase
 import com.olegbelyanin.expensetracker.domain.expense.SuggestCategoryUseCase
 import com.olegbelyanin.expensetracker.domain.expense.SuggestLocationsUseCase
+import com.olegbelyanin.expensetracker.ui.categories.CategoriesViewModel
+import com.olegbelyanin.expensetracker.ui.categories.CategoryFormViewModel
 import com.olegbelyanin.expensetracker.ui.expense.ExpenseEditViewModel
 import com.olegbelyanin.expensetracker.ui.expenses.ExpensesViewModel
 import kotlinx.coroutines.runBlocking
@@ -73,6 +75,24 @@ class AppContainer(context: Context) {
     val themeRepository: ThemeRepository = ThemeRepository(context)
 
     fun expensesViewModelFactory() = ExpensesViewModel.factory(observeExpenseList, deleteExpense, categoryRepository)
+
+    fun categoriesViewModelFactory() = CategoriesViewModel.factory(
+        categories = categoryRepository,
+        expenses = expenseRepository,
+        archiveCategory = archiveCategory,
+        restoreCategory = restoreCategory,
+        clock = clock,
+        zoneId = zoneId,
+    )
+
+    fun categoryFormViewModelFactory(categoryId: Long?) = CategoryFormViewModel.factory(
+        categoryId = categoryId,
+        categories = categoryRepository,
+        createCategory = createCategory,
+        updateCategory = updateCategory,
+        iconSuggester = categoryIconSuggester,
+        normalizer = textNormalizer,
+    )
 
     fun expenseEditViewModelFactory(expenseId: String?) = ExpenseEditViewModel.factory(
         expenseId = expenseId,

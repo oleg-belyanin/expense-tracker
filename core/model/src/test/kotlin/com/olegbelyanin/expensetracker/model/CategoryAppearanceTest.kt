@@ -17,4 +17,10 @@ class CategoryAppearanceTest {
         assertEquals("comms", CategoryIcons.canonicalize("communication"))
         assertEquals("pets", CategoryIcons.canonicalize("pets"))
     }
+
+    @Test
+    fun petsIconMapsToPurpleSwatch() {
+        assertEquals("#A76CC1", CategoryPalette.swatchForIcon("pets"))
+        assertEquals(CategoryPalette.swatches.first(), CategoryPalette.swatchForIcon("letter"))
+    }
 }

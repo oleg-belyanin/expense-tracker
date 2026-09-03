@@ -33,6 +33,7 @@ fun org.gradle.api.Project.configureKtlint() {
         filter {
             exclude("**/generated/**")
             exclude("**/build/**")
+            exclude("**/org/tartarus/snowball/**")
         }
     }
 }

@@ -36,4 +36,14 @@ class ExpenseFormatTest {
         assertEquals("12 использований", ExpenseFormat.usages(12))
         assertEquals("21 использование", ExpenseFormat.usages(21))
     }
+
+    @Test
+    fun russianCategoryAndExpensePlurals() {
+        assertEquals("1 категория", ExpenseFormat.categoryCount(1))
+        assertEquals("2 категории", ExpenseFormat.categoryCount(2))
+        assertEquals("12 категорий", ExpenseFormat.categoryCount(12))
+        assertEquals("36 расходов", ExpenseFormat.expenseCount(36))
+        assertEquals("сегодня", ExpenseFormat.archivedDay(today, today))
+        assertEquals("1 сентября", ExpenseFormat.archivedDay(LocalDate.of(2026, 9, 1), today))
+    }
 }

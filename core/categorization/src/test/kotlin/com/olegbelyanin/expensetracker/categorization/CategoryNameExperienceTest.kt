@@ -11,7 +11,7 @@ class CategoryNameExperienceTest {
     @Test
     fun splitsMultiWordNameAndDropsStopWords() {
         val features = CategoryNameExperience.features(normalizer, "Стоматология и ортодонтия")
-        assertEquals(setOf("стоматология", "ортодонтия"), features.map { it.value }.toSet())
+        assertEquals(setOf("стоматолог", "ортодонт"), features.map { it.value }.toSet())
         assertTrue(features.all { it.kind == KeywordKind.WORD })
     }
 
@@ -19,7 +19,7 @@ class CategoryNameExperienceTest {
     fun keepsOneRowPerFeature() {
         val features = CategoryNameExperience.features(normalizer, "Кафе кафе")
         assertEquals(1, features.size)
-        assertEquals("кафе", features.single().value)
+        assertEquals(normalizer.analyze("кафе").normalizedName, features.single().value)
     }
 
     @Test

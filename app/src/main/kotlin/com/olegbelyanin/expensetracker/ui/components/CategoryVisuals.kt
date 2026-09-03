@@ -8,11 +8,12 @@ data class CategoryVisual(val glyph: CategoryGlyphKey, val containerColor: Color
 
 fun Category.toVisual(colors: ExpenseColors): CategoryVisual {
     val glyph = CategoryGlyphKey.fromStorage(icon)
+    val stored = parseHexColor(color)
     val container =
-        if (glyph == CategoryGlyphKey.Letter) {
-            parseHexColor(color) ?: colors.other
-        } else {
-            colors.colorForGlyph(glyph)
+        when {
+            !isBuiltin && stored != null -> stored
+            glyph == CategoryGlyphKey.Letter -> stored ?: colors.other
+            else -> colors.colorForGlyph(glyph)
         }
     return CategoryVisual(glyph = glyph, containerColor = container, letter = name)
 }

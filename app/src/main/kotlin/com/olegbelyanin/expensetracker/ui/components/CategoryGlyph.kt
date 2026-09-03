@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -47,9 +48,16 @@ enum class CategoryGlyphKey(val storageKey: String, @DrawableRes val iconRes: In
 }
 
 @Composable
-fun CategoryGlyph(key: CategoryGlyphKey, modifier: Modifier = Modifier, size: Dp = 24.dp, letter: String = "") {
+fun CategoryGlyph(
+    key: CategoryGlyphKey,
+    modifier: Modifier = Modifier,
+    size: Dp = 24.dp,
+    letter: String = "",
+    contentColor: Color? = null,
+) {
     val colors = ExpenseTheme.colors
     val typography = ExpenseTheme.typography
+    val tint = contentColor ?: colors.onCategory
     val iconRes = key.iconRes
     if (iconRes != null) {
         Image(
@@ -57,7 +65,7 @@ fun CategoryGlyph(key: CategoryGlyphKey, modifier: Modifier = Modifier, size: Dp
             contentDescription = null,
             modifier = modifier.size(size),
             contentScale = ContentScale.Fit,
-            colorFilter = ColorFilter.tint(colors.onCategory),
+            colorFilter = ColorFilter.tint(tint),
         )
     } else {
         Box(
@@ -67,7 +75,7 @@ fun CategoryGlyph(key: CategoryGlyphKey, modifier: Modifier = Modifier, size: Dp
             Text(
                 text = letter.take(1).uppercase(),
                 style = typography.titleSection,
-                color = colors.onCategory,
+                color = tint,
             )
         }
     }

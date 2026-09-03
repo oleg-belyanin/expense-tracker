@@ -1,0 +1,17 @@
+Snowball Russian stemmer — official generated Java
+
+Upstream: https://snowballstem.org/
+Download: https://snowballstem.org/dist/libstemmer_java-3.1.1.tar.gz
+Repository: https://github.com/snowballstem/snowball
+Version: 3.1.1
+
+Copied unmodified from the official libstemmer_java distribution:
+- java/org/tartarus/snowball/Among.java
+- java/org/tartarus/snowball/CharArraySequence.java
+- java/org/tartarus/snowball/SnowballProgram.java
+- java/org/tartarus/snowball/SnowballStemmer.java
+- java/org/tartarus/snowball/ext/russianStemmer.java
+- COPYING
+
+The generated stemmer is not rewritten and is not taken from Apache Lucene.
+License: BSD-3-Clause, see COPYING in this directory.

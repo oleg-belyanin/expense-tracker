@@ -160,8 +160,10 @@ Vico используется только как слой визуализац�
 
 Исходник stemmer:
 
-- копируется из официально сгенерированной реализации Snowball;
-- сохраняет исходную лицензию и ссылку на upstream;
+- копируется из официально сгенерированной реализации Snowball
+  (`libstemmer_java-3.1.1`: runtime + `russianStemmer`);
+- сохраняет исходную лицензию и ссылку на upstream
+  (`core/categorization/third_party/snowball/`);
 - не переписывается вручную;
 - вызывается общим `TextNormalizer` и в приложении, и в `:seed-generator`.
 

@@ -1,7 +1,6 @@
 package com.olegbelyanin.expensetracker.ui.expenses
 
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.olegbelyanin.expensetracker.domain.CategoryRepository
@@ -11,6 +10,7 @@ import com.olegbelyanin.expensetracker.domain.expense.ExpenseListSlice
 import com.olegbelyanin.expensetracker.domain.expense.ExpensePeriodPreset
 import com.olegbelyanin.expensetracker.domain.expense.ObserveExpenseListUseCase
 import com.olegbelyanin.expensetracker.model.Category
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -19,7 +19,7 @@
 ```text
 :app                  UI, Application, AppContainer
 :core:model           Expense, Category, Location, Money, Period
-:core:categorization  TextNormalizer (Snowball — этап B3)
+:core:categorization  TextNormalizer + русский Snowball 3.1.1 (не Lucene)
 :core:domain          use case и интерфейсы repository
 :core:database        Room 3, Bundled SQLite, FTS5, seed import
 ```

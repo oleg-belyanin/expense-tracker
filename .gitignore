@@ -30,6 +30,9 @@ render.experimental.xml
 # Transient Figma exports used while converting vectors
 .tmp-figma-assets/
 
+# Transient Snowball tarball while vendoring the official Java stemmer
+.tmp-snowball/
+
 # Python
 __pycache__/
 *.py[cod]

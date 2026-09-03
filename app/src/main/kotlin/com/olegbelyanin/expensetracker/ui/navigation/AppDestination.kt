@@ -14,5 +14,10 @@ sealed interface AppDestination {
         val sessionId: String = java.util.UUID.randomUUID().toString(),
     ) : AppDestination
 
+    data class CategoryForm(
+        val categoryId: Long? = null,
+        val sessionId: String = java.util.UUID.randomUUID().toString(),
+    ) : AppDestination
+
     data object Settings : AppDestination
 }
