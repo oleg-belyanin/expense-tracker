@@ -52,6 +52,7 @@ Compose-библиотеки подключаются через Compose BOM. В
 :seed-generator
     Kotlin/JVM CLI для воспроизводимой подготовки seed-артефакта.
     Использует тот же :core:categorization, что и приложение.
+    Датасет 1 000 строк и pipeline — [`seed-dataset-plan.md`](./seed-dataset-plan.md).
 ```
 
 Направление зависимостей:

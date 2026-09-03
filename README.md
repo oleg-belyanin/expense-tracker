@@ -54,8 +54,62 @@
 ./gradlew :app:installDebug
 ```
 
-`installDebug` ставит APK на подключённое устройство или эмулятор
-(эмулятор `ExpenseTracker_360` — этап I1).
+`installDebug` ставит APK на подключённое устройство или эмулятор.
 
 Чистый клон собирается без правок исходников: достаточно JDK 17, SDK
 и `local.properties` / `ANDROID_HOME` (NFR-9).
+
+## Эмулятор (AVD `ExpenseTracker_360`)
+
+Основной AVD для ежедневной разработки и инструментальных тестов.
+Соответствует макету Figma: **360×800 dp**, **420 dpi** (945×2100 px).
+
+| Параметр | Значение |
+|---|---|
+| Имя AVD | `ExpenseTracker_360` |
+| API | 34, Google APIs, x86_64 |
+| Базовый профиль | Pixel 4 (punch-hole в рамке) |
+| RAM | 3 ГБ |
+| Навигация | жестовая (настроить один раз в эмуляторе) |
+
+### Создание AVD
+
+Нужны пакеты `emulator` и `system-images;android-34;google_apis;x86_64`.
+Скрипт ставит их при необходимости и создаёт AVD:
+
+```bash
+export JAVA_HOME=~/.local/jdk-17   # или ваш путь к JDK 17
+export ANDROID_HOME=~/Android/Sdk
+./scripts/create-expense-tracker-avd.sh
+```
+
+Через Device Manager в Android Studio: **Pixel 4**, API 34 Google APIs x86_64,
+имя `ExpenseTracker_360`, затем в `~/.android/avd/ExpenseTracker_360.avd/config.ini`
+задать `hw.lcd.width=945`, `hw.lcd.height=2100`, `hw.lcd.density=420`,
+`hw.ramSize=3072`.
+
+### Запуск и установка
+
+```bash
+export ANDROID_HOME=~/Android/Sdk
+$ANDROID_HOME/emulator/emulator -avd ExpenseTracker_360 &
+./gradlew :app:installDebug
+```
+
+Первый запуск на новом AVD:
+
+1. **Settings → System → Gestures → System navigation → Gesture navigation**
+2. При необходимости safe area: **Developer options → Simulate a display with a cutout → Punch hole**
+
+На эмуляторе проверяют режим полёта (F-08), системную светлую/тёмную тему
+и SAF для экспорта/backup. Инструментальные тесты Room/FTS и Compose UI
+гоняют только на этом AVD, не в CI.
+
+## Документация
+
+| Документ | Содержание |
+|---|---|
+| [`docs/testassignmentexpensetracker.md`](docs/testassignmentexpensetracker.md) | Требования и приёмка |
+| [`docs/categorization-architecture.md`](docs/categorization-architecture.md) | Алгоритм категоризации и поиск мест |
+| [`docs/seed-dataset-plan.md`](docs/seed-dataset-plan.md) | Seed-датасет 1 000 строк, генератор, поставка |
+| [`docs/implementation-work-plan.md`](docs/implementation-work-plan.md) | План работ по этапам |

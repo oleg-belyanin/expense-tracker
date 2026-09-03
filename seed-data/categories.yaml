@@ -1,0 +1,73 @@
+# Единый источник правды для встроенных категорий и category_code в seed CSV.
+# См. docs/seed-dataset-plan.md
+
+version: 1
+
+categories:
+  - code: GROCERIES
+    name: Продукты
+    icon: groceries
+    is_builtin: true
+    is_fallback: false
+
+  - code: CAFE
+    name: Кафе
+    icon: cafe
+    is_builtin: true
+    is_fallback: false
+
+  - code: TRANSPORT
+    name: Транспорт
+    icon: transport
+    is_builtin: true
+    is_fallback: false
+
+  - code: HEALTH
+    name: Здоровье
+    icon: health
+    is_builtin: true
+    is_fallback: false
+
+  - code: HOUSING
+    name: Жильё
+    icon: housing
+    is_builtin: true
+    is_fallback: false
+
+  - code: COMMUNICATION
+    name: Связь
+    icon: communication
+    is_builtin: true
+    is_fallback: false
+
+  - code: ENTERTAINMENT
+    name: Развлечения
+    icon: entertainment
+    is_builtin: true
+    is_fallback: false
+
+  - code: CLOTHING
+    name: Одежда
+    icon: clothing
+    is_builtin: true
+    is_fallback: false
+
+  - code: HOME
+    name: Дом
+    icon: home
+    is_builtin: true
+    is_fallback: false
+
+  - code: OTHER
+    name: Прочее
+    icon: other
+    is_builtin: true
+    is_fallback: true
+
+dataset:
+  total_rows: 1000
+  rows_per_category: 100
+  train_rows: 800
+  validation_rows: 200
+  train_per_category: 80
+  validation_per_category: 20
