@@ -1,0 +1,6 @@
+## This file is a template. Copy it to local.properties and set your SDK path.
+## Do not commit local.properties — it is machine-specific and listed in .gitignore.
+##
+## Alternatively, set ANDROID_HOME or ANDROID_SDK_ROOT and skip this file.
+
+# sdk.dir=/home/YOU/Android/Sdk
