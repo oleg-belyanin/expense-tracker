@@ -1,5 +1,7 @@
 # Учёт расходов
 
+[![CI](https://github.com/oleg-belyanin/expense-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/oleg-belyanin/expense-tracker/actions/workflows/ci.yml)
+
 Локальное Android-приложение для учёта личных трат. Серверной части нет:
 данные и правила категоризации живут на устройстве.
 
@@ -74,6 +76,27 @@
 
 Чистый клон собирается без правок исходников: достаточно JDK 17, SDK
 и `local.properties` / `ANDROID_HOME` (NFR-9).
+
+## CI
+
+Каждый push, pull request и ручной запуск workflow:
+
+1. JDK 17 + Android SDK + кэш Gradle;
+2. `./gradlew check` (ktlint, Android Lint, JVM-тесты);
+3. после этапа B3 — `./gradlew :seed-generator:generateSeed` и сверка
+   `app/src/main/assets/seed/` с генерацией;
+4. `./gradlew :app:assembleDebug`;
+5. debug APK как artifact (хранение 7 дней).
+
+В CI нет эмулятора, instrumentation, `assembleRelease` и публикации в магазины.
+Падение теста или lint делает PR красным.
+
+Debug APK без локальной машины: **Actions → CI → успешный прогон →
+Artifacts → `app-debug`**. Либо:
+
+```bash
+gh run download --name app-debug --repo oleg-belyanin/expense-tracker
+```
 
 ## Эмулятор (AVD `ExpenseTracker_360`)
 
