@@ -8,5 +8,7 @@ interface CategoryRepository {
 
     fun observeActiveCategories(): Flow<List<Category>>
 
+    suspend fun findById(id: Long): Category?
+
     suspend fun requireFallback(): Category
 }

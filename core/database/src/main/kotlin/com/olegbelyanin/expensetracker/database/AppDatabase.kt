@@ -6,8 +6,11 @@ import androidx.room3.Room
 import androidx.room3.RoomDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.olegbelyanin.expensetracker.database.dao.CategoryDao
+import com.olegbelyanin.expensetracker.database.dao.ExpenseDao
 import com.olegbelyanin.expensetracker.database.dao.KeywordDao
+import com.olegbelyanin.expensetracker.database.dao.LearningDao
 import com.olegbelyanin.expensetracker.database.dao.LocationDao
+import com.olegbelyanin.expensetracker.database.dao.LocationFtsDao
 import com.olegbelyanin.expensetracker.database.dao.MetaDao
 import com.olegbelyanin.expensetracker.database.dao.SeedDao
 import com.olegbelyanin.expensetracker.database.entities.AppMetaEntity
@@ -54,6 +57,12 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
 
     abstract fun locationDao(): LocationDao
+
+    abstract fun locationFtsDao(): LocationFtsDao
+
+    abstract fun expenseDao(): ExpenseDao
+
+    abstract fun learningDao(): LearningDao
 
     abstract fun keywordDao(): KeywordDao
 

@@ -247,13 +247,16 @@ DoD: красный PR при падении теста или lint; debug APK �
 - 10 встроенных категорий из макета — коды и имена из
   [`seed-data/categories.yaml`](../seed-data/categories.yaml). `Прочее` защищена.
 - Каталог `seed-data/` по [`seed-dataset-plan.md`](./seed-dataset-plan.md): `categories.yaml`,
-  `raw/train.csv` минимальный (~30 строк) для cold start на «латте / аптека / бензин».
+  полный `raw/train.csv` (800) и `raw/validation.csv` (200), генератор
+  `scripts/generate_raw_dataset.py`.
 - Stub seed-артефакт в `app/src/main/assets/seed/` (импорт при первом запуске).
 
 DoD: приложение стартует, БД создаётся, категории видны через repository;
-`seed-data/` и stub assets в репозитории.
+`seed-data/` с 1 000 строк и stub assets в репозитории.
 
 ### Этап B1. Расходы, места, валидация — 3–4 ч
+
+Статус: выполнено 2026-09-03.
 
 Use case:
 
@@ -302,15 +305,14 @@ DoD: удаление категории не теряет расходы; ре�
 
 **Seed-датасет и `:seed-generator`:**
 
-1. Полный `seed-data/raw/train.csv` — **800 строк** (80 на категорию).
-2. `seed-data/raw/validation.csv` — **200 строк** (20 на категорию), без пересечения
-   с train по `normalized_name`.
-3. `:seed-generator`: `DatasetReader`, `CounterBuilder`, `ContextBuilder` (контексты
+1. Raw CSV уже в репозитории: train **800** + validation **200**
+   (`python3 seed-data/scripts/generate_raw_dataset.py`).
+2. `:seed-generator`: `DatasetReader`, `CounterBuilder`, `ContextBuilder` (контексты
    для транзитов §19.7), `SeedFilter`, `ValidationRunner`, `SeedArtifactWriter`.
-4. Gradle-задача `:seed-generator:generateSeed` → `app/src/main/assets/seed/`.
-5. Grid search параметров на validation; фиксация в `seed-data/categorization-config.json`.
-6. Целевые метрики: top-1 ≥ 85 %, fallback OTHER < 15 %.
-7. Golden-строки из §5.2 seed-плана покрыты unit-тестами.
+3. Gradle-задача `:seed-generator:generateSeed` → `app/src/main/assets/seed/`.
+4. Grid search параметров на validation; фиксация в `seed-data/categorization-config.json`.
+5. Целевые метрики: top-1 ≥ 85 %, fallback OTHER < 15 %.
+6. Golden-строки из §5.2 seed-плана покрыты unit-тестами.
 
 Параметры — одна версионированная конфигурация, не размазаны по коду.
 
@@ -464,7 +466,7 @@ UX Flow `119:2`, `120:23` и состояния `100:713`–`101:1043`.
 
 | День | Инфра | Бэкенд | Фронтенд | Checkpoint |
 |---|---|---|---|---|
-| 1 | I0, I1, I2, каркас I3 | B0 схема + seed-каркас (~30 строк) | F0 оболочка | AVD стартует, CI собирает app, три вкладки |
+| 1 | I0, I1, I2, каркас I3 | B0 схема + seed CSV 1 000 | F0 оболочка | AVD стартует, CI собирает app, три вкладки |
 | 2 | CI зелёный на CRUD-тестах | B1 CRUD расходов и мест | F1 список, F2 каркас формы | Ввод вручную, запись в списке на эмуляторе |
 | 3 | — | B3 движок + seed 1 000 + генератор | F2 автокатегория и picker | «Латте» → Кафе без ручного выбора |
 | 4 | — | B2 категории, B3 runtime-обучение | F3 категории и архив | Исправление запоминается |

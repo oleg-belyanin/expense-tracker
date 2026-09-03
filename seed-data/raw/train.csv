@@ -1,31 +1,801 @@
 name,location,category_code
-Латте,Шоколадница,CAFE
-Капучино,Starbucks,CAFE
-Кофе,Coffee Like,CAFE
-Чай,Шоколадница,CAFE
-Кетостерил,Столичка на Чкалова,HEALTH
-Аспирин,Столичка,HEALTH
-Врач,Поликлиника,HEALTH
-Стоматолог,Стоматология,HEALTH
-Аптека,,HEALTH
-Бензин,Лукойл,TRANSPORT
-Метро,,TRANSPORT
-Такси,Яндекс Go,TRANSPORT
 Хлеб,,GROCERIES
 Молоко,Пятёрочка,GROCERIES
 Яйца,Магнит,GROCERIES
 Йогурт,ВкусВилл,GROCERIES
-Аренда,,HOUSING
-Коммуналка,УК,HOUSING
+"""молоко 3.2%""",Перекрёсток,GROCERIES
+Творог,Лента,GROCERIES
+Сметана,Ашан,GROCERIES
+Кефир,Дикси,GROCERIES
+Сыр российский,Азбука Вкуса,GROCERIES
+Масло сливочное,Самокат,GROCERIES
+Колбаса варёная,Окей,GROCERIES
+Сосиски молочные,Пятерочка на Ленина,GROCERIES
+Курица охлаждённая,Pyaterochka,GROCERIES
+Фарш говяжий,Пятёрочка,GROCERIES
+Рыба свежая,Магнит,GROCERIES
+Сельдь солёная,ВкусВилл,GROCERIES
+Гречка,Перекрёсток,GROCERIES
+Рис круглозёрный,Лента,GROCERIES
+Макароны,Ашан,GROCERIES
+Мука пшеничная,Дикси,GROCERIES
+Сахар песок,Азбука Вкуса,GROCERIES
+Соль пищевая,Самокат,GROCERIES
+Подсолнечное масло,Окей,GROCERIES
+Хлебцы,Пятерочка на Ленина,GROCERIES
+Батон нарезной,Pyaterochka,GROCERIES
+Булка сдобная,Пятёрочка,GROCERIES
+Багет,Магнит,GROCERIES
+Печенье юбилейное,ВкусВилл,GROCERIES
+Пряники тульские,Перекрёсток,GROCERIES
+Шоколад плитка,Лента,GROCERIES
+Чай листовой,Ашан,GROCERIES
+Кофе в зернах,Дикси,GROCERIES
+Сок яблочный,Азбука Вкуса,GROCERIES
+Вода 5л,Самокат,GROCERIES
+Газировка,Окей,GROCERIES
+Кетчуп,Пятерочка на Ленина,GROCERIES
+Майонез,Pyaterochka,GROCERIES
+Горчица,Пятёрочка,GROCERIES
+Уксус,Магнит,GROCERIES
+Специи набор,ВкусВилл,GROCERIES
+Картофель,Перекрёсток,GROCERIES
+Морковь,Лента,GROCERIES
+Лук репчатый,Ашан,GROCERIES
+Огурцы свежие,Дикси,GROCERIES
+Помидоры сливовидные,Азбука Вкуса,GROCERIES
+Капуста белокочанная,Самокат,GROCERIES
+Яблоки сезонные,Окей,GROCERIES
+Бананы,Пятерочка на Ленина,GROCERIES
+Апельсины,Pyaterochka,GROCERIES
+Мандарины,Пятёрочка,GROCERIES
+Клубника,Магнит,GROCERIES
+Арбуз,ВкусВилл,GROCERIES
+Орехи смесь,Перекрёсток,GROCERIES
+Семечки жареные,Лента,GROCERIES
+Мёд цветочный,Ашан,GROCERIES
+Варенье малиновое,Дикси,GROCERIES
+Хлопья овсяные,Азбука Вкуса,GROCERIES
+Мюсли,,GROCERIES
+"""сухой корм""",,GROCERIES
+Корм для кошек,,GROCERIES
+Детское питание,,GROCERIES
+Смесь молочная,,GROCERIES
+Пельмени,,GROCERIES
+Вареники с творогом,,GROCERIES
+Пицца замороженная,,GROCERIES
+Овощи замороженные,,GROCERIES
+Мороженое пломбир,,GROCERIES
+Торт Наполеон,,GROCERIES
+Пирог с капустой,,GROCERIES
+Выпечка пекарня,,GROCERIES
+Тунец консервы,,GROCERIES
+Горошек консервы,,GROCERIES
+Кукуруза консервы,,GROCERIES
+Фасоль варёная,,GROCERIES
+Чечевица,,GROCERIES
+Овсянка,,GROCERIES
+Пшено,,GROCERIES
+Манка,,GROCERIES
+Кукурузная крупа,,GROCERIES
+Булгур,,GROCERIES
+Латте,Шоколадница,CAFE
+Капучино,Шоколадница,CAFE
+Кофе,Starbucks,CAFE
+Чай,Coffee Like,CAFE
+Американо,Cofix,CAFE
+Эспрессо,Surf Coffee,CAFE
+Флэт уайт,Теремок,CAFE
+Раф,Бургер Кинг,CAFE
+Мокко,KFC,CAFE
+Глясе,Вкусно — и точка,CAFE
+Латте мал,Додо Пицца,CAFE
+Капучино большой,Шоколадница,CAFE
+Кофе с собой,Starbucks,CAFE
+Чай зелёный,Coffee Like,CAFE
+Какао,Cofix,CAFE
+Горячий шоколад,Surf Coffee,CAFE
+Лимонад домашний,Теремок,CAFE
+Смузи ягодный,Бургер Кинг,CAFE
+Фреш апельсиновый,KFC,CAFE
+Айс латте,Вкусно — и точка,CAFE
+Круассан с миндалём,Додо Пицца,CAFE
+Синнабон,Шоколадница,CAFE
+Чизкейк классический,Starbucks,CAFE
+Тирамису,Coffee Like,CAFE
+Брауни,Cofix,CAFE
+Маффин шоколадный,Surf Coffee,CAFE
+Пончик глазурь,Теремок,CAFE
+Пирожное картошка,Бургер Кинг,CAFE
+Десерт дня,KFC,CAFE
+Мороженое в кафе,Вкусно — и точка,CAFE
+Борщ,Додо Пицца,CAFE
+Суп дня,Шоколадница,CAFE
+Салат цезарь,Starbucks,CAFE
+Паста карбонара,Coffee Like,CAFE
+Пицца маргарита,Cofix,CAFE
+Бургер классический,Surf Coffee,CAFE
+Чизбургер,Теремок,CAFE
+Картофель фри,Бургер Кинг,CAFE
+Наггетсы,KFC,CAFE
+Шаурма куриная,Вкусно — и точка,CAFE
+Сэндвич клаб,Додо Пицца,CAFE
+Панини,Шоколадница,CAFE
+Тост с авокадо,Starbucks,CAFE
+Каша в кафе,Coffee Like,CAFE
+Омлет с сыром,Cofix,CAFE
+Завтрак бизнес,Surf Coffee,CAFE
+Бизнес-ланч,Теремок,CAFE
+Комбо обед,Бургер Кинг,CAFE
+Комбо бургер,KFC,CAFE
+Ланч сет,Вкусно — и точка,CAFE
+Ролл филадельфия,Додо Пицца,CAFE
+Суши сет,Шоколадница,CAFE
+Вок с овощами,Starbucks,CAFE
+Рамен,Coffee Like,CAFE
+Том ям,Cofix,CAFE
+Поке с лососем,Surf Coffee,CAFE
+Боул киноа,Теремок,CAFE
+Кесадилья,Бургер Кинг,CAFE
+Тако,KFC,CAFE
+Фалафель,Вкусно — и точка,CAFE
+Пиво разливное,Додо Пицца,CAFE
+Вино бокал,Шоколадница,CAFE
+Коктейль авторский,Starbucks,CAFE
+Милкшейк,Coffee Like,CAFE
+Смузи боул,,CAFE
+Айс ти,,CAFE
+Матча латте,,CAFE
+Фраппучино,,CAFE
+Латте карамель,,CAFE
+Чай с жасмином,,CAFE
+Кофе по-венски,,CAFE
+Эспрессо двойной,,CAFE
+Капучино на миндальном,,CAFE
+Латте на овсяном,,CAFE
+Какао с маршмеллоу,,CAFE
+Вафля бельгийская,,CAFE
+Блинчики со сметаной,,CAFE
+Сырники,,CAFE
+Оладьи,,CAFE
+Хачапури по-аджарски,,CAFE
+Бензин,Лукойл,TRANSPORT
+Метро,Лукойл,TRANSPORT
+Такси,Яндекс Go,TRANSPORT
+Дизель,Метро,TRANSPORT
+АИ-95,Газпромнефть,TRANSPORT
+АИ-92,Роснефть,TRANSPORT
+АИ-98,Ситимобил,TRANSPORT
+Газ пропан,Аэроэкспресс,TRANSPORT
+Заправка полный бак,РЖД,TRANSPORT
+Мойка авто,Мосгортранс,TRANSPORT
+Парковка часовая,Лукойл,TRANSPORT
+Парковка сутки,Яндекс Go,TRANSPORT
+Проездной месячный,Метро,TRANSPORT
+Тройка пополнение,Газпромнефть,TRANSPORT
+Единый билет,Роснефть,TRANSPORT
+Автобус,Ситимобил,TRANSPORT
+Трамвай,Аэроэкспресс,TRANSPORT
+Троллейбус,РЖД,TRANSPORT
+МЦК,Мосгортранс,TRANSPORT
+МЦД,Лукойл,TRANSPORT
+Электричка,Яндекс Go,TRANSPORT
+Поезд плацкарт,Метро,TRANSPORT
+Купе,Газпромнефть,TRANSPORT
+Сапсан,Роснефть,TRANSPORT
+Аэроэкспресс,Ситимобил,TRANSPORT
+Авиабилет,Аэроэкспресс,TRANSPORT
+Багаж сверх нормы,РЖД,TRANSPORT
+Трансфер аэропорт,Мосгортранс,TRANSPORT
+Каршеринг,Лукойл,TRANSPORT
+Аренда авто сутки,Яндекс Go,TRANSPORT
+Велосипед прокат,Метро,TRANSPORT
+Самокат кикшеринг,Газпромнефть,TRANSPORT
+Яндекс Go поездка,Роснефть,TRANSPORT
+Uber поездка,Ситимобил,TRANSPORT
+Ситимобил поездка,Аэроэкспресс,TRANSPORT
+Везёт такси,РЖД,TRANSPORT
+Максим такси,Мосгортранс,TRANSPORT
+Платон,Лукойл,TRANSPORT
+Платные дороги,Яндекс Go,TRANSPORT
+Трасса М11,Метро,TRANSPORT
+Эвакуатор,Газпромнефть,TRANSPORT
+Шиномонтаж,Роснефть,TRANSPORT
+Техосмотр,Ситимобил,TRANSPORT
+ОСАГО,Аэроэкспресс,TRANSPORT
+Каско,РЖД,TRANSPORT
+Тосол,Мосгортранс,TRANSPORT
+Жидкость стеклоомывателя,Лукойл,TRANSPORT
+Ремонт машины,Яндекс Go,TRANSPORT
+Замена масла,Метро,TRANSPORT
+Колодки тормозные,Газпромнефть,TRANSPORT
+Шины зимние,Роснефть,TRANSPORT
+Шины летние,Ситимобил,TRANSPORT
+Аккумулятор авто,Аэроэкспресс,TRANSPORT
+Дворники лобовые,РЖД,TRANSPORT
+Фильтр воздушный,Мосгортранс,TRANSPORT
+Свечи зажигания,Лукойл,TRANSPORT
+Антифриз,Яндекс Go,TRANSPORT
+Топливная карта,Метро,TRANSPORT
+Заправка Лукойл,Газпромнефть,TRANSPORT
+Заправка Роснефть,Роснефть,TRANSPORT
+Бензин 95,,TRANSPORT
+Солярка,,TRANSPORT
+Метан заправка,,TRANSPORT
+Зарядка электро,,TRANSPORT
+ЭЗС,,TRANSPORT
+Такси аэропорт,,TRANSPORT
+Такси вокзал,,TRANSPORT
+Проезд на маршрутке,,TRANSPORT
+Маршрутка,,TRANSPORT
+Междугородний автобус,,TRANSPORT
+Билет на поезд,,TRANSPORT
+Билет на самолёт,,TRANSPORT
+Посадочный талон доплата,,TRANSPORT
+Камера хранения вокзал,,TRANSPORT
+Ремонт велосипеда,,TRANSPORT
+Моторное масло,,TRANSPORT
+Шлем мото,,TRANSPORT
+Самокат аренда,,TRANSPORT
+Велосипед ремонт камеры,,TRANSPORT
+Парковка у ТЦ,,TRANSPORT
+Кетостерил,Столичка на Чкалова,HEALTH
+Врач,Поликлиника,HEALTH
+Стоматолог,Стоматология,HEALTH
+Аптека,Пятёрочка,HEALTH
+Парацетамол,Магнит,HEALTH
+Ибупрофен,Пятерочка на Ленина,HEALTH
+Нурофен,Пятёрочка,HEALTH
+Аспирин кардио,Столичка,HEALTH
+Аспирин 500,Столичка на Чкалова,HEALTH
+Анальгин,"36,6",HEALTH
+Цитрамон,Invitro,HEALTH
+Валидол,Поликлиника,HEALTH
+Корвалол,Стоматология,HEALTH
+Но-шпа,Горздрав,HEALTH
+Смекта,Ригла,HEALTH
+Линекс,Helix,HEALTH
+Аципол,Инвитро,HEALTH
+Супрастин,Столичка,HEALTH
+Зодак,Столичка на Чкалова,HEALTH
+Називин,"36,6",HEALTH
+Отипакс,Invitro,HEALTH
+Витамин D,Поликлиника,HEALTH
+Витамин C,Стоматология,HEALTH
+Магний B6,Горздрав,HEALTH
+Омега-3,Ригла,HEALTH
+Кальций Д3,Helix,HEALTH
+Йодбаланс,Инвитро,HEALTH
+Сорбифер,Столичка,HEALTH
+Компливит,Столичка на Чкалова,HEALTH
+Элевит,"36,6",HEALTH
+Фемибион,Invitro,HEALTH
+Пластырь бактерицидный,Поликлиника,HEALTH
+Бинт стерильный,Стоматология,HEALTH
+Вата медицинская,Горздрав,HEALTH
+Зелёнка,Ригла,HEALTH
+Йод раствор,Helix,HEALTH
+Перекись водорода,Инвитро,HEALTH
+Антисептик,Столичка,HEALTH
+Маска медицинская,Столичка на Чкалова,HEALTH
+Перчатки мед,"36,6",HEALTH
+Термометр электронный,Invitro,HEALTH
+Тонометр,Поликлиника,HEALTH
+Глюкометр,Стоматология,HEALTH
+Тест на covid,Горздрав,HEALTH
+ПЦР,Ригла,HEALTH
+Анализ крови,Helix,HEALTH
+Общий анализ мочи,Инвитро,HEALTH
+УЗИ брюшной полости,Столичка,HEALTH
+МРТ,Столичка на Чкалова,HEALTH
+Рентген,"36,6",HEALTH
+Флюорография,Invitro,HEALTH
+Приём терапевта,Поликлиника,HEALTH
+Приём лора,Стоматология,HEALTH
+Окулист,Горздрав,HEALTH
+Гинеколог,Ригла,HEALTH
+Уролог,Helix,HEALTH
+Кардиолог,Инвитро,HEALTH
+Дерматолог,Столичка,HEALTH
+Невролог,Столичка на Чкалова,HEALTH
+Педиатр,"36,6",HEALTH
+Хирург,Invitro,HEALTH
+Пломба,Поликлиника,HEALTH
+Чистка зубов,Стоматология,HEALTH
+Брекеты,Горздрав,HEALTH
+Имплант зуба,,HEALTH
+Удаление зуба,,HEALTH
+Снимок зуба,,HEALTH
+Капа ночная,,HEALTH
+Ирригатор,,HEALTH
+Зубная нить аптека,,HEALTH
+Ополаскиватель полости рта,,HEALTH
+Массаж спины,,HEALTH
+ЛФК,,HEALTH
+Физиотерапия,,HEALTH
+Иглоукалывание,,HEALTH
+Мануальный терапевт,,HEALTH
+Психолог,,HEALTH
+Психотерапевт,,HEALTH
+Психиатр,,HEALTH
+Нарколог,,HEALTH
+Аренда,УК,HOUSING
+Коммуналка,УК Дом,HOUSING
+Квартплата,ЖЭК,HOUSING
+ЖКХ,Госуслуги ЖКХ,HOUSING
+Электричество,Циан,HOUSING
+Газ коммунальный,Авито Недвижимость,HOUSING
+Вода холодная,ТСЖ,HOUSING
+Отопление,УК,HOUSING
+Капремонт взнос,УК Дом,HOUSING
+Вывоз мусора,ЖЭК,HOUSING
+Домофон,Госуслуги ЖКХ,HOUSING
+Консьерж,Циан,HOUSING
+Охрана ЖК,Авито Недвижимость,HOUSING
+Паркинг во дворе,ТСЖ,HOUSING
+Кладовка аренда,УК,HOUSING
+Аренда квартиры,УК Дом,HOUSING
+Залог аренда,ЖЭК,HOUSING
+Комиссия риелтора,Госуслуги ЖКХ,HOUSING
+Риелтор услуги,Циан,HOUSING
+Циан размещение,Авито Недвижимость,HOUSING
+Ипотека платёж,ТСЖ,HOUSING
+Процент по ипотеке,УК,HOUSING
+Страховка квартиры,УК Дом,HOUSING
+Страховка ипотеки,ЖЭК,HOUSING
+Налог на имущество,Госуслуги ЖКХ,HOUSING
+Налог земельный,Циан,HOUSING
+Госпошлина Росреестр,Авито Недвижимость,HOUSING
+Выписка ЕГРН,ТСЖ,HOUSING
+Кадастровая выписка,УК,HOUSING
+БТИ справка,УК Дом,HOUSING
+Ремонт квартиры,ЖЭК,HOUSING
+Штукатурка стен,Госуслуги ЖКХ,HOUSING
+Поклейка обоев,Циан,HOUSING
+Укладка плитки,Авито Недвижимость,HOUSING
+Стяжка пола,ТСЖ,HOUSING
+Электрика квартира,УК,HOUSING
+Сантехника квартира,УК Дом,HOUSING
+Замена стояка,ЖЭК,HOUSING
+Замена счётчика,Госуслуги ЖКХ,HOUSING
+Окна ПВХ,Циан,HOUSING
+Балкон остекление,,HOUSING
+Дверь входная,,HOUSING
+Замок дверной,,HOUSING
+Ключ домофона,,HOUSING
+Пропуск в ЖК,,HOUSING
+УК квитанция,,HOUSING
+Пени ЖКХ,,HOUSING
+Перерасчёт ЖКХ,,HOUSING
+Показания счётчиков,,HOUSING
+Аренда студии,,HOUSING
+Аренда комнаты,,HOUSING
+Субаренда,,HOUSING
+Посуточная аренда жилья,,HOUSING
+Airbnb жильё,,HOUSING
+Хостел ночь,,HOUSING
+Общежитие,,HOUSING
+Взнос ТСЖ,,HOUSING
+Уборка подъезда,,HOUSING
+Услуги УК,,HOUSING
+Аварийка ЖКХ,,HOUSING
+Сантехник УК,,HOUSING
+Электрик УК,,HOUSING
+Страховка залива,,HOUSING
+Дезинсекция,,HOUSING
+Дератизация,,HOUSING
+Фонд капремонта,,HOUSING
+Взнос на капремонт,,HOUSING
+Проект перепланировки,,HOUSING
+Согласование перепланировки,,HOUSING
+Техпаспорт квартиры,,HOUSING
+Оценка квартиры,,HOUSING
+Нотариус сделка жильё,,HOUSING
+Договор аренды,,HOUSING
+Залог ключей,,HOUSING
+Тёплый пол монтаж,,HOUSING
+Замена радиатора,,HOUSING
+Гидроизоляция ванной,,HOUSING
+Шумоизоляция стен,,HOUSING
+Вентиляция кухни,,HOUSING
+Газовщик УК,,HOUSING
 МТС,МТС,COMMUNICATION
-Интернет,Ростелеком,COMMUNICATION
+Интернет,Билайн,COMMUNICATION
+Билайн,Yota,COMMUNICATION
+МегаФон,МегаФон,COMMUNICATION
+Yota,Ростелеком,COMMUNICATION
+Tele2,Tele2,COMMUNICATION
+Ростелеком,Дом.ру,COMMUNICATION
+Дом.ру,МТС,COMMUNICATION
+МГТС,Билайн,COMMUNICATION
+Тинькофф Мобайл,Yota,COMMUNICATION
+Сим-карта,МегаФон,COMMUNICATION
+Пакет связи,Ростелеком,COMMUNICATION
+Минуты сверх пакета,Tele2,COMMUNICATION
+Гигабайты доп,Дом.ру,COMMUNICATION
+Роуминг,МТС,COMMUNICATION
+СМС-пакет,Билайн,COMMUNICATION
+Безлимит интернет,Yota,COMMUNICATION
+Домашний интернет,МегаФон,COMMUNICATION
+Оптика подключение,Ростелеком,COMMUNICATION
+Wi-Fi роутер связь,Tele2,COMMUNICATION
+Пополнение МТС,Дом.ру,COMMUNICATION
+Пополнение Билайн,МТС,COMMUNICATION
+Пополнение МегаФон,Билайн,COMMUNICATION
+Обещанный платёж,Yota,COMMUNICATION
+Детализация счёта,МегаФон,COMMUNICATION
+Смена тарифа,Ростелеком,COMMUNICATION
+Новый тариф,Tele2,COMMUNICATION
+Подписка на интернет,Дом.ру,COMMUNICATION
+Интернет на даче,МТС,COMMUNICATION
+Мобильная связь,Билайн,COMMUNICATION
+Сотовая связь,Yota,COMMUNICATION
+Городской телефон,МегаФон,COMMUNICATION
+Междугородняя связь,Ростелеком,COMMUNICATION
+IP-телефония,Tele2,COMMUNICATION
+Виртуальная АТС,Дом.ру,COMMUNICATION
+Домен .ru,МТС,COMMUNICATION
+Хостинг сайта,Билайн,COMMUNICATION
+VPS сервер,Yota,COMMUNICATION
+Яндекс 360,МегаФон,COMMUNICATION
+Google One,Ростелеком,COMMUNICATION
+iCloud хранилище,Tele2,COMMUNICATION
+Dropbox,Дом.ру,COMMUNICATION
+VPN подписка,МТС,COMMUNICATION
+Telegram Premium,Билайн,COMMUNICATION
+WhatsApp Business,Yota,COMMUNICATION
+Zoom Pro,МегаФон,COMMUNICATION
+Slack,Ростелеком,COMMUNICATION
+Антивирус Касперский,Tele2,COMMUNICATION
+Антивирус DrWeb,,COMMUNICATION
+Лицензия Windows,,COMMUNICATION
+Мобильный интернет,,COMMUNICATION
+Раздача интернета,,COMMUNICATION
+Модем 4G,,COMMUNICATION
+Роутер mesh,,COMMUNICATION
+Репитер сигнала,,COMMUNICATION
+eSIM,,COMMUNICATION
+Номер 8800,,COMMUNICATION
+Теле2 пакет,,COMMUNICATION
+Yota безлимит,,COMMUNICATION
+МТС тариф,,COMMUNICATION
+Билайн тариф,,COMMUNICATION
+МегаФон тариф,,COMMUNICATION
+Цифровое ТВ,,COMMUNICATION
+Интерактивное ТВ,,COMMUNICATION
+Приставка Ростелеком,,COMMUNICATION
+Кабельное ТВ,,COMMUNICATION
+Спутниковое ТВ,,COMMUNICATION
+Триколор,,COMMUNICATION
+НТВ-Плюс,,COMMUNICATION
+Почта корпоративная,,COMMUNICATION
+Яндекс Почта бизнес,,COMMUNICATION
+Почта для домена,,COMMUNICATION
+Пополнение Yota,,COMMUNICATION
+Пополнение Tele2,,COMMUNICATION
+Сим МТС,,COMMUNICATION
+Сим Билайн,,COMMUNICATION
+Роутер Ростелеком,,COMMUNICATION
+Подключение оптики,,COMMUNICATION
+Абонплата интернет,,COMMUNICATION
+Абонплата мобильная,,COMMUNICATION
 Кино,Кинопарк,ENTERTAINMENT
-Подписка,Steam,ENTERTAINMENT
-Футболка,H&M,CLOTHING
-Джинсы,Zara,CLOTHING
-Полка,IKEA,HOME
-Краска,Леруа Мерлен,HOME
-Лампочка,OBI,HOME
+Подписка,Ticketland,ENTERTAINMENT
+Билет в кино,Steam,ENTERTAINMENT
+Кино 3D,Кинопоиск,ENTERTAINMENT
+IMAX,Яндекс Афиша,ENTERTAINMENT
+Попкорн кино,Ozon Tickets,ENTERTAINMENT
+Напиток кино,Кинопарк,ENTERTAINMENT
+Театр,Ticketland,ENTERTAINMENT
+Мюзикл,Steam,ENTERTAINMENT
+Концерт,Кинопоиск,ENTERTAINMENT
+Стендап,Яндекс Афиша,ENTERTAINMENT
+Квест комната,Ozon Tickets,ENTERTAINMENT
+Боулинг,Кинопарк,ENTERTAINMENT
+Бильярд,Ticketland,ENTERTAINMENT
+Каток,Steam,ENTERTAINMENT
+Аквапарк,Кинопоиск,ENTERTAINMENT
+Зоопарк,Яндекс Афиша,ENTERTAINMENT
+Цирк,Ozon Tickets,ENTERTAINMENT
+Парк аттракционов,Кинопарк,ENTERTAINMENT
+Музей,Ticketland,ENTERTAINMENT
+Выставка,Steam,ENTERTAINMENT
+Галерея,Кинопоиск,ENTERTAINMENT
+Экскурсия,Яндекс Афиша,ENTERTAINMENT
+Тур выходного дня,Ozon Tickets,ENTERTAINMENT
+Караоке,Кинопарк,ENTERTAINMENT
+Кальянная,Ticketland,ENTERTAINMENT
+Ночной клуб,Steam,ENTERTAINMENT
+Бар развлечения,Кинопоиск,ENTERTAINMENT
+Steam,Яндекс Афиша,ENTERTAINMENT
+PlayStation Plus,Ozon Tickets,ENTERTAINMENT
+Xbox Game Pass,Кинопарк,ENTERTAINMENT
+Nintendo eShop,Ticketland,ENTERTAINMENT
+Игра в Steam,Steam,ENTERTAINMENT
+DLC,Кинопоиск,ENTERTAINMENT
+Внутриигровая покупка,Яндекс Афиша,ENTERTAINMENT
+Twitch подписка,Ozon Tickets,ENTERTAINMENT
+YouTube Premium,Кинопарк,ENTERTAINMENT
+Кинопоиск подписка,Ticketland,ENTERTAINMENT
+Иви,Steam,ENTERTAINMENT
+Okko,Кинопоиск,ENTERTAINMENT
+Premier,Яндекс Афиша,ENTERTAINMENT
+Wink кино,Ozon Tickets,ENTERTAINMENT
+Netflix,Кинопарк,ENTERTAINMENT
+Spotify,Ticketland,ENTERTAINMENT
+Яндекс Музыка,,ENTERTAINMENT
+Apple Music,,ENTERTAINMENT
+VK Музыка,,ENTERTAINMENT
+Подкасты подписка,,ENTERTAINMENT
+Настольная игра,,ENTERTAINMENT
+Пазл 1000,,ENTERTAINMENT
+Билет на концерт,,ENTERTAINMENT
+Билет на футбол,,ENTERTAINMENT
+Стадион,,ENTERTAINMENT
+Хоккей билет,,ENTERTAINMENT
+Баскетбол билет,,ENTERTAINMENT
+Билет ЦСКА,,ENTERTAINMENT
+Билет Спартак,,ENTERTAINMENT
+Escape room,,ENTERTAINMENT
+VR арена,,ENTERTAINMENT
+Компьютерный клуб,,ENTERTAINMENT
+Киберспорт турнир,,ENTERTAINMENT
+Пейнтбол,,ENTERTAINMENT
+Лазертаг,,ENTERTAINMENT
+Картинг,,ENTERTAINMENT
+Стрельбище тир,,ENTERTAINMENT
+Подарочный сертификат кино,,ENTERTAINMENT
+Сертификат на концерт,,ENTERTAINMENT
+Комикс,,ENTERTAINMENT
+Манга,,ENTERTAINMENT
+Фигурка коллекционная,,ENTERTAINMENT
+Лего набор развлечение,,ENTERTAINMENT
+Настолка,,ENTERTAINMENT
+Киноклуб,,ENTERTAINMENT
+Фестиваль,,ENTERTAINMENT
+VK Fest,,ENTERTAINMENT
+Парк Горького аттракцион,,ENTERTAINMENT
+Квест с друзьями,,ENTERTAINMENT
+Настолки в баре,,ENTERTAINMENT
+Боулинг час,,ENTERTAINMENT
+Караоке кабинка,,ENTERTAINMENT
+Футболка,Zara,CLOTHING
+Джинсы,H&M,CLOTHING
+Рубашка,Lamoda,CLOTHING
+Блузка,Uniqlo,CLOTHING
+Платье,Reserved,CLOTHING
+Юбка,Gloria Jeans,CLOTHING
+Брюки классические,Спортмастер,CLOTHING
+Шорты,Zara,CLOTHING
+Худи,H&M,CLOTHING
+Свитшот,Lamoda,CLOTHING
+Свитер,Uniqlo,CLOTHING
+Кардиган,Reserved,CLOTHING
+Пиджак,Gloria Jeans,CLOTHING
+Пальто,Спортмастер,CLOTHING
+Пуховик,Zara,CLOTHING
+Куртка демисезон,H&M,CLOTHING
+Ветровка,Lamoda,CLOTHING
+Плащ,Uniqlo,CLOTHING
+Жилет утеплённый,Reserved,CLOTHING
+Толстовка,Gloria Jeans,CLOTHING
+Кроссовки,Спортмастер,CLOTHING
+Туфли,Zara,CLOTHING
+Ботинки,H&M,CLOTHING
+Сапоги,Lamoda,CLOTHING
+Босоножки,Uniqlo,CLOTHING
+Кеды,Reserved,CLOTHING
+Сланцы,Gloria Jeans,CLOTHING
+Лоферы,Спортмастер,CLOTHING
+Балетки,Zara,CLOTHING
+Носки,H&M,CLOTHING
+Колготки,Lamoda,CLOTHING
+Трусы,Uniqlo,CLOTHING
+Бюстгальтер,Reserved,CLOTHING
+Пижама,Gloria Jeans,CLOTHING
+Халат махровый,Спортмастер,CLOTHING
+Термобельё,Zara,CLOTHING
+Легинсы,H&M,CLOTHING
+Тайтсы,Lamoda,CLOTHING
+Купальник,Uniqlo,CLOTHING
+Шапка,Reserved,CLOTHING
+Шарф,Gloria Jeans,CLOTHING
+Перчатки кожаные,Спортмастер,CLOTHING
+Варежки,Zara,CLOTHING
+Кепка,H&M,CLOTHING
+Панама,Lamoda,CLOTHING
+Ремень кожаный,Uniqlo,CLOTHING
+Сумка через плечо,Reserved,CLOTHING
+Рюкзак городской,Gloria Jeans,CLOTHING
+Кошелёк,Спортмастер,CLOTHING
+Очки солнцезащитные,Zara,CLOTHING
+Часы наручные,H&M,CLOTHING
+Серьги,Lamoda,CLOTHING
+Цепочка серебро,,CLOTHING
+Кольцо,,CLOTHING
+Браслет,,CLOTHING
+Зонт,,CLOTHING
+Галстук,,CLOTHING
+Бабочка,,CLOTHING
+Джинсовая куртка,,CLOTHING
+Кожаная куртка,,CLOTHING
+Парка,,CLOTHING
+Дублёнка,,CLOTHING
+Шуба,,CLOTHING
+Костюм классический,,CLOTHING
+Смокинг,,CLOTHING
+Спецодежда,,CLOTHING
+Фартук рабочий,,CLOTHING
+Кроссовки беговые,,CLOTHING
+Форма спортивная,,CLOTHING
+Кимоно,,CLOTHING
+Гетры,,CLOTHING
+Купальные шорты,,CLOTHING
+Пляжная туника,,CLOTHING
+Сарафан,,CLOTHING
+Комбинезон,,CLOTHING
+Боди,,CLOTHING
+Подарок одежда,,CLOTHING
+Джинсы skinny,,CLOTHING
+Футболка oversize,,CLOTHING
+Худи оверсайз,,CLOTHING
+Полка,Магнит,HOME
+Краска,Пятерочка на Ленина,HOME
+Лампочка,Пятёрочка,HOME
+Стол обеденный,Магнит,HOME
+Стул,IKEA,HOME
+Диван,Леруа Мерлен,HOME
+Кресло,OBI,HOME
+Шкаф,Hoff,HOME
+Комод,Максидом,HOME
+Тумба,Castorama,HOME
+Кровать,IKEA,HOME
+Матрас,Леруа Мерлен,HOME
+Подушка,OBI,HOME
+Одеяло,Hoff,HOME
+Плед,Максидом,HOME
+Простыня,Castorama,HOME
+Пододеяльник,IKEA,HOME
+Шторы,Леруа Мерлен,HOME
+Карниз,OBI,HOME
+Жалюзи,Hoff,HOME
+Ковёр,Максидом,HOME
+Коврик ванная,Castorama,HOME
+Швабра,IKEA,HOME
+Ведро пластиковое,Леруа Мерлен,HOME
+Fairy,OBI,HOME
+Domestos,Hoff,HOME
+Туалетная бумага,Максидом,HOME
+Бумажные полотенца,Castorama,HOME
+Удлинитель,IKEA,HOME
+Тройник,Леруа Мерлен,HOME
+Лампа настольная,OBI,HOME
+Люстра,Hoff,HOME
+Бра,Максидом,HOME
+Светильник потолочный,Castorama,HOME
+Светодиодная лента,IKEA,HOME
+Выключатель,Леруа Мерлен,HOME
+Молоток,OBI,HOME
+Отвёртка,Hoff,HOME
+Дрель,Максидом,HOME
+Перфоратор,Castorama,HOME
+Шуруповёрт,IKEA,HOME
+Гвозди,Леруа Мерлен,HOME
+Саморезы,OBI,HOME
+Дюбели,Hoff,HOME
+Скотч малярный,Максидом,HOME
+Изолента,Castorama,HOME
+Горшок цветочный,IKEA,HOME
+Грунт универсальный,Леруа Мерлен,HOME
+Удобрение для цветов,OBI,HOME
+Лейка,Hoff,HOME
+Кашпо,Максидом,HOME
+Ваза,Castorama,HOME
+Фоторамка,IKEA,HOME
+Картина постер,Леруа Мерлен,HOME
+Зеркало настенное,OBI,HOME
+Вешалка напольная,Hoff,HOME
+Сковорода,,HOME
+Кастрюля,,HOME
+Нож кухонный,,HOME
+Разделочная доска,,HOME
+Тарелки набор,,HOME
+Кружки набор,,HOME
+Столовые приборы,,HOME
+Терка,,HOME
+Миксер,,HOME
+Пылесос,,HOME
+Утюг,,HOME
+Чайник электрический,,HOME
+Микроволновка,,HOME
+Блендер,,HOME
+Тостер,,HOME
+Фен,,HOME
+Увлажнитель,,HOME
+Обогреватель,,HOME
+Вентилятор напольный,,HOME
+Ремонт смесителя,,HOME
+Смеситель,,HOME
+Сифон,,HOME
+Унитаз,,HOME
+Раковина,,HOME
 Непонятная покупка,,OTHER
-Сбор,,OTHER
-Перевод,,OTHER
+Сбор,Почта России,OTHER
+Перевод,Сбербанк,OTHER
+Комиссия банка,Госуслуги,OTHER
+Комиссия банкомата,Нотариус,OTHER
+Штраф ГИБДД,Почта России,OTHER
+Госпошлина паспорт,Сбербанк,OTHER
+Госпошлина загран,Госуслуги,OTHER
+Нотариус,Нотариус,OTHER
+Адвокат,Почта России,OTHER
+Пожертвование,Сбербанк,OTHER
+Благотворительность,Госуслуги,OTHER
+Чаевые,Нотариус,OTHER
+На чай официанту,Почта России,OTHER
+Возврат долга,Сбербанк,OTHER
+Займ другу,Госуслуги,OTHER
+Долг коллеге,Нотариус,OTHER
+Алименты,,OTHER
+Штраф библиотека,,OTHER
+Пени банка,,OTHER
+Посылка,,OTHER
+Бандероль,,OTHER
+Курьерская доставка СДЭК,,OTHER
+Boxberry,,OTHER
+Пошлина таможня,,OTHER
+Растаможка,,OTHER
+Хранение посылки,,OTHER
+До востребования,,OTHER
+Ручка шариковая офис,,OTHER
+Скрепки,,OTHER
+Папка-регистратор,,OTHER
+Файл прозрачный,,OTHER
+Печать документов,,OTHER
+Ксерокопия,,OTHER
+Ламинация,,OTHER
+Фото на документы,,OTHER
+Визитки,,OTHER
+Подарок коллеге,,OTHER
+Цветы букет подарок,,OTHER
+Открытка,,OTHER
+Сувенир,,OTHER
+Магнит сувенирный,,OTHER
+Значок,,OTHER
+Брелок,,OTHER
+Упаковка подарка,,OTHER
+Разное,,OTHER
+Прочее,,OTHER
+Мелочь,,OTHER
+Неизвестно,,OTHER
+Покупка без названия,,OTHER
+Оплата по QR,,OTHER
+Оплата по счёту,,OTHER
+Безнал без категории,,OTHER
+Возврат ошибочный,,OTHER
+Корректировка,,OTHER
+Страховка жизни,,OTHER
+Страховка от несчастного случая,,OTHER
+Членский взнос,,OTHER
+Профсоюз,,OTHER
+Взнос в фонд,,OTHER
+Краудфандинг,,OTHER
+Донат,,OTHER
+Boosty,,OTHER
+Patreon,,OTHER
+Чаевые курьеру,,OTHER
+Сервисный сбор,,OTHER
+Пошлина суд,,OTHER
+Штраф административный,,OTHER
+Исполнительский сбор,,OTHER
+ФССП,,OTHER
+Штраф налоговой,,OTHER
+Пени налоговой,,OTHER
+Налог самозанятый,,OTHER
+Патент,,OTHER
+Госпошлина брак,,OTHER
+Госпошлина развод,,OTHER
+Ремонт телефона,,OTHER
+Замена экрана,,OTHER
+Сервисный центр,,OTHER
+Гарантийный ремонт,,OTHER

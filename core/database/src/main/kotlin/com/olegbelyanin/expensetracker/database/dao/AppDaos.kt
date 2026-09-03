@@ -4,6 +4,7 @@ import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
+import androidx.room3.Update
 import com.olegbelyanin.expensetracker.database.entities.AppMetaEntity
 import com.olegbelyanin.expensetracker.database.entities.CategoryEntity
 import com.olegbelyanin.expensetracker.database.entities.ExactCategoryRuleEntity
@@ -26,6 +27,9 @@ interface CategoryDao {
     @Query("SELECT * FROM category WHERE is_builtin = 1 AND code = :code LIMIT 1")
     suspend fun findBuiltinByCode(code: String): CategoryEntity?
 
+    @Query("SELECT * FROM category WHERE id = :id LIMIT 1")
+    suspend fun findById(id: Long): CategoryEntity?
+
     @Query("SELECT COUNT(*) FROM category")
     suspend fun count(): Long
 
@@ -35,11 +39,42 @@ interface CategoryDao {
 
 @Dao
 interface LocationDao {
+    @Query("SELECT * FROM location WHERE id = :id LIMIT 1")
+    suspend fun findById(id: Long): LocationEntity?
+
     @Query("SELECT * FROM location WHERE normalized_name = :normalizedName LIMIT 1")
     suspend fun findByNormalizedName(normalizedName: String): LocationEntity?
 
     @Insert
     suspend fun insert(entity: LocationEntity): Long
+
+    @Update
+    suspend fun update(entity: LocationEntity)
+
+    @Query(
+        """
+        SELECT * FROM location
+        WHERE archived_at IS NULL AND usage_count > 0
+        ORDER BY last_used_at DESC, usage_count DESC, id ASC
+        LIMIT :limit
+        """,
+    )
+    suspend fun recentUsed(limit: Int): List<LocationEntity>
+
+    @Query(
+        """
+        SELECT * FROM location
+        WHERE archived_at IS NULL
+          AND usage_count > 0
+          AND (
+            normalized_name LIKE :prefix ESCAPE '\'
+            OR name LIKE :rawPrefix ESCAPE '\'
+          )
+        ORDER BY last_used_at DESC, usage_count DESC, id ASC
+        LIMIT :limit
+        """,
+    )
+    suspend fun suggestByPrefix(prefix: String, rawPrefix: String, limit: Int): List<LocationEntity>
 }
 
 @Dao

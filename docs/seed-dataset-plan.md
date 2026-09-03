@@ -53,9 +53,11 @@ seed-data/
 ├── README.md                      # как воспроизвести, ссылка на этот документ
 ├── categories.yaml                # code → name (единый источник правды)
 ├── categorization-config.json     # зафиксированные параметры после validation
+├── scripts/
+│   └── generate_raw_dataset.py    # синтетика 800 + 200, проверка инвариантов
 ├── raw/
-│   ├── train.csv                  # 800 строк
-│   └── validation.csv             # 200 строк
+│   ├── train.csv                  # 800 строк (готово)
+│   └── validation.csv             # 200 строк (готово)
 └── reports/                       # gitignore или коммит последнего отчёта
     └── seed-v1-validation.json
 
@@ -172,9 +174,22 @@ Seed-артефакт **обязан** содержать не только аг
 
 200 строк, 20 на категорию. Включает:
 
-- edge cases (конфликт name vs location: «Аспирин» в «Пятёрочке»);
+- edge cases (конфликт name vs location);
 - редкие формулировки, не дублирующие train по `normalized_name`;
 - строки для замера fallback rate.
+
+Зафиксированные конфликты name vs location в `raw/validation.csv`:
+
+| name | location | category_code | Ожидание |
+|---|---|---|---|
+| Аспирин | Пятёрочка | HEALTH | название сильнее неоднозначного магазина |
+| Витамины аптечные | Магнит | HEALTH | то же |
+| Пластырь рулон | Пятёрочка | HEALTH | то же |
+| Губки для посуды | Пятёрочка | HOME | хозтовары в супермаркете |
+| Батарейки пальчиковые | Магнит | HOME | то же |
+
+В train для этих признаков есть однозначные пары (Аспирин кардио / Столичка и т.п.),
+чтобы у названия был seed-сигнал.
 
 **Метрики validation** (целевые после подбора параметров):
 
@@ -187,15 +202,17 @@ Seed-артефакт **обязан** содержать не только аг
 
 ### 5.5. Этапы подготовки (ручная работа)
 
-| Шаг | Действие | Объём | Этап плана |
-|---|---|---|---|
-| S1 | `categories.yaml`, структура `seed-data/` | — | B0 |
-| S2 | Минимальный train.csv (~30 строк) | cold start на день 1 | B0 |
-| S3 | Полный train.csv | 800 строк | B3 |
-| S4 | validation.csv | 200 строк | B3 |
-| S5 | Валидация формата (скрипт/тест) | CI | B3 |
-| S6 | Подбор параметров на validation | grid search | B3 |
-| S7 | Финальный seed-артефакт v1 | assets/seed/ | B3 |
+| Шаг | Действие | Объём | Этап плана | Статус |
+|---|---|---|---|---|
+| S1 | `categories.yaml`, структура `seed-data/` | — | B0 | готово |
+| S2 | Минимальный train.csv (~30 строк) | cold start на день 1 | B0 | закрыт полным CSV |
+| S3 | Полный train.csv | 800 строк | B0/B3 | готово 2026-09-03 |
+| S4 | validation.csv | 200 строк | B0/B3 | готово 2026-09-03 |
+| S5 | Валидация формата (скрипт/тест) | CI + `generate_raw_dataset.py` | B3 | скрипт есть, CI — B3 |
+| S6 | Подбор параметров на validation | grid search | B3 | не начат |
+| S7 | Финальный seed-артефакт v1 | assets/seed/ | B3 | не начат |
+
+Воспроизведение raw CSV: `python3 seed-data/scripts/generate_raw_dataset.py`.
 
 ---
 
@@ -403,7 +420,7 @@ Seed **не** создаёт записи в `location`. При первом в�
 
 | Этап | Что делать по seed |
 |---|---|
-| **B0** | `seed-data/` каркас, `categories.yaml`, минимальный train (~30 строк), stub assets |
+| **B0** | `seed-data/` каркас, `categories.yaml`, полный train 800 + validation 200, stub assets |
 | **B3** | `:seed-generator`, полный train 800 + validation 200, подбор параметров, финальный assets |
 | **B6** | golden-тесты на seed; demo-данные для UI **отдельно** от seed (не путать) |
 | **I3** | CI: `generateSeed` + diff assets + categorization tests |

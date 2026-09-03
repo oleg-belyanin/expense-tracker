@@ -1,1 +1,201 @@
 name,location,category_code
+Ряженка,Пятёрочка,GROCERIES
+Простокваша,Магнит,GROCERIES
+Брынза,ВкусВилл,GROCERIES
+Моцарелла,Перекрёсток,GROCERIES
+Пармезан,Лента,GROCERIES
+Сливки 20%,Ашан,GROCERIES
+Сгущёнка,Дикси,GROCERIES
+Масло оливковое,Азбука Вкуса,GROCERIES
+Хлеб бородинский,Самокат,GROCERIES
+Лаваш тонкий,Окей,GROCERIES
+Пита,Пятерочка на Ленина,GROCERIES
+Круассаны магазин,Pyaterochka,GROCERIES
+Сосиска в тесте,Пятёрочка,GROCERIES
+Салат оливье,Магнит,GROCERIES
+Селёдка под шубой,,GROCERIES
+Перекус в магазине,,GROCERIES
+Продукты на неделю,,GROCERIES
+Бакалея набор,,GROCERIES
+Быстрый перекус,,GROCERIES
+Тан в бутылке,,GROCERIES
+Хинкали,Шоколадница,CAFE
+Чебурек,Starbucks,CAFE
+Самса,Coffee Like,CAFE
+Пирожок с мясом,Cofix,CAFE
+Беляш,Surf Coffee,CAFE
+Хот-дог,Теремок,CAFE
+Буррито,Бургер Кинг,CAFE
+Кебаб,KFC,CAFE
+Кофе латте,Вкусно — и точка,CAFE
+latte,Додо Пицца,CAFE
+cappuccino,Шоколадница,CAFE
+espresso,Starbucks,CAFE
+iced latte,Coffee Like,CAFE
+Перекус в кофейне,Cofix,CAFE
+Кофе с круассаном,Surf Coffee,CAFE
+Чай и десерт,Теремок,CAFE
+Обед в кафе,,CAFE
+Ужин в ресторане,,CAFE
+Перекус с кофе,,CAFE
+Фраппе,,CAFE
+Ремонт двигателя,Лукойл,TRANSPORT
+Замена фильтра салона,Яндекс Go,TRANSPORT
+Развал схождение,Метро,TRANSPORT
+Мойка двигателя,Газпромнефть,TRANSPORT
+Полировка кузова,Роснефть,TRANSPORT
+Антикор,Ситимобил,TRANSPORT
+Бензин АИ-95 канистра,Аэроэкспресс,TRANSPORT
+Проезд электричка,РЖД,TRANSPORT
+Карта Тройка,Мосгортранс,TRANSPORT
+Пополнение Стрелка,Лукойл,TRANSPORT
+Билет аэроэкспресс,Яндекс Go,TRANSPORT
+Такси ночной тариф,Метро,TRANSPORT
+Каршеринг минуты,Газпромнефть,TRANSPORT
+Самокат Яндекс Go,Роснефть,TRANSPORT
+Парковка аэропорт,Ситимобил,TRANSPORT
+Штраф за проезд платный,,TRANSPORT
+Оплата ЗСД,,TRANSPORT
+Топливо дизель,,TRANSPORT
+Заправка полный,,TRANSPORT
+Проезд автобус ночной,,TRANSPORT
+Аспирин,Пятёрочка,HEALTH
+Витамины аптечные,Магнит,HEALTH
+Пластырь рулон,Пятёрочка,HEALTH
+Очки рецептурные,Столичка,HEALTH
+Линзы контактные,Столичка на Чкалова,HEALTH
+Раствор для линз,"36,6",HEALTH
+Слуховой аппарат,Invitro,HEALTH
+Костыли,Поликлиника,HEALTH
+Бандаж поясничный,Стоматология,HEALTH
+Ортопедическая стелька,Горздрав,HEALTH
+Корсет грудной,Ригла,HEALTH
+Вакцинация,Helix,HEALTH
+Прививка грипп,Инвитро,HEALTH
+Медосмотр,Столичка,HEALTH
+Справка 086,Столичка на Чкалова,HEALTH
+Лекарства по рецепту,"36,6",HEALTH
+Таблетки от головы,,HEALTH
+Капли в нос,,HEALTH
+Мазь противовоспалительная,,HEALTH
+Ходунки,,HEALTH
+Ремонт комнаты,УК,HOUSING
+Аренда однушки,УК Дом,HOUSING
+Квитанция за свет,ЖЭК,HOUSING
+Квитанция за газ,Госуслуги ЖКХ,HOUSING
+Квитанция за воду,Циан,HOUSING
+Взнос за консьержа,Авито Недвижимость,HOUSING
+Оплата паркинга ЖК,ТСЖ,HOUSING
+Домофон ремонт,УК,HOUSING
+Замена замка входного,УК Дом,HOUSING
+Страховка ответственности соседям,ЖЭК,HOUSING
+Комиссия Циан,,HOUSING
+Залог за квартиру,,HOUSING
+Аренда кладовки,,HOUSING
+Оплата ТСЖ,,HOUSING
+Капремонт фасада,,HOUSING
+Лифт ремонт сбор,,HOUSING
+Озеленение двора,,HOUSING
+Шлагбаум во двор,,HOUSING
+Пропуск авто во двор,,HOUSING
+Уборка после ремонта,,HOUSING
+Доп гигабайты МТС,МТС,COMMUNICATION
+Роуминг Турция,Билайн,COMMUNICATION
+eSIM путешествие,Yota,COMMUNICATION
+Замена сим-карты,МегаФон,COMMUNICATION
+Новый номер МТС,Ростелеком,COMMUNICATION
+Блокировка номера,Tele2,COMMUNICATION
+Обещанный платёж Билайн,Дом.ру,COMMUNICATION
+Домашний телефон,МТС,COMMUNICATION
+МегаФон ТВ,Билайн,COMMUNICATION
+Wink подписка связь,Yota,COMMUNICATION
+Онлайм интернет,МегаФон,COMMUNICATION
+МТС Home,Ростелеком,COMMUNICATION
+Билайн домашний,,COMMUNICATION
+Yota модем,,COMMUNICATION
+Спутниковый интернет,,COMMUNICATION
+Starlink абонплата,,COMMUNICATION
+Домен продление,,COMMUNICATION
+SSL сертификат,,COMMUNICATION
+Почта на своём домене,,COMMUNICATION
+Телемост корпоративный,,COMMUNICATION
+Билет в театр,Кинопарк,ENTERTAINMENT
+Опера,Ticketland,ENTERTAINMENT
+Балет,Steam,ENTERTAINMENT
+Филармония,Кинопоиск,ENTERTAINMENT
+Планетарий,Яндекс Афиша,ENTERTAINMENT
+Океанариум,Ozon Tickets,ENTERTAINMENT
+Веревочный парк,Кинопарк,ENTERTAINMENT
+Скалодром развлечение,Ticketland,ENTERTAINMENT
+Квест перформанс,Steam,ENTERTAINMENT
+Иммерсивный спектакль,Кинопоиск,ENTERTAINMENT
+Комеди клаб билет,Яндекс Афиша,ENTERTAINMENT
+Open-air,,ENTERTAINMENT
+Пикник Афиша,,ENTERTAINMENT
+Настольный теннис клуб,,ENTERTAINMENT
+Билет в цирк,,ENTERTAINMENT
+Детский день рождения парк,,ENTERTAINMENT
+Квест для детей,,ENTERTAINMENT
+Кино ночной сеанс,,ENTERTAINMENT
+Подписка Steam,,ENTERTAINMENT
+Игра на консоль,,ENTERTAINMENT
+Кроссовки Nike,Zara,CLOTHING
+Кроссовки Adidas,H&M,CLOTHING
+Джинсы Levi's,Lamoda,CLOTHING
+Пальто зимнее,Uniqlo,CLOTHING
+Ботинки зимние,Reserved,CLOTHING
+Рубашка оксфорд,Gloria Jeans,CLOTHING
+Платье вечернее,Спортмастер,CLOTHING
+Юбка миди,Zara,CLOTHING
+Брюки чинос,H&M,CLOTHING
+Куртка бомбер,Lamoda,CLOTHING
+Свитер шерстяной,Uniqlo,CLOTHING
+Кардиган длинный,Reserved,CLOTHING
+Кеды Converse,Gloria Jeans,CLOTHING
+Сумка шоппер,,CLOTHING
+Рюкзак школьный,,CLOTHING
+Шапка бини,,CLOTHING
+Шарф кашемир,,CLOTHING
+Перчатки сенсорные,,CLOTHING
+Носки спортивные,,CLOTHING
+Термоноски,,CLOTHING
+Губки для посуды,Пятёрочка,HOME
+Батарейки пальчиковые,Магнит,HOME
+Полотенцесушитель,IKEA,HOME
+Шторка для ванны,Леруа Мерлен,HOME
+Ковш эмалированный,OBI,HOME
+Таз,Hoff,HOME
+Салфетки влажные дом,Максидом,HOME
+Пакеты для мусора,Castorama,HOME
+Стрейч-плёнка,IKEA,HOME
+Фольга пищевая,Леруа Мерлен,HOME
+Пергамент,OBI,HOME
+Форма для выпечки,Hoff,HOME
+Контейнер пищевой,Максидом,HOME
+Органайзер,Castorama,HOME
+Корзина для белья,,HOME
+Гладильная доска,,HOME
+Ремонт крана,,HOME
+Крючки настенные,,HOME
+Полка для ванной,,HOME
+Средство для стёкол,,HOME
+Дубликат ключей,Почта России,OTHER
+Печать ключа,Сбербанк,OTHER
+Подарок учителю,Госуслуги,OTHER
+Открытка день рождения,Нотариус,OTHER
+Нотариус доверенность,,OTHER
+Перевод по СБП без категории,,OTHER
+Комиссия за перевод,,OTHER
+Штраф за ЖКУ просрочку,,OTHER
+Пожертвование фонду,,OTHER
+Донат стримеру,,OTHER
+Оплата госпошлины,,OTHER
+Канцтовары смешанные,,OTHER
+Курьер без чека,,OTHER
+Хранение на складе,,OTHER
+Аренда ячейки,,OTHER
+Страховка путешествия,,OTHER
+Взнос в кооператив,,OTHER
+Членство клуб,,OTHER
+Неизвестная операция,,OTHER
+Прочая услуга,,OTHER
