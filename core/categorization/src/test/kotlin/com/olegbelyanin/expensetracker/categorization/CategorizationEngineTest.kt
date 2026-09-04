@@ -175,6 +175,99 @@ class CategorizationEngineTest {
         assertEquals(stomatology, result.selectedCategoryId)
     }
 
+    @Test
+    fun ineligibleLocationStillRanksWithoutSelecting() {
+        val stomatology = 8L
+        val location = CategoryVector(mapOf(health to 0.45, stomatology to 0.45, other to 0.10))
+        val result = engine.categorize(
+            CategorizationQuery("", emptyList(), locationNormalized = "гашека"),
+            snapshot(
+                activeCategoryIds = active + stomatology,
+                locationVector = location,
+                locationEligible = false,
+                locationTiedCategoryIds = setOf(health, stomatology),
+            ),
+        )
+        assertEquals(other, result.selectedCategoryId)
+        assertTrue(result.usedFallback)
+        assertEquals(listOf(health, stomatology, other), result.orderedCandidates.map { it.categoryId })
+    }
+
+    @Test
+    fun locationTieWithLiveTransitSelectsTarget() {
+        val stomatology = 8L
+        val location = CategoryVector(mapOf(health to 0.45, stomatology to 0.45, other to 0.10))
+        val result = engine.categorize(
+            CategorizationQuery("", emptyList(), locationNormalized = "гашека"),
+            snapshot(
+                activeCategoryIds = active + stomatology,
+                locationVector = location,
+                locationEligible = false,
+                locationTiedCategoryIds = setOf(health, stomatology),
+                categoryTransitions = listOf(CategoryTransitionLink(health, stomatology, createdAt = 10)),
+            ),
+        )
+        assertEquals(stomatology, result.selectedCategoryId)
+        assertEquals(CategoryAssignmentSource.PROBABILISTIC, result.source)
+        assertFalse(result.usedFallback)
+        assertEquals(listOf(health, stomatology, other), result.orderedCandidates.map { it.categoryId })
+    }
+
+    @Test
+    fun laterTransitWinsLocationTie() {
+        val stomatology = 8L
+        val location = CategoryVector(mapOf(health to 0.5, stomatology to 0.5, other to 0.0))
+        val result = engine.categorize(
+            CategorizationQuery("", emptyList(), locationNormalized = "гашека"),
+            snapshot(
+                activeCategoryIds = active + stomatology,
+                locationVector = location,
+                locationEligible = false,
+                locationTiedCategoryIds = setOf(health, stomatology),
+                categoryTransitions = listOf(
+                    CategoryTransitionLink(health, stomatology, createdAt = 1),
+                    CategoryTransitionLink(stomatology, health, createdAt = 2),
+                ),
+            ),
+        )
+        assertEquals(health, result.selectedCategoryId)
+    }
+
+    @Test
+    fun unrelatedTransitDoesNotBreakLocationTie() {
+        val stomatology = 8L
+        val result = engine.categorize(
+            CategorizationQuery("", emptyList(), locationNormalized = "гашека"),
+            snapshot(
+                activeCategoryIds = active + stomatology,
+                locationVector = CategoryVector(mapOf(health to 0.45, stomatology to 0.45, other to 0.10)),
+                locationEligible = false,
+                locationTiedCategoryIds = setOf(health, stomatology),
+                categoryTransitions = listOf(CategoryTransitionLink(cafe, health, createdAt = 10)),
+            ),
+        )
+        assertEquals(other, result.selectedCategoryId)
+        assertTrue(result.usedFallback)
+    }
+
+    @Test
+    fun nameVectorBlocksLocationTransitTieBreak() {
+        val stomatology = 8L
+        val result = engine.categorize(
+            query("латт", latte),
+            snapshot(
+                activeCategoryIds = active + stomatology,
+                featureVectors = mapOf(latte to nameVector),
+                locationVector = CategoryVector(mapOf(health to 0.5, stomatology to 0.5, other to 0.0)),
+                locationEligible = false,
+                locationTiedCategoryIds = setOf(health, stomatology),
+                categoryTransitions = listOf(CategoryTransitionLink(health, stomatology, createdAt = 10)),
+            ),
+        )
+        assertEquals(cafe, result.selectedCategoryId)
+        assertEquals(listOf(cafe, other, health), result.orderedCandidates.map { it.categoryId })
+    }
+
     private fun query(normalized: String, vararg features: KeywordFeature) =
         CategorizationQuery(normalized, features.toList())
 
@@ -185,7 +278,10 @@ class CategorizationEngineTest {
         categoryAliasId: Long? = null,
         featureVectors: Map<KeywordFeature, CategoryVector> = emptyMap(),
         locationVector: CategoryVector? = null,
+        locationEligible: Boolean = true,
+        locationTiedCategoryIds: Set<Long> = emptySet(),
         transitions: List<FeatureTransition> = emptyList(),
+        categoryTransitions: List<CategoryTransitionLink> = emptyList(),
     ) = CategorizationSnapshot(
         fallbackCategoryId = other,
         activeCategoryIds = activeCategoryIds,
@@ -194,6 +290,9 @@ class CategorizationEngineTest {
         categoryAliasId = categoryAliasId,
         featureVectors = featureVectors,
         locationVector = locationVector,
+        locationEligible = locationEligible,
+        locationTiedCategoryIds = locationTiedCategoryIds,
         transitions = transitions,
+        categoryTransitions = categoryTransitions,
     )
 }

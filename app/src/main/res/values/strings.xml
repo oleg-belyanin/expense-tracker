@@ -191,7 +191,8 @@
     <string name="filter_place_unselected">Не выбрано</string>
     <string name="category_picker_title">Выберите категорию</string>
     <string name="category_picker_hint">Сначала — подходящие к «%1$s»</string>
-    <string name="category_picker_hint_empty">Подходящие появятся после названия</string>
+    <string name="category_picker_hint_place">Сначала — подходящие к месту «%1$s»</string>
+    <string name="category_picker_hint_empty">Подходящие появятся после названия или места</string>
     <string name="category_picker_search">Найти категорию</string>
     <string name="category_picker_best">ПОДХОДЯЩИЕ</string>
     <string name="category_picker_all">ВСЕ КАТЕГОРИИ · А–Я</string>

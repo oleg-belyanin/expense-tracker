@@ -1,5 +1,6 @@
 package com.olegbelyanin.expensetracker.database.learning
 
+import com.olegbelyanin.expensetracker.categorization.CategoryTransitionLink
 import com.olegbelyanin.expensetracker.categorization.FeatureTransition
 import com.olegbelyanin.expensetracker.categorization.KeywordFeature
 import com.olegbelyanin.expensetracker.database.entities.CategoryTransitionEntity
@@ -30,5 +31,18 @@ class ActiveTransitionLoaderTest {
     @Test
     fun emptyFeaturesLoadNothing() = runTest {
         assertTrue(ActiveTransitionLoader.load(FakeLearningDao(), emptyMap()).isEmpty())
+    }
+
+    @Test
+    fun loadOpenCategoryLinksIgnoresClosedAndInactive() = runTest {
+        val learning = FakeLearningDao()
+        learning.insertTransition(CategoryTransitionEntity("t1", 4, 8, createdAt = 3))
+        learning.insertTransition(CategoryTransitionEntity("t2", 4, 8, createdAt = 1, closedAt = 2))
+        learning.insertTransition(CategoryTransitionEntity("t3", 2, 3, createdAt = 4))
+        learning.upsertTransitionKeyword(CategoryTransitionKeywordEntity("t1", 2, active = true))
+        learning.upsertTransitionKeyword(CategoryTransitionKeywordEntity("t2", 1, active = true))
+        learning.upsertTransitionKeyword(CategoryTransitionKeywordEntity("t3", 9, active = false))
+        val loaded = ActiveTransitionLoader.loadOpenCategoryLinks(learning)
+        assertEquals(listOf(CategoryTransitionLink(4, 8, createdAt = 3)), loaded)
     }
 }

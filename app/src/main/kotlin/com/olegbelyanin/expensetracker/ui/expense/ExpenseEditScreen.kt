@@ -271,6 +271,7 @@ fun ExpenseEditScreen(
         ExpenseEditSheet.Category ->
             CategoryPickerSheet(
                 name = state.name,
+                locationName = state.locationName,
                 query = state.categoryQuery,
                 selectedId = state.category?.id,
                 categories = state.categories,

@@ -94,5 +94,21 @@ data class CategoryVector(val scores: Map<Long, Double>) {
             val maxShare = counts.maxOf { it.count }.toDouble() / support
             return maxShare >= config.minSeedProbability
         }
+
+        /**
+         * Ровно две категории с одинаковым сырым счётчиком — ничья 50/50,
+         * без сглаживания Лапласа.
+         */
+        fun evenTwoWaySplit(counts: List<FeatureCount>): Set<Long>? {
+            val byCategory = counts
+                .filter { it.count > 0 }
+                .groupBy { it.categoryId }
+                .mapValues { (_, rows) -> rows.sumOf { it.count } }
+                .filter { it.value > 0 }
+            if (byCategory.size != 2) return null
+            val totals = byCategory.values.toList()
+            if (totals[0] != totals[1]) return null
+            return byCategory.keys
+        }
     }
 }

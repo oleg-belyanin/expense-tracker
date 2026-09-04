@@ -240,6 +240,22 @@ interface LearningDao {
     )
     suspend fun activeTransitionsForKeywords(keywordIds: List<Long>): List<ActiveKeywordTransitionRow>
 
+    @Query(
+        """
+        SELECT category_transition.from_category_id AS from_category_id,
+               category_transition.to_category_id AS to_category_id,
+               category_transition.created_at AS created_at
+        FROM category_transition
+        WHERE category_transition.closed_at IS NULL
+          AND EXISTS (
+            SELECT 1 FROM category_transition_keyword
+            WHERE category_transition_keyword.transition_id = category_transition.id
+              AND category_transition_keyword.active = 1
+          )
+        """,
+    )
+    suspend fun activeCategoryTransitions(): List<ActiveCategoryTransitionRow>
+
     @Query("SELECT * FROM exact_category_rule")
     suspend fun getAllExactRules(): List<ExactCategoryRuleEntity>
 
@@ -275,4 +291,13 @@ data class ActiveKeywordTransitionRow(
     val fromCategoryId: Long,
     @ColumnInfo(name = "to_category_id")
     val toCategoryId: Long,
+)
+
+data class ActiveCategoryTransitionRow(
+    @ColumnInfo(name = "from_category_id")
+    val fromCategoryId: Long,
+    @ColumnInfo(name = "to_category_id")
+    val toCategoryId: Long,
+    @ColumnInfo(name = "created_at")
+    val createdAt: Long,
 )

@@ -40,7 +40,7 @@ class SeedCatalog(
             val vector = CategoryVector.fromCounts(counts, catalog.activeIds, config) ?: return@forEach
             featureVectors[feature] = vector
         }
-        val locationVector = locationNormalized?.let { loadLocation(it) }
+        val locationLookup = locationNormalized?.let { loadLocation(it) }
         val seedExact = analysis.normalizedName.takeIf { it.isNotEmpty() }?.let { exactRules[it] }
             ?.let { ExactMatch(it, CategoryVector.SOURCE_SEED) }
         return engine.categorize(
@@ -50,15 +50,27 @@ class SeedCatalog(
                 activeCategoryIds = catalog.activeIds,
                 seedExact = seedExact,
                 featureVectors = featureVectors,
-                locationVector = locationVector,
+                locationVector = locationLookup?.vector,
+                locationEligible = locationLookup?.eligible ?: false,
+                locationTiedCategoryIds = locationLookup?.tiedCategoryIds.orEmpty(),
             ),
         )
     }
 
-    private fun loadLocation(normalized: String): CategoryVector? {
+    private data class LocationLookup(
+        val vector: CategoryVector,
+        val eligible: Boolean,
+        val tiedCategoryIds: Set<Long>,
+    )
+
+    private fun loadLocation(normalized: String): LocationLookup? {
         val counts = locationCounts[normalized] ?: return null
-        if (!CategoryVector.locationEligible(counts, config)) return null
-        return CategoryVector.fromCounts(counts, catalog.activeIds, config)
+        val vector = CategoryVector.fromCounts(counts, catalog.activeIds, config) ?: return null
+        return LocationLookup(
+            vector = vector,
+            eligible = CategoryVector.locationEligible(counts, config),
+            tiedCategoryIds = CategoryVector.evenTwoWaySplit(counts).orEmpty(),
+        )
     }
 
     private fun buildFeatureCounts(snapshot: SeedSnapshot): Map<KeywordFeature, List<FeatureCount>> {

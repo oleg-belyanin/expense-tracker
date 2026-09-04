@@ -74,6 +74,32 @@ class CategoryVectorTest {
     }
 
     @Test
+    fun evenTwoWaySplitRequiresEqualCountsOfExactlyTwoCategories() {
+        val tie = listOf(
+            FeatureCount(health, CategoryVector.SOURCE_USER, 1),
+            FeatureCount(food, CategoryVector.SOURCE_USER, 1),
+        )
+        assertEquals(setOf(health, food), CategoryVector.evenTwoWaySplit(tie))
+        assertNull(
+            CategoryVector.evenTwoWaySplit(
+                listOf(
+                    FeatureCount(health, CategoryVector.SOURCE_USER, 2),
+                    FeatureCount(food, CategoryVector.SOURCE_USER, 1),
+                ),
+            ),
+        )
+        assertNull(
+            CategoryVector.evenTwoWaySplit(
+                listOf(
+                    FeatureCount(health, CategoryVector.SOURCE_USER, 1),
+                    FeatureCount(food, CategoryVector.SOURCE_USER, 1),
+                    FeatureCount(other, CategoryVector.SOURCE_USER, 1),
+                ),
+            ),
+        )
+    }
+
+    @Test
     fun newActiveCategoryAddsScoreDimensionWithoutMigratingCounts() {
         val counts = listOf(FeatureCount(health, CategoryVector.SOURCE_SEED, 10))
         val before = CategoryVector.fromCounts(counts, setOf(health, other), config)!!

@@ -1,5 +1,6 @@
 package com.olegbelyanin.expensetracker.database.learning
 
+import com.olegbelyanin.expensetracker.database.dao.ActiveCategoryTransitionRow
 import com.olegbelyanin.expensetracker.database.dao.ActiveKeywordTransitionRow
 import com.olegbelyanin.expensetracker.database.dao.KeywordDao
 import com.olegbelyanin.expensetracker.database.dao.LearningDao
@@ -295,6 +296,14 @@ internal class FakeLearningDao : LearningDao {
             if (!link.active || link.keywordId !in keywordIds) return@mapNotNull null
             val transition = open[link.transitionId] ?: return@mapNotNull null
             ActiveKeywordTransitionRow(link.keywordId, transition.fromCategoryId, transition.toCategoryId)
+        }
+    }
+
+    override suspend fun activeCategoryTransitions(): List<ActiveCategoryTransitionRow> {
+        val open = transitions.filter { it.closedAt == null }
+        val activeIds = transitionKeywords.values.filter { it.active }.map { it.transitionId }.toSet()
+        return open.filter { it.id in activeIds }.map { transition ->
+            ActiveCategoryTransitionRow(transition.fromCategoryId, transition.toCategoryId, transition.createdAt)
         }
     }
 

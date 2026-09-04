@@ -14,16 +14,16 @@ class CategorizationEngine(private val config: CategorizationConfig = Categoriza
     fun categorize(query: CategorizationQuery, snapshot: CategorizationSnapshot): CategorizationResult {
         val active = snapshot.activeCategoryIds
         val fallbackId = snapshot.fallbackCategoryId
-        val finalVector = probabilisticVector(query, snapshot)
-        val candidates = rank(finalVector, fallbackId)
-        val selected = select(snapshot, active, fallbackId, finalVector)
+        val name = nameVector(query, snapshot)
+        val ranking = rankingVector(name, snapshot)
+        val selected = select(snapshot, active, fallbackId, name)
         val usedFallback = selected.source == CategoryAssignmentSource.FALLBACK
         return CategorizationResult(
             selectedCategoryId = selected.categoryId,
-            orderedCandidates = candidates,
+            orderedCandidates = rank(ranking, fallbackId),
             source = selected.source,
-            confidence = confidence(selected.categoryId, finalVector, usedFallback),
-            matchedFeatures = matchedFeatures(query, snapshot, finalVector),
+            confidence = confidence(selected.categoryId, ranking, usedFallback),
+            matchedFeatures = matchedFeatures(query, snapshot, ranking, name),
             usedFallback = usedFallback,
         )
     }
@@ -32,7 +32,7 @@ class CategorizationEngine(private val config: CategorizationConfig = Categoriza
         snapshot: CategorizationSnapshot,
         active: Set<Long>,
         fallbackId: Long,
-        finalVector: CategoryVector?,
+        name: CategoryVector?,
     ): Selected {
         val local = snapshot.localExact?.takeIf { it.categoryId in active }
         if (local != null) return Selected(local.categoryId, CategoryAssignmentSource.EXACT_USER)
@@ -40,12 +40,43 @@ class CategorizationEngine(private val config: CategorizationConfig = Categoriza
         if (alias != null) return Selected(alias, CategoryAssignmentSource.PROBABILISTIC)
         val seed = snapshot.seedExact?.takeIf { it.categoryId in active }
         if (seed != null) return Selected(seed.categoryId, CategoryAssignmentSource.PROBABILISTIC)
-        val fromVector = finalVector?.argMax()?.takeIf { it in active }
+        val transitWinner = locationTransitTieBreak(name, snapshot, active)
+        if (transitWinner != null) {
+            return Selected(transitWinner, CategoryAssignmentSource.PROBABILISTIC)
+        }
+        val selection = CategoryVector.combine(
+            name,
+            snapshot.locationVector.takeIf { snapshot.locationEligible },
+            config.nameWeight,
+            config.locationWeight,
+        )
+        val fromVector = selection?.argMax()?.takeIf { it in active }
         if (fromVector != null) return Selected(fromVector, CategoryAssignmentSource.PROBABILISTIC)
         return Selected(fallbackId, CategoryAssignmentSource.FALLBACK)
     }
 
-    private fun probabilisticVector(query: CategorizationQuery, snapshot: CategorizationSnapshot): CategoryVector? {
+    /**
+     * Пустое имя и ничья места 50/50: живой категорийный транзит указывает,
+     * какую из двух категорий пользователь уже выбрал руками (дух F-04).
+     */
+    private fun locationTransitTieBreak(
+        name: CategoryVector?,
+        snapshot: CategorizationSnapshot,
+        active: Set<Long>,
+    ): Long? {
+        if (name != null) return null
+        val tied = snapshot.locationTiedCategoryIds.filter { it in active }.toSet()
+        if (tied.size != 2) return null
+        val matching = snapshot.categoryTransitions.filter { link ->
+            link.fromCategoryId in tied &&
+                link.toCategoryId in tied &&
+                link.fromCategoryId != link.toCategoryId
+        }
+        val latest = matching.maxByOrNull { it.createdAt } ?: return null
+        return latest.toCategoryId.takeIf { it in active }
+    }
+
+    private fun nameVector(query: CategorizationQuery, snapshot: CategorizationSnapshot): CategoryVector? {
         val seen = linkedSetOf<KeywordFeature>()
         val adjusted = mutableListOf<CategoryVector>()
         query.features.forEach { feature ->
@@ -53,8 +84,17 @@ class CategorizationEngine(private val config: CategorizationConfig = Categoriza
             val base = snapshot.featureVectors[feature] ?: return@forEach
             adjusted += applyTransitions(feature, base, snapshot.transitions)
         }
-        val name = CategoryVector.average(adjusted)
-        return CategoryVector.combine(name, snapshot.locationVector, config.nameWeight, config.locationWeight)
+        return CategoryVector.average(adjusted)
+    }
+
+    private fun rankingVector(name: CategoryVector?, snapshot: CategorizationSnapshot): CategoryVector? {
+        val location = snapshot.locationVector
+        return when {
+            name != null && snapshot.locationEligible ->
+                CategoryVector.combine(name, location, config.nameWeight, config.locationWeight)
+            name != null -> name
+            else -> location
+        }
     }
 
     private fun applyTransitions(
@@ -90,10 +130,12 @@ class CategorizationEngine(private val config: CategorizationConfig = Categoriza
     private fun matchedFeatures(
         query: CategorizationQuery,
         snapshot: CategorizationSnapshot,
-        finalVector: CategoryVector?,
+        ranking: CategoryVector?,
+        name: CategoryVector?,
     ): List<MatchedFeature> {
-        if (finalVector == null && snapshot.locationVector == null) return emptyList()
+        if (ranking == null && snapshot.locationVector == null) return emptyList()
         val seen = linkedSetOf<KeywordFeature>()
+        val locationInRanking = snapshot.locationVector != null && (name == null || snapshot.locationEligible)
         val features = buildList {
             query.features.forEach { feature ->
                 if (!seen.add(feature)) return@forEach
@@ -101,7 +143,7 @@ class CategorizationEngine(private val config: CategorizationConfig = Categoriza
                 add(MatchedFeature(feature.value, feature.kind, MatchedFeature.SOURCE_NAME))
             }
             val location = query.locationNormalized
-            if (location != null && snapshot.locationVector != null) {
+            if (location != null && locationInRanking) {
                 add(MatchedFeature(location, KeywordKind.PHRASE, MatchedFeature.SOURCE_LOCATION))
             }
         }

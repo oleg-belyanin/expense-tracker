@@ -36,7 +36,7 @@ object CategorySuggestionUi {
     }
 
     fun rankedCandidates(result: CategorizationResult?, limit: Int = RANKED_LIMIT): List<CategorizationCandidate> {
-        if (result == null || result.usedFallback) return emptyList()
+        if (result == null) return emptyList()
         return result.orderedCandidates.filter { it.score > 0.0 }.take(limit)
     }
 

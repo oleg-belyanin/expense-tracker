@@ -43,6 +43,7 @@ fun CategoryPickerSheet(
     onSelect: (Category) -> Unit,
     onCreate: () -> Unit,
     onDismiss: () -> Unit,
+    locationName: String = "",
 ) {
     val colors = ExpenseTheme.colors
     val typography = ExpenseTheme.typography
@@ -68,10 +69,11 @@ fun CategoryPickerSheet(
         )
         Text(
             text =
-            if (name.isBlank()) {
-                stringResource(R.string.category_picker_hint_empty)
-            } else {
-                stringResource(R.string.category_picker_hint, name)
+            when {
+                name.isNotBlank() -> stringResource(R.string.category_picker_hint, name)
+                locationName.isNotBlank() && candidates.isNotEmpty() ->
+                    stringResource(R.string.category_picker_hint_place, locationName)
+                else -> stringResource(R.string.category_picker_hint_empty)
             },
             style = typography.bodySecondary,
             color = colors.textSecondary,

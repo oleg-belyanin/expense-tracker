@@ -51,7 +51,7 @@ class RoomCategorizationCatalog(
             keywordIdsByFeature[resolved.feature] = resolved.keywordId
             featureVectors[resolved.feature] = resolved.vector
         }
-        val locationVector = locationNormalized?.let { loadLocationVector(it, activeIds) }
+        val location = locationNormalized?.let { loadLocation(it, activeIds) }
         return CategorizationLookup(
             query = CategorizationQuery(
                 analysis.normalizedName,
@@ -65,8 +65,11 @@ class RoomCategorizationCatalog(
                 seedExact = seedExact,
                 categoryAliasId = aliasId,
                 featureVectors = featureVectors,
-                locationVector = locationVector,
+                locationVector = location?.vector,
+                locationEligible = location?.eligible ?: false,
+                locationTiedCategoryIds = location?.tiedCategoryIds.orEmpty(),
                 transitions = ActiveTransitionLoader.load(database.learningDao(), keywordIdsByFeature),
+                categoryTransitions = ActiveTransitionLoader.loadOpenCategoryLinks(database.learningDao()),
             ),
         )
     }
@@ -118,12 +121,24 @@ class RoomCategorizationCatalog(
         val vector: CategoryVector,
     )
 
-    private suspend fun loadLocationVector(normalized: String, activeIds: Set<Long>): CategoryVector? {
+    private suspend fun loadLocation(normalized: String, activeIds: Set<Long>): LocationLookup? {
         val location = database.locationDao().findByNormalizedName(normalized) ?: return null
         val counts = database.learningDao().statsForLocation(location.id).toLocationCounts()
-        if (!CategoryVector.locationEligible(counts, config)) return null
-        return CategoryVector.fromCounts(counts, activeIds, config)
+            .filter { it.categoryId in activeIds && it.count > 0 }
+        if (counts.isEmpty()) return null
+        val vector = CategoryVector.fromCounts(counts, activeIds, config) ?: return null
+        return LocationLookup(
+            vector = vector,
+            eligible = CategoryVector.locationEligible(counts, config),
+            tiedCategoryIds = CategoryVector.evenTwoWaySplit(counts).orEmpty(),
+        )
     }
+
+    private data class LocationLookup(
+        val vector: CategoryVector,
+        val eligible: Boolean,
+        val tiedCategoryIds: Set<Long>,
+    )
 
     private fun List<KeywordCategoryStatEntity>.toFeatureCounts(): List<FeatureCount> =
         map { FeatureCount(it.categoryId, it.source, it.observationCount) }

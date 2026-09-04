@@ -12,6 +12,12 @@ data class ExactMatch(val categoryId: Long, val source: String) {
 
 data class FeatureTransition(val feature: KeywordFeature, val fromCategoryId: Long, val toCategoryId: Long)
 
+data class CategoryTransitionLink(
+    val fromCategoryId: Long,
+    val toCategoryId: Long,
+    val createdAt: Long = 0L,
+)
+
 data class CategorizationSnapshot(
     val fallbackCategoryId: Long,
     val activeCategoryIds: Set<Long>,
@@ -20,7 +26,12 @@ data class CategorizationSnapshot(
     val categoryAliasId: Long? = null,
     val featureVectors: Map<KeywordFeature, CategoryVector> = emptyMap(),
     val locationVector: CategoryVector? = null,
+    /** false — место слишком смешанное, чтобы выбирать категорию, но вектор ещё нужен для dropdown. */
+    val locationEligible: Boolean = true,
+    /** Две категории с сырой долей 50/50 по месту; иначе пусто. */
+    val locationTiedCategoryIds: Set<Long> = emptySet(),
     val transitions: List<FeatureTransition> = emptyList(),
+    val categoryTransitions: List<CategoryTransitionLink> = emptyList(),
 )
 
 data class CategorizationLookup(val query: CategorizationQuery, val snapshot: CategorizationSnapshot)

@@ -99,6 +99,21 @@ class CategorySuggestionUiTest {
                 result(CategoryAssignmentSource.FALLBACK, 0.0, usedFallback = true),
             ).isEmpty(),
         )
+        assertEquals(
+            listOf(4L, 8L, 10L),
+            CategorySuggestionUi.rankedCandidates(
+                result(
+                    CategoryAssignmentSource.FALLBACK,
+                    0.0,
+                    usedFallback = true,
+                    candidates = listOf(
+                        CategorizationCandidate(4, 0.45),
+                        CategorizationCandidate(8, 0.45),
+                        CategorizationCandidate(10, 0.10),
+                    ),
+                ),
+            ).map { it.categoryId },
+        )
     }
 }
 
