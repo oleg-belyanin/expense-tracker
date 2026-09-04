@@ -1,6 +1,8 @@
 package com.olegbelyanin.expensetracker.ui.theme
 
 import android.app.Activity
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +47,9 @@ fun ExpenseTrackerTheme(themePreference: ThemePreference = ThemePreference.Syste
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
+            window.setBackgroundDrawable(
+                ColorDrawable(if (dark) Color.parseColor("#0D131A") else Color.parseColor("#F7F8F4")),
+            )
             WindowInsetsControllerCompat(window, view).apply {
                 isAppearanceLightStatusBars = !dark
                 isAppearanceLightNavigationBars = !dark

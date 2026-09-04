@@ -37,9 +37,13 @@ import com.olegbelyanin.expensetracker.model.CategoryIcons
 import com.olegbelyanin.expensetracker.model.CategoryPalette
 import com.olegbelyanin.expensetracker.ui.components.CategoryGlyph
 import com.olegbelyanin.expensetracker.ui.components.CategoryGlyphKey
+import com.olegbelyanin.expensetracker.ui.components.ExpenseToast
 import com.olegbelyanin.expensetracker.ui.components.FormField
 import com.olegbelyanin.expensetracker.ui.components.PrimaryButton
+import com.olegbelyanin.expensetracker.ui.components.ScreenStatePanel
+import com.olegbelyanin.expensetracker.ui.components.StatePanelType
 import com.olegbelyanin.expensetracker.ui.components.TextAction
+import com.olegbelyanin.expensetracker.ui.components.ToastTone
 import com.olegbelyanin.expensetracker.ui.components.parseHexColor
 import com.olegbelyanin.expensetracker.ui.theme.ExpenseTheme
 import com.olegbelyanin.expensetracker.ui.theme.MinTapTarget
@@ -55,84 +59,109 @@ fun CategoryFormScreen(
     LaunchedEffect(state.missing) {
         if (state.missing) onBack()
     }
-    if (!state.isReady || state.missing) return
+    if (!state.isReady || state.missing) {
+        ScreenStatePanel(
+            type = StatePanelType.Loading,
+            title = stringResource(R.string.form_loading_title),
+            description = stringResource(R.string.form_loading_description),
+            modifier = modifier,
+        )
+        return
+    }
     val colors = ExpenseTheme.colors
     val typography = ExpenseTheme.typography
     val spacing = ExpenseTheme.spacing
     val draft = state.draft
     val nameError = viewModel.nameError()
-    Column(
-        modifier =
-        modifier
-            .fillMaxSize()
-            .background(colors.background)
-            .windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(horizontal = spacing.md, vertical = spacing.md),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.category_form_title),
-                style = typography.headlineScreen,
-                color = colors.textPrimary,
-                modifier = Modifier.weight(1f),
-            )
-            TextAction(label = stringResource(R.string.cancel), onClick = onBack)
-        }
-        Text(
-            text =
-            if (nameError != null) {
-                stringResource(R.string.category_form_subtitle_error)
-            } else {
-                stringResource(R.string.category_form_subtitle)
-            },
-            style = typography.bodySecondary,
-            color = colors.textSecondary,
-            modifier = Modifier.padding(top = spacing.xxs, bottom = spacing.sm),
-        )
+    Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier =
             Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(spacing.sm),
+                .fillMaxSize()
+                .background(colors.background)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .padding(horizontal = spacing.md, vertical = spacing.md),
         ) {
-            FormField(
-                label = stringResource(R.string.field_category_name_short),
-                value = draft.name,
-                onValueChange = viewModel::onNameChange,
-                error = nameError?.toMessage(),
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.category_form_title),
+                    style = typography.headlineScreen,
+                    color = colors.textPrimary,
+                    modifier = Modifier.weight(1f),
+                )
+                TextAction(label = stringResource(R.string.cancel), onClick = onBack)
+            }
             Text(
-                text = stringResource(R.string.category_form_color),
-                style = typography.titleSection,
-                color = colors.textPrimary,
-            )
-            ColorSwatchRow(selected = draft.color, onSelect = viewModel::onColor)
-            Text(
-                text = stringResource(R.string.category_form_icon),
-                style = typography.titleSection,
-                color = colors.textPrimary,
-            )
-            IconCatalog(
-                selected = draft.icon,
-                letter = draft.name,
-                onSelect = viewModel::onIcon,
-            )
-            Text(
-                text = formHint(draft.name, state.suggestedIcon),
+                text =
+                if (nameError != null) {
+                    stringResource(R.string.category_form_subtitle_error)
+                } else {
+                    stringResource(R.string.category_form_subtitle)
+                },
                 style = typography.bodySecondary,
                 color = colors.textSecondary,
+                modifier = Modifier.padding(top = spacing.xxs, bottom = spacing.sm),
             )
-            Spacer(Modifier.height(spacing.sm))
+            Column(
+                modifier =
+                Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(spacing.sm),
+            ) {
+                FormField(
+                    label = stringResource(R.string.field_category_name_short),
+                    value = draft.name,
+                    onValueChange = viewModel::onNameChange,
+                    error = nameError?.toMessage(),
+                )
+                Text(
+                    text = stringResource(R.string.category_form_color),
+                    style = typography.titleSection,
+                    color = colors.textPrimary,
+                )
+                ColorSwatchRow(selected = draft.color, onSelect = viewModel::onColor)
+                Text(
+                    text = stringResource(R.string.category_form_icon),
+                    style = typography.titleSection,
+                    color = colors.textPrimary,
+                )
+                IconCatalog(
+                    selected = draft.icon,
+                    letter = draft.name,
+                    onSelect = viewModel::onIcon,
+                )
+                Text(
+                    text = formHint(draft.name, state.suggestedIcon),
+                    style = typography.bodySecondary,
+                    color = colors.textSecondary,
+                )
+                Spacer(Modifier.height(spacing.sm))
+            }
+            PrimaryButton(
+                label =
+                if (state.saving) {
+                    stringResource(R.string.category_saving)
+                } else {
+                    stringResource(R.string.category_form_save)
+                },
+                onClick = { viewModel.onSave(onSaved) },
+                enabled = viewModel.canSave(),
+            )
         }
-        PrimaryButton(
-            label = stringResource(R.string.category_form_save),
-            onClick = { viewModel.onSave(onSaved) },
-            enabled = viewModel.canSave(),
-        )
+        if (state.notice != null) {
+            ExpenseToast(
+                message = stringResource(R.string.action_failed_save),
+                tone = ToastTone.Error,
+                modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(spacing.md),
+            )
+        }
     }
 }
 
@@ -202,7 +231,7 @@ private fun IconCatalog(selected: String, letter: String, onSelect: (String) -> 
                     key = glyph,
                     size = 24.dp,
                     letter = letter,
-                    contentColor = if (isSelected) colors.onAction else colors.onCategory,
+                    contentColor = if (isSelected) colors.onAction else colors.icon,
                 )
             }
         }

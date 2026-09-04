@@ -2,6 +2,7 @@ package com.olegbelyanin.expensetracker.ui.expense
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,14 +36,18 @@ import com.olegbelyanin.expensetracker.ui.components.CategorySelectorState
 import com.olegbelyanin.expensetracker.ui.components.DestructiveDialog
 import com.olegbelyanin.expensetracker.ui.components.ExpenseBottomSheet
 import com.olegbelyanin.expensetracker.ui.components.ExpenseDatePicker
+import com.olegbelyanin.expensetracker.ui.components.ExpenseToast
 import com.olegbelyanin.expensetracker.ui.components.FormField
 import com.olegbelyanin.expensetracker.ui.components.FormFieldKind
 import com.olegbelyanin.expensetracker.ui.components.Keypad
 import com.olegbelyanin.expensetracker.ui.components.PlaceAutocomplete
 import com.olegbelyanin.expensetracker.ui.components.PlaceSuggestion
 import com.olegbelyanin.expensetracker.ui.components.PrimaryButton
+import com.olegbelyanin.expensetracker.ui.components.ScreenStatePanel
 import com.olegbelyanin.expensetracker.ui.components.SearchField
+import com.olegbelyanin.expensetracker.ui.components.StatePanelType
 import com.olegbelyanin.expensetracker.ui.components.TextAction
+import com.olegbelyanin.expensetracker.ui.components.ToastTone
 import com.olegbelyanin.expensetracker.ui.components.toVisual
 import com.olegbelyanin.expensetracker.ui.format.ExpenseFormat
 import com.olegbelyanin.expensetracker.ui.theme.ExpenseTheme
@@ -62,7 +67,15 @@ fun ExpenseEditScreen(
     LaunchedEffect(state.missing) {
         if (state.missing) onBack()
     }
-    if (!state.isReady || state.missing) return
+    if (!state.isReady || state.missing) {
+        ScreenStatePanel(
+            type = StatePanelType.Loading,
+            title = stringResource(R.string.form_loading_title),
+            description = stringResource(R.string.form_loading_description),
+            modifier = modifier,
+        )
+        return
+    }
     val colors = ExpenseTheme.colors
     val typography = ExpenseTheme.typography
     val spacing = ExpenseTheme.spacing
@@ -70,132 +83,154 @@ fun ExpenseEditScreen(
     val visual = category?.toVisual(colors)
     val amountError = viewModel.amountError()
     val nameError = viewModel.nameError()
-    Column(
-        modifier =
-        modifier
-            .fillMaxSize()
-            .background(colors.background)
-            .windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(horizontal = spacing.md, vertical = spacing.md),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text =
-                if (state.isEdit) {
-                    stringResource(R.string.expense_edit_title)
-                } else {
-                    stringResource(R.string.expense_new_title)
-                },
-                style = typography.headlineScreen,
-                color = colors.textPrimary,
-                modifier = Modifier.weight(1f),
-            )
-            TextAction(label = stringResource(R.string.cancel), onClick = onBack)
-        }
-        Text(
-            text =
-            if (state.isEdit) {
-                stringResource(R.string.expense_edit_subtitle)
-            } else {
-                stringResource(R.string.expense_new_subtitle)
-            },
-            style = typography.bodySecondary,
-            color = colors.textSecondary,
-            modifier = Modifier.padding(top = spacing.xxs, bottom = spacing.xs),
-        )
+    Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier =
             Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(spacing.xs),
+                .fillMaxSize()
+                .background(colors.background)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .padding(horizontal = spacing.md, vertical = spacing.md),
         ) {
-            FormField(
-                label = stringResource(R.string.field_amount),
-                value = amountFieldValue(state.amountInput),
-                onValueChange = {},
-                kind = FormFieldKind.Amount,
-                error = amountError?.toMessage(),
-                onClick = { viewModel.onOpenSheet(ExpenseEditSheet.Amount) },
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text =
+                    if (state.isEdit) {
+                        stringResource(R.string.expense_edit_title)
+                    } else {
+                        stringResource(R.string.expense_new_title)
+                    },
+                    style = typography.headlineScreen,
+                    color = colors.textPrimary,
+                    modifier = Modifier.weight(1f),
+                )
+                TextAction(label = stringResource(R.string.cancel), onClick = onBack)
+            }
+            Text(
+                text =
+                if (state.isEdit) {
+                    stringResource(R.string.expense_edit_subtitle)
+                } else {
+                    stringResource(R.string.expense_new_subtitle)
+                },
+                style = typography.bodySecondary,
+                color = colors.textSecondary,
+                modifier = Modifier.padding(top = spacing.xxs, bottom = spacing.xs),
             )
-            FormField(
-                label = stringResource(R.string.field_date),
-                value = ExpenseFormat.formDate(state.spentAt, today),
-                onValueChange = {},
-                kind = FormFieldKind.Date,
-                onClick = { viewModel.onOpenSheet(ExpenseEditSheet.Date) },
+            Column(
+                modifier =
+                Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(spacing.xs),
+            ) {
+                FormField(
+                    label = stringResource(R.string.field_amount),
+                    value = amountFieldValue(state.amountInput),
+                    onValueChange = {},
+                    kind = FormFieldKind.Amount,
+                    error = amountError?.toMessage(),
+                    onClick = { viewModel.onOpenSheet(ExpenseEditSheet.Amount) },
+                )
+                FormField(
+                    label = stringResource(R.string.field_date),
+                    value = ExpenseFormat.formDate(state.spentAt, today),
+                    onValueChange = {},
+                    kind = FormFieldKind.Date,
+                    onClick = { viewModel.onOpenSheet(ExpenseEditSheet.Date) },
+                )
+                FormField(
+                    label = stringResource(R.string.field_name),
+                    value = state.name,
+                    onValueChange = viewModel::onNameChange,
+                    kind = FormFieldKind.Text,
+                    error = nameError?.toMessage(),
+                )
+                if (category != null && visual != null) {
+                    CategorySelector(
+                        name = category.name,
+                        glyph = visual.glyph,
+                        state =
+                        if (state.categoryLocked) CategorySelectorState.Manual else CategorySelectorState.Auto,
+                        onClick = { viewModel.onOpenSheet(ExpenseEditSheet.Category) },
+                        letter = visual.letter,
+                        sourceLabel = sourceLabel(
+                            locked = state.categoryLocked,
+                            suggestion = state.suggestion,
+                            originalSource = state.originalSource,
+                        ),
+                        containerColor = visual.containerColor,
+                    )
+                }
+                PlaceAutocomplete(
+                    query = state.locationName,
+                    onQueryChange = viewModel::onLocationChange,
+                    suggestions =
+                    if (state.locationFocused) {
+                        state.locationSuggestions.map { location ->
+                            PlaceSuggestion(
+                                name = location.name,
+                                detail = ExpenseFormat.locationDetail(location, today, zoneId),
+                            )
+                        }
+                    } else {
+                        emptyList()
+                    },
+                    onSuggestionClick = { suggestion ->
+                        state.locationSuggestions
+                            .firstOrNull { it.name == suggestion.name }
+                            ?.let(viewModel::onLocationSuggestion)
+                    },
+                    onFocusChange = viewModel::onLocationFocus,
+                )
+                FormField(
+                    label = stringResource(R.string.field_comment),
+                    value = state.comment,
+                    onValueChange = viewModel::onCommentChange,
+                    kind = FormFieldKind.Text,
+                )
+                Spacer(Modifier.height(spacing.sm))
+            }
+            PrimaryButton(
+                label =
+                if (state.saving) {
+                    stringResource(R.string.expense_saving)
+                } else if (state.isEdit) {
+                    stringResource(R.string.save_changes)
+                } else {
+                    stringResource(R.string.save)
+                },
+                onClick = { viewModel.onSave(onSaved) },
+                enabled = viewModel.canSave(),
             )
-            FormField(
-                label = stringResource(R.string.field_name),
-                value = state.name,
-                onValueChange = viewModel::onNameChange,
-                kind = FormFieldKind.Text,
-                error = nameError?.toMessage(),
-            )
-            if (category != null && visual != null) {
-                CategorySelector(
-                    name = category.name,
-                    glyph = visual.glyph,
-                    state =
-                    if (state.categoryLocked) CategorySelectorState.Manual else CategorySelectorState.Auto,
-                    onClick = { viewModel.onOpenSheet(ExpenseEditSheet.Category) },
-                    letter = visual.letter,
-                    sourceLabel = sourceLabel(
-                        locked = state.categoryLocked,
-                        suggestion = state.suggestion,
-                        originalSource = state.originalSource,
-                    ),
-                    containerColor = visual.containerColor,
+            if (state.isEdit) {
+                Spacer(Modifier.height(spacing.xs))
+                PrimaryButton(
+                    label = stringResource(R.string.delete_expense),
+                    onClick = { viewModel.onOpenSheet(ExpenseEditSheet.DeleteConfirm) },
+                    enabled = !state.deleting,
+                    tone = ButtonTone.Destructive,
                 )
             }
-            PlaceAutocomplete(
-                query = state.locationName,
-                onQueryChange = viewModel::onLocationChange,
-                suggestions =
-                if (state.locationFocused) {
-                    state.locationSuggestions.map { location ->
-                        PlaceSuggestion(
-                            name = location.name,
-                            detail = ExpenseFormat.locationDetail(location, today, zoneId),
-                        )
-                    }
-                } else {
-                    emptyList()
-                },
-                onSuggestionClick = { suggestion ->
-                    state.locationSuggestions
-                        .firstOrNull { it.name == suggestion.name }
-                        ?.let(viewModel::onLocationSuggestion)
-                },
-                onFocusChange = viewModel::onLocationFocus,
-            )
-            FormField(
-                label = stringResource(R.string.field_comment),
-                value = state.comment,
-                onValueChange = viewModel::onCommentChange,
-                kind = FormFieldKind.Text,
-            )
-            Spacer(Modifier.height(spacing.sm))
         }
-        PrimaryButton(
-            label =
-            if (state.isEdit) {
-                stringResource(R.string.save_changes)
-            } else {
-                stringResource(R.string.save)
-            },
-            onClick = { viewModel.onSave(onSaved) },
-            enabled = viewModel.canSave(),
-        )
-        if (state.isEdit) {
-            Spacer(Modifier.height(spacing.xs))
-            PrimaryButton(
-                label = stringResource(R.string.delete_expense),
-                onClick = { viewModel.onOpenSheet(ExpenseEditSheet.DeleteConfirm) },
-                tone = ButtonTone.Destructive,
+        state.notice?.let { notice ->
+            ExpenseToast(
+                message =
+                stringResource(
+                    if (notice == ExpenseEditNotice.DeleteFailed) {
+                        R.string.action_failed_delete
+                    } else {
+                        R.string.action_failed_save
+                    },
+                ),
+                tone = ToastTone.Error,
+                modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(spacing.md),
             )
         }
     }
@@ -234,6 +269,7 @@ fun ExpenseEditScreen(
             CreateCategorySheet(
                 name = state.createCategoryName,
                 error = state.createCategoryError,
+                saving = state.creatingCategory,
                 onNameChange = viewModel::onCreateCategoryNameChange,
                 onSave = viewModel::onCreateCategory,
                 onDismiss = viewModel::onDismissSheet,
@@ -248,10 +284,16 @@ fun ExpenseEditScreen(
                     state.name,
                     amountFieldValue(state.amountInput).ifBlank { stringResource(R.string.amount_zero) },
                 ),
-                confirmLabel = stringResource(R.string.delete),
+                confirmLabel =
+                if (state.deleting) {
+                    stringResource(R.string.expense_deleting)
+                } else {
+                    stringResource(R.string.delete)
+                },
                 cancelLabel = stringResource(R.string.cancel),
                 onConfirm = { viewModel.onConfirmDelete(onBack) },
                 onDismiss = viewModel::onDismissSheet,
+                confirmEnabled = !state.deleting,
             )
     }
 }
@@ -295,6 +337,7 @@ private fun AmountSheet(
 private fun CreateCategorySheet(
     name: String,
     error: CategoryNameError?,
+    saving: Boolean,
     onNameChange: (String) -> Unit,
     onSave: () -> Unit,
     onDismiss: () -> Unit,
@@ -312,9 +355,14 @@ private fun CreateCategorySheet(
             error = error?.toMessage(),
         )
         PrimaryButton(
-            label = stringResource(R.string.create_category_save),
+            label =
+            if (saving) {
+                stringResource(R.string.category_saving)
+            } else {
+                stringResource(R.string.create_category_save)
+            },
             onClick = onSave,
-            enabled = name.any { it.isLetterOrDigit() },
+            enabled = !saving && name.any { it.isLetterOrDigit() },
         )
     }
 }

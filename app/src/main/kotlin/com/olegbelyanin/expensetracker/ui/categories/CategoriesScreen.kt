@@ -30,11 +30,14 @@ import com.olegbelyanin.expensetracker.ui.components.BottomSheetSize
 import com.olegbelyanin.expensetracker.ui.components.ButtonTone
 import com.olegbelyanin.expensetracker.ui.components.CategoryAvatar
 import com.olegbelyanin.expensetracker.ui.components.ExpenseBottomSheet
+import com.olegbelyanin.expensetracker.ui.components.ExpenseToast
 import com.olegbelyanin.expensetracker.ui.components.PrimaryButton
+import com.olegbelyanin.expensetracker.ui.components.ToastTone
 import com.olegbelyanin.expensetracker.ui.components.toVisual
 import com.olegbelyanin.expensetracker.ui.format.ExpenseFormat
 import com.olegbelyanin.expensetracker.ui.navigation.AppTab
 import com.olegbelyanin.expensetracker.ui.navigation.TabScaffold
+import com.olegbelyanin.expensetracker.ui.theme.BottomNavHeight
 import com.olegbelyanin.expensetracker.ui.theme.ExpenseTheme
 import com.olegbelyanin.expensetracker.ui.theme.MinTapTarget
 import java.time.LocalDate
@@ -52,6 +55,7 @@ fun CategoriesScreen(
     zoneId: ZoneId = ZoneId.systemDefault(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val notice by viewModel.noticeState.collectAsStateWithLifecycle()
     val colors = ExpenseTheme.colors
     val typography = ExpenseTheme.typography
     val spacing = ExpenseTheme.spacing
@@ -73,6 +77,29 @@ fun CategoriesScreen(
             null
         },
         showSettings = !onArchive,
+        overlay = {
+            notice?.let { current ->
+                ExpenseToast(
+                    message =
+                    stringResource(
+                        if (current == CategoriesNotice.RestoreFailed) {
+                            R.string.action_failed_restore
+                        } else {
+                            R.string.action_failed_archive
+                        },
+                    ),
+                    tone = ToastTone.Error,
+                    modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(
+                            start = spacing.md,
+                            end = spacing.md,
+                            bottom = BottomNavHeight + spacing.sm,
+                        ),
+                )
+            }
+        },
         subtitle = {
             Text(
                 text =

@@ -15,6 +15,7 @@ import com.olegbelyanin.expensetracker.domain.expense.SuggestLocationsUseCase
 import com.olegbelyanin.expensetracker.model.Category
 import com.olegbelyanin.expensetracker.model.Location
 import com.olegbelyanin.expensetracker.model.Period
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -31,7 +32,11 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneId
 
-data class SavedExpenseToast(val expenseId: String)
+sealed interface ExpensesToast {
+    data class Saved(val expenseId: String) : ExpensesToast
+
+    data object UndoFailed : ExpensesToast
+}
 
 enum class ExpensesDialog {
     None,
@@ -56,7 +61,7 @@ class ExpensesViewModel(
     private val customPeriod = MutableStateFlow<Period?>(null)
     private val categoryIds = MutableStateFlow<Set<Long>>(emptySet())
     private val locationId = MutableStateFlow<Long?>(null)
-    private val _toast = MutableStateFlow<SavedExpenseToast?>(null)
+    private val _toast = MutableStateFlow<ExpensesToast?>(null)
     private val dialog = MutableStateFlow(ExpensesDialog.None)
     private val draftPreset = MutableStateFlow(ExpensePeriodPreset.ALL)
     private val draftCustom = MutableStateFlow<Period?>(null)
@@ -73,7 +78,7 @@ class ExpensesViewModel(
     val customPeriodRange: StateFlow<Period?> = customPeriod.asStateFlow()
     val selectedCategoryIds: StateFlow<Set<Long>> = categoryIds.asStateFlow()
     val selectedLocationId: StateFlow<Long?> = locationId.asStateFlow()
-    val toast: StateFlow<SavedExpenseToast?> = _toast.asStateFlow()
+    val toast: StateFlow<ExpensesToast?> = _toast.asStateFlow()
     val dialogState: StateFlow<ExpensesDialog> = dialog.asStateFlow()
     val draftPresetState: StateFlow<ExpensePeriodPreset> = draftPreset.asStateFlow()
     val draftCustomState: StateFlow<Period?> = draftCustom.asStateFlow()
@@ -158,6 +163,14 @@ class ExpensesViewModel(
 
     fun onOpenFilters() {
         copyAppliedToDraft()
+        dialog.value = ExpensesDialog.Filters
+    }
+
+    fun onOpenPeriodFilters() {
+        copyAppliedToDraft()
+        if (draftPreset.value == ExpensePeriodPreset.ALL) {
+            draftPreset.value = ExpensePeriodPreset.CURRENT_MONTH
+        }
         dialog.value = ExpensesDialog.Filters
     }
 
@@ -261,22 +274,34 @@ class ExpensesViewModel(
     }
 
     fun onExpenseSaved(expenseId: String) {
-        _toast.value = SavedExpenseToast(expenseId)
+        showToast(ExpensesToast.Saved(expenseId))
+    }
+
+    fun onUndoSaved() {
+        val id = (_toast.value as? ExpensesToast.Saved)?.expenseId ?: return
+        toastJob?.cancel()
+        _toast.value = null
+        viewModelScope.launch {
+            try {
+                deleteExpense(id)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                showToast(ExpensesToast.UndoFailed)
+            }
+        }
+    }
+
+    private fun showToast(toast: ExpensesToast) {
+        _toast.value = toast
         toastJob?.cancel()
         toastJob =
             viewModelScope.launch {
                 delay(4_000)
-                if (_toast.value?.expenseId == expenseId) {
+                if (_toast.value == toast) {
                     _toast.value = null
                 }
             }
-    }
-
-    fun onUndoSaved() {
-        val id = _toast.value?.expenseId ?: return
-        toastJob?.cancel()
-        _toast.value = null
-        viewModelScope.launch { deleteExpense(id) }
     }
 
     private fun copyAppliedToDraft() {

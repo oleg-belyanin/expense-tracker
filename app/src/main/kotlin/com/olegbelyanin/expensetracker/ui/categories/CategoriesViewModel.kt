@@ -9,9 +9,13 @@ import com.olegbelyanin.expensetracker.domain.category.ArchiveCategoryUseCase
 import com.olegbelyanin.expensetracker.domain.category.RestoreCategoryUseCase
 import com.olegbelyanin.expensetracker.model.Category
 import com.olegbelyanin.expensetracker.model.Expense
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -34,6 +38,11 @@ sealed interface CategoriesDialog {
 
 data class CategoryUsage(val count: Int = 0, val totalMinor: Long = 0)
 
+enum class CategoriesNotice {
+    ArchiveFailed,
+    RestoreFailed,
+}
+
 data class CategoriesUiState(
     val active: List<Category> = emptyList(),
     val archived: List<Category> = emptyList(),
@@ -52,6 +61,8 @@ class CategoriesViewModel(
 ) : ViewModel() {
     private val page = MutableStateFlow(CategoriesPage.List)
     private val dialog = MutableStateFlow<CategoriesDialog>(CategoriesDialog.None)
+    private val notice = MutableStateFlow<CategoriesNotice?>(null)
+    private var noticeJob: Job? = null
 
     val today: LocalDate = LocalDate.now(clock.withZone(zoneId))
 
@@ -71,6 +82,8 @@ class CategoriesViewModel(
                 dialog = currentDialog,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CategoriesUiState())
+
+    val noticeState: StateFlow<CategoriesNotice?> = notice.asStateFlow()
 
     fun onOpenArchive() {
         page.value = CategoriesPage.Archive
@@ -102,16 +115,44 @@ class CategoriesViewModel(
     fun onConfirmArchive() {
         val target = (dialog.value as? CategoriesDialog.ArchiveConfirm)?.category ?: return
         viewModelScope.launch {
-            archiveCategory(target.id)
-            dialog.value = CategoriesDialog.None
+            try {
+                archiveCategory(target.id)
+                dialog.value = CategoriesDialog.None
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                showNotice(CategoriesNotice.ArchiveFailed)
+            }
         }
     }
 
     fun onRestore(id: Long) {
-        viewModelScope.launch { restoreCategory(id) }
+        viewModelScope.launch {
+            try {
+                restoreCategory(id)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                showNotice(CategoriesNotice.RestoreFailed)
+            }
+        }
+    }
+
+    private fun showNotice(value: CategoriesNotice) {
+        notice.value = value
+        noticeJob?.cancel()
+        noticeJob =
+            viewModelScope.launch {
+                delay(TOAST_MS)
+                if (notice.value == value) {
+                    notice.value = null
+                }
+            }
     }
 
     companion object {
+        private const val TOAST_MS = 4_000L
+
         fun factory(
             categories: CategoryRepository,
             expenses: ExpenseRepository,

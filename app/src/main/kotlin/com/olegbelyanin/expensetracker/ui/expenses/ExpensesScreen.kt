@@ -113,12 +113,20 @@ fun ExpensesScreen(
         showFab = true,
         onFabClick = onAddExpense,
         overlay = {
-            toast?.let {
+            toast?.let { current ->
                 ExpenseToast(
-                    message = stringResource(R.string.expense_saved),
-                    tone = ToastTone.Success,
-                    actionLabel = stringResource(R.string.undo),
-                    onAction = viewModel::onUndoSaved,
+                    message =
+                    stringResource(
+                        if (current is ExpensesToast.UndoFailed) {
+                            R.string.action_failed_undo
+                        } else {
+                            R.string.expense_saved
+                        },
+                    ),
+                    tone = if (current is ExpensesToast.UndoFailed) ToastTone.Error else ToastTone.Success,
+                    actionLabel =
+                    if (current is ExpensesToast.Saved) stringResource(R.string.undo) else null,
+                    onAction = if (current is ExpensesToast.Saved) viewModel::onUndoSaved else null,
                     modifier =
                     Modifier
                         .align(Alignment.BottomCenter)
@@ -137,6 +145,7 @@ fun ExpensesScreen(
                     onQueryChange = viewModel::onQueryChange,
                     onPreset = viewModel::onPeriodPreset,
                     onOpenFilters = viewModel::onOpenFilters,
+                    onOpenPeriodFilters = viewModel::onOpenPeriodFilters,
                     onResetFilters = viewModel::onResetFilters,
                 )
                 StatePanel(
@@ -166,6 +175,7 @@ fun ExpensesScreen(
                     onQueryChange = viewModel::onQueryChange,
                     onPreset = viewModel::onPeriodPreset,
                     onOpenFilters = viewModel::onOpenFilters,
+                    onOpenPeriodFilters = viewModel::onOpenPeriodFilters,
                     onResetFilters = viewModel::onResetFilters,
                 )
                 if (current.isFilterEmpty) {
@@ -282,6 +292,7 @@ private fun SearchAndChips(
     onQueryChange: (String) -> Unit,
     onPreset: (ExpensePeriodPreset) -> Unit,
     onOpenFilters: () -> Unit,
+    onOpenPeriodFilters: () -> Unit,
     onResetFilters: () -> Unit,
 ) {
     val spacing = ExpenseTheme.spacing
@@ -308,6 +319,7 @@ private fun SearchAndChips(
                     preset = filter.preset,
                     onPreset = onPreset,
                     onOpenFilters = onOpenFilters,
+                    onOpenPeriodFilters = onOpenPeriodFilters,
                 )
             }
         }
@@ -326,6 +338,7 @@ private fun IdleFilterChips(
     preset: ExpensePeriodPreset,
     onPreset: (ExpensePeriodPreset) -> Unit,
     onOpenFilters: () -> Unit,
+    onOpenPeriodFilters: () -> Unit,
 ) {
     FilterChip(
         label = stringResource(R.string.filter_all),
@@ -335,7 +348,7 @@ private fun IdleFilterChips(
     FilterChip(
         label = stringResource(R.string.filter_month),
         selected = preset == ExpensePeriodPreset.CURRENT_MONTH,
-        onClick = { onPreset(ExpensePeriodPreset.CURRENT_MONTH) },
+        onClick = onOpenPeriodFilters,
     )
     FilterChip(
         label = stringResource(R.string.filter_category),

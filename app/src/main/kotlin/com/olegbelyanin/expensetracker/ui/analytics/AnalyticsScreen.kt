@@ -31,6 +31,8 @@ import com.olegbelyanin.expensetracker.ui.components.ExpenseDatePicker
 import com.olegbelyanin.expensetracker.ui.components.FilterChip
 import com.olegbelyanin.expensetracker.ui.components.PeriodSheet
 import com.olegbelyanin.expensetracker.ui.components.PrimaryButton
+import com.olegbelyanin.expensetracker.ui.components.StatePanel
+import com.olegbelyanin.expensetracker.ui.components.StatePanelType
 import com.olegbelyanin.expensetracker.ui.components.toVisual
 import com.olegbelyanin.expensetracker.ui.format.ExpenseFormat
 import com.olegbelyanin.expensetracker.ui.navigation.AppTab
@@ -102,11 +104,11 @@ fun AnalyticsScreen(
         )
         when {
             current == null -> {
-                Text(
-                    text = stringResource(R.string.analytics_loading),
-                    style = typography.bodySecondary,
-                    color = colors.textSecondary,
-                    modifier = Modifier.padding(top = spacing.lg),
+                StatePanel(
+                    type = StatePanelType.Loading,
+                    title = stringResource(R.string.analytics_loading),
+                    description = stringResource(R.string.analytics_loading_description),
+                    modifier = Modifier.padding(top = spacing.sm),
                 )
             }
 

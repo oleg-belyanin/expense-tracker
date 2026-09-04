@@ -14,11 +14,18 @@ import com.olegbelyanin.expensetracker.domain.category.UpdateCategoryUseCase
 import com.olegbelyanin.expensetracker.model.Category
 import com.olegbelyanin.expensetracker.model.CategoryIcons
 import com.olegbelyanin.expensetracker.model.CategoryPalette
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+enum class CategoryFormNotice {
+    SaveFailed,
+}
 
 data class CategoryFormUiState(
     val isEdit: Boolean,
@@ -28,18 +35,20 @@ data class CategoryFormUiState(
     val categories: List<Category> = emptyList(),
     val suggestedIcon: String = CategoryIcons.LETTER,
     val saving: Boolean = false,
+    val notice: CategoryFormNotice? = null,
 )
 
 class CategoryFormViewModel(
     private val categoryId: Long?,
     private val categories: CategoryRepository,
-    private val createCategory: CreateCategoryUseCase,
-    private val updateCategory: UpdateCategoryUseCase,
+    private val createCategory: suspend (String, String, String) -> CreateCategoryResult,
+    private val updateCategory: suspend (Long, String, String, String) -> UpdateCategoryResult,
     private val iconSuggester: CategoryIconSuggester,
     private val normalizer: TextNormalizer,
 ) : ViewModel() {
     private val _state = MutableStateFlow(CategoryFormUiState(isEdit = categoryId != null))
     val state: StateFlow<CategoryFormUiState> = _state.asStateFlow()
+    private var noticeJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -83,26 +92,34 @@ class CategoryFormViewModel(
             return
         }
         viewModelScope.launch {
-            val draft = _state.value.draft
-            val ok =
-                if (categoryId == null) {
-                    when (createCategory(draft.name, draft.color, draft.icon)) {
-                        is CreateCategoryResult.Success -> true
-                        is CreateCategoryResult.Invalid -> false
-                    }
-                } else {
-                    when (updateCategory(categoryId, draft.name, draft.color, draft.icon)) {
-                        is UpdateCategoryResult.Success -> true
+            try {
+                val draft = _state.value.draft
+                val ok =
+                    if (categoryId == null) {
+                        when (createCategory(draft.name, draft.color, draft.icon)) {
+                            is CreateCategoryResult.Success -> true
+                            is CreateCategoryResult.Invalid -> false
+                        }
+                    } else {
+                        when (updateCategory(categoryId, draft.name, draft.color, draft.icon)) {
+                            is UpdateCategoryResult.Success -> true
 
-                        is UpdateCategoryResult.InvalidName,
-                        is UpdateCategoryResult.Rejected,
-                        -> false
+                            is UpdateCategoryResult.InvalidName,
+                            is UpdateCategoryResult.Rejected,
+                            -> false
+                        }
                     }
+                if (ok) {
+                    onSaved()
+                } else {
+                    _state.update { it.copy(saving = false) }
                 }
-            if (ok) {
-                onSaved()
-            } else {
+            } catch (error: CancellationException) {
                 _state.update { it.copy(saving = false) }
+                throw error
+            } catch (_: Exception) {
+                _state.update { it.copy(saving = false) }
+                showNotice(CategoryFormNotice.SaveFailed)
             }
         }
     }
@@ -140,6 +157,18 @@ class CategoryFormViewModel(
         }
     }
 
+    private fun showNotice(notice: CategoryFormNotice) {
+        _state.update { it.copy(notice = notice) }
+        noticeJob?.cancel()
+        noticeJob =
+            viewModelScope.launch {
+                delay(TOAST_MS)
+                if (_state.value.notice == notice) {
+                    _state.update { it.copy(notice = null) }
+                }
+            }
+    }
+
     private fun isDuplicate(state: CategoryFormUiState): Boolean {
         val normalized = normalizer.analyze(state.draft.name).normalizedName
         if (normalized.isEmpty()) return false
@@ -152,6 +181,8 @@ class CategoryFormViewModel(
     }
 
     companion object {
+        private const val TOAST_MS = 4_000L
+
         fun factory(
             categoryId: Long?,
             categories: CategoryRepository,
@@ -165,8 +196,8 @@ class CategoryFormViewModel(
                 return CategoryFormViewModel(
                     categoryId = categoryId,
                     categories = categories,
-                    createCategory = createCategory,
-                    updateCategory = updateCategory,
+                    createCategory = { name, color, icon -> createCategory(name, color, icon) },
+                    updateCategory = { id, name, color, icon -> updateCategory(id, name, color, icon) },
                     iconSuggester = iconSuggester,
                     normalizer = normalizer,
                 ) as T

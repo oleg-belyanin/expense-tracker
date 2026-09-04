@@ -180,4 +180,20 @@
     <string name="create_category_save">Создать и выбрать</string>
     <string name="category_name_error_empty">Введите название</string>
     <string name="category_name_error_duplicate">Такое название уже существует</string>
+    <string name="startup_loading_title">Готовим данные</string>
+    <string name="startup_loading_description">Загружаем категории и демо-расходы. Это займёт несколько секунд.</string>
+    <string name="startup_failed_title">Не удалось подготовить данные</string>
+    <string name="startup_failed_description">Существующие записи не изменялись. Перезапустите приложение или попробуйте ещё раз.</string>
+    <string name="startup_retry">Повторить</string>
+    <string name="form_loading_title">Открываем форму</string>
+    <string name="form_loading_description">Подставляем категорию и сохранённые поля.</string>
+    <string name="analytics_loading_description">Считаем суммы и доли по категориям.</string>
+    <string name="expense_saving">Сохраняем…</string>
+    <string name="expense_deleting">Удаляем…</string>
+    <string name="category_saving">Сохраняем…</string>
+    <string name="action_failed_save">Не получилось сохранить. Попробуйте ещё раз.</string>
+    <string name="action_failed_delete">Не получилось удалить. Запись на месте.</string>
+    <string name="action_failed_archive">Не получилось архивировать категорию. Попробуйте ещё раз.</string>
+    <string name="action_failed_restore">Не получилось восстановить категорию. Попробуйте ещё раз.</string>
+    <string name="action_failed_undo">Не получилось отменить сохранение. Расход остался в списке.</string>
 </resources>

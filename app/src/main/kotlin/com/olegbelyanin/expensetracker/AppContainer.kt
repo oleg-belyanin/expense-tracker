@@ -47,7 +47,14 @@ import com.olegbelyanin.expensetracker.ui.categories.CategoryFormViewModel
 import com.olegbelyanin.expensetracker.ui.expense.ExpenseEditViewModel
 import com.olegbelyanin.expensetracker.ui.expenses.ExpensesViewModel
 import com.olegbelyanin.expensetracker.ui.settings.SettingsViewModel
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.time.Clock
 import java.time.ZoneId
 
@@ -56,6 +63,7 @@ val LocalAppContainer = staticCompositionLocalOf<AppContainer> {
 }
 
 class AppContainer(context: Context) {
+    private val appContext = context.applicationContext
     private val clock: Clock = Clock.systemDefaultZone()
     private val zoneId: ZoneId = ZoneId.systemDefault()
 
@@ -129,6 +137,10 @@ class AppContainer(context: Context) {
     val settingsDocumentStore: SettingsDocumentStore =
         AndroidSettingsDocumentStore(context.applicationContext.contentResolver)
 
+    private val startupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val startupState = MutableStateFlow<AppStartup>(AppStartup.Loading)
+    val startup: StateFlow<AppStartup> = startupState.asStateFlow()
+
     fun expensesViewModelFactory() = ExpensesViewModel.factory(
         observeExpenseList,
         deleteExpense,
@@ -185,18 +197,35 @@ class AppContainer(context: Context) {
     )
 
     init {
-        runBlocking {
-            SeedImporter(
-                database = database,
-                assets = context.applicationContext.assets,
-                normalizer = textNormalizer,
-            ).importIfNeeded()
-            DemoExpensesImporter(
-                database = database,
-                assets = context.applicationContext.assets,
-                importExpenses = importExpenses,
-                expenses = expenseRepository,
-            ).importIfNeeded()
+        importSeedAndDemo()
+    }
+
+    fun retryStartup() {
+        if (startupState.value is AppStartup.Loading) return
+        startupState.value = AppStartup.Loading
+        importSeedAndDemo()
+    }
+
+    private fun importSeedAndDemo() {
+        startupScope.launch {
+            try {
+                SeedImporter(
+                    database = database,
+                    assets = appContext.assets,
+                    normalizer = textNormalizer,
+                ).importIfNeeded()
+                DemoExpensesImporter(
+                    database = database,
+                    assets = appContext.assets,
+                    importExpenses = importExpenses,
+                    expenses = expenseRepository,
+                ).importIfNeeded()
+                startupState.value = AppStartup.Ready
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                startupState.value = AppStartup.Failed
+            }
         }
     }
 

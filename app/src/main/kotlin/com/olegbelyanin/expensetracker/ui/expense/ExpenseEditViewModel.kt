@@ -25,6 +25,7 @@ import com.olegbelyanin.expensetracker.model.CategoryAssignmentSource
 import com.olegbelyanin.expensetracker.model.Location
 import com.olegbelyanin.expensetracker.ui.components.KeypadKey
 import com.olegbelyanin.expensetracker.ui.format.ExpenseFormat
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,6 +44,11 @@ enum class ExpenseEditSheet {
     Category,
     CreateCategory,
     DeleteConfirm,
+}
+
+enum class ExpenseEditNotice {
+    SaveFailed,
+    DeleteFailed,
 }
 
 data class ExpenseEditUiState(
@@ -70,6 +76,8 @@ data class ExpenseEditUiState(
     val attemptedSave: Boolean = false,
     val saving: Boolean = false,
     val deleting: Boolean = false,
+    val creatingCategory: Boolean = false,
+    val notice: ExpenseEditNotice? = null,
 )
 
 class ExpenseEditViewModel(
@@ -77,11 +85,11 @@ class ExpenseEditViewModel(
     private val expenses: ExpenseRepository,
     private val categories: CategoryRepository,
     private val locations: LocationRepository,
-    private val saveExpense: SaveExpenseUseCase,
-    private val deleteExpense: DeleteExpenseUseCase,
-    private val suggestLocations: SuggestLocationsUseCase,
-    private val suggestCategory: SuggestCategoryUseCase,
-    private val createCategory: CreateCategoryUseCase,
+    private val saveExpense: suspend (SaveExpenseCommand) -> SaveExpenseResult,
+    private val deleteExpense: suspend (String) -> Unit,
+    private val suggestLocations: suspend (String) -> List<Location>,
+    private val suggestCategory: suspend (String, String?) -> CategorizationResult,
+    private val createCategory: suspend (String) -> CreateCategoryResult,
     private val validator: ExpenseInputValidator,
     private val clock: Clock,
     private val zoneId: ZoneId,
@@ -94,6 +102,7 @@ class ExpenseEditViewModel(
 
     private var suggestJob: Job? = null
     private var locationJob: Job? = null
+    private var noticeJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -219,12 +228,26 @@ class ExpenseEditViewModel(
 
     fun onCreateCategory() {
         val name = _state.value.createCategoryName
+        _state.update { it.copy(creatingCategory = true, createCategoryError = null) }
         viewModelScope.launch {
-            when (val result = createCategory(name)) {
-                is CreateCategoryResult.Success -> onSelectCategory(result.category)
+            try {
+                when (val result = createCategory(name)) {
+                    is CreateCategoryResult.Success -> {
+                        _state.update { it.copy(creatingCategory = false) }
+                        onSelectCategory(result.category)
+                    }
 
-                is CreateCategoryResult.Invalid ->
-                    _state.update { it.copy(createCategoryError = result.error) }
+                    is CreateCategoryResult.Invalid ->
+                        _state.update {
+                            it.copy(creatingCategory = false, createCategoryError = result.error)
+                        }
+                }
+            } catch (error: CancellationException) {
+                _state.update { it.copy(creatingCategory = false) }
+                throw error
+            } catch (_: Exception) {
+                _state.update { it.copy(creatingCategory = false) }
+                showNotice(ExpenseEditNotice.SaveFailed)
             }
         }
     }
@@ -232,40 +255,61 @@ class ExpenseEditViewModel(
     fun onSave(onSaved: (String) -> Unit) {
         val current = _state.value
         val category = current.category ?: return
-        _state.update { it.copy(attemptedSave = true, saving = true) }
+        _state.update { it.copy(attemptedSave = true, saving = true, notice = null) }
         viewModelScope.launch {
-            val source = CategoryAssignment.sourceForSave(
-                userPicked = current.categoryLocked,
-                suggestionSource = current.suggestion?.source,
-                originalSource = current.originalSource,
-            )
-            val result = saveExpense(
-                SaveExpenseCommand(
-                    id = expenseId,
-                    amountInput = current.amountInput,
-                    spentAt = current.spentAt,
-                    name = current.name,
-                    categoryId = category.id,
-                    locationName = current.locationName.ifBlank { null },
-                    comment = current.comment,
-                    categoryAssignmentSource = source,
-                    proposedCategoryId = current.suggestion?.selectedCategoryId,
-                ),
-            )
-            when (result) {
-                is SaveExpenseResult.Success -> onSaved(result.expense.id)
-                is SaveExpenseResult.Invalid -> _state.update { it.copy(saving = false) }
+            try {
+                val source = CategoryAssignment.sourceForSave(
+                    userPicked = current.categoryLocked,
+                    suggestionSource = current.suggestion?.source,
+                    originalSource = current.originalSource,
+                )
+                val result = saveExpense(
+                    SaveExpenseCommand(
+                        id = expenseId,
+                        amountInput = current.amountInput,
+                        spentAt = current.spentAt,
+                        name = current.name,
+                        categoryId = category.id,
+                        locationName = current.locationName.ifBlank { null },
+                        comment = current.comment,
+                        categoryAssignmentSource = source,
+                        proposedCategoryId = current.suggestion?.selectedCategoryId,
+                    ),
+                )
+                when (result) {
+                    is SaveExpenseResult.Success -> onSaved(result.expense.id)
+                    is SaveExpenseResult.Invalid -> _state.update { it.copy(saving = false) }
+                }
+            } catch (error: CancellationException) {
+                _state.update { it.copy(saving = false) }
+                throw error
+            } catch (_: Exception) {
+                _state.update { it.copy(saving = false) }
+                showNotice(ExpenseEditNotice.SaveFailed)
             }
         }
     }
 
     fun onConfirmDelete(onDeleted: () -> Unit) {
         val id = expenseId ?: return
-        _state.update { it.copy(deleting = true) }
+        _state.update { it.copy(deleting = true, notice = null) }
         viewModelScope.launch {
-            deleteExpense(id)
-            onDeleted()
+            try {
+                deleteExpense(id)
+                onDeleted()
+            } catch (error: CancellationException) {
+                _state.update { it.copy(deleting = false) }
+                throw error
+            } catch (_: Exception) {
+                _state.update { it.copy(deleting = false) }
+                showNotice(ExpenseEditNotice.DeleteFailed)
+            }
         }
+    }
+
+    fun onDismissNotice() {
+        noticeJob?.cancel()
+        _state.update { it.copy(notice = null) }
     }
 
     fun amountError(): AmountFieldError? {
@@ -332,6 +376,18 @@ class ExpenseEditViewModel(
     private suspend fun suggest(name: String, locationName: String?): CategorizationResult =
         suggestCategory(name, locationName?.ifBlank { null })
 
+    private fun showNotice(notice: ExpenseEditNotice) {
+        _state.update { it.copy(notice = notice) }
+        noticeJob?.cancel()
+        noticeJob =
+            viewModelScope.launch {
+                delay(TOAST_MS)
+                if (_state.value.notice == notice) {
+                    _state.update { it.copy(notice = null) }
+                }
+            }
+    }
+
     private suspend fun applySuggestion(result: CategorizationResult, replaceCategory: Boolean) {
         val suggested = categories.findById(result.selectedCategoryId)
         _state.update { current ->
@@ -348,6 +404,8 @@ class ExpenseEditViewModel(
     }
 
     companion object {
+        private const val TOAST_MS = 4_000L
+
         fun factory(
             expenseId: String?,
             expenses: ExpenseRepository,
@@ -368,11 +426,11 @@ class ExpenseEditViewModel(
                     expenses = expenses,
                     categories = categories,
                     locations = locations,
-                    saveExpense = saveExpense,
-                    deleteExpense = deleteExpense,
-                    suggestLocations = suggestLocations,
-                    suggestCategory = suggestCategory,
-                    createCategory = createCategory,
+                    saveExpense = saveExpense::invoke,
+                    deleteExpense = deleteExpense::invoke,
+                    suggestLocations = { query -> suggestLocations(query) },
+                    suggestCategory = { name, locationName -> suggestCategory(name, locationName) },
+                    createCategory = { name -> createCategory(name) },
                     validator = ExpenseInputValidator(),
                     clock = clock,
                     zoneId = zoneId,
