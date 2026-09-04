@@ -12,11 +12,7 @@ data class ExactMatch(val categoryId: Long, val source: String) {
 
 data class FeatureTransition(val feature: KeywordFeature, val fromCategoryId: Long, val toCategoryId: Long)
 
-data class CategoryTransitionLink(
-    val fromCategoryId: Long,
-    val toCategoryId: Long,
-    val createdAt: Long = 0L,
-)
+data class CategoryTransitionLink(val fromCategoryId: Long, val toCategoryId: Long, val createdAt: Long = 0L)
 
 data class CategorizationSnapshot(
     val fallbackCategoryId: Long,

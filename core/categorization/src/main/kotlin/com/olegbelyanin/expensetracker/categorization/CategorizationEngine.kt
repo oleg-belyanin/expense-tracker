@@ -92,7 +92,9 @@ class CategorizationEngine(private val config: CategorizationConfig = Categoriza
         return when {
             name != null && snapshot.locationEligible ->
                 CategoryVector.combine(name, location, config.nameWeight, config.locationWeight)
+
             name != null -> name
+
             else -> location
         }
     }

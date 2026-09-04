@@ -31,9 +31,4 @@ object PrefixFeatureResolver {
     }
 }
 
-data class PrefixCandidate<T>(
-    val value: String,
-    val topCategoryId: Long,
-    val support: Int,
-    val payload: T,
-)
+data class PrefixCandidate<T>(val value: String, val topCategoryId: Long, val support: Int, val payload: T)

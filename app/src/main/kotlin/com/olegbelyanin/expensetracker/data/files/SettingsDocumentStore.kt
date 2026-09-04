@@ -39,11 +39,10 @@ class AndroidSettingsDocumentStore(
         }
     }
 
-    override suspend fun writeSharedFile(fileName: String, text: String): String =
-        withContext(io) {
-            require(fileName.isNotBlank() && '/' !in fileName && '\\' !in fileName) { "bad-name" }
-            writeToDownloads(fileName, text) ?: writeToCache(fileName, text)
-        }
+    override suspend fun writeSharedFile(fileName: String, text: String): String = withContext(io) {
+        require(fileName.isNotBlank() && '/' !in fileName && '\\' !in fileName) { "bad-name" }
+        writeToDownloads(fileName, text) ?: writeToCache(fileName, text)
+    }
 
     private fun writeToDownloads(fileName: String, text: String): String? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null

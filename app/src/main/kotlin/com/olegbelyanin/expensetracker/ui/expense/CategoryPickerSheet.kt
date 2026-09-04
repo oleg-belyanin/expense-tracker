@@ -71,8 +71,10 @@ fun CategoryPickerSheet(
             text =
             when {
                 name.isNotBlank() -> stringResource(R.string.category_picker_hint, name)
+
                 locationName.isNotBlank() && candidates.isNotEmpty() ->
                     stringResource(R.string.category_picker_hint_place, locationName)
+
                 else -> stringResource(R.string.category_picker_hint_empty)
             },
             style = typography.bodySecondary,

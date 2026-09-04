@@ -160,7 +160,9 @@ object ExpenseFormat {
         val lastUsed = suggestion.lastUsedAt?.atZone(zoneId)?.toLocalDate()
         return when (lastUsed) {
             today -> "Последнее использование — сегодня"
+
             today.minusDays(1) -> "Последнее использование — вчера"
+
             else -> if (suggestion.fromDictionary && suggestion.usageCount == 0) {
                 "По словарю"
             } else {

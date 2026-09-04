@@ -3,11 +3,11 @@ package com.olegbelyanin.expensetracker
 import com.olegbelyanin.expensetracker.data.files.SettingsDocumentStore
 import com.olegbelyanin.expensetracker.domain.backup.BackupCorruptedException
 import com.olegbelyanin.expensetracker.domain.backup.BackupRestoreResult
+import com.olegbelyanin.expensetracker.domain.learning.RememberedRuleCounts
 import com.olegbelyanin.expensetracker.ui.settings.SettingsBusyKind
 import com.olegbelyanin.expensetracker.ui.settings.SettingsDialog
 import com.olegbelyanin.expensetracker.ui.settings.SettingsOverlay
 import com.olegbelyanin.expensetracker.ui.settings.SettingsToast
-import com.olegbelyanin.expensetracker.domain.learning.RememberedRuleCounts
 import com.olegbelyanin.expensetracker.ui.settings.SettingsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

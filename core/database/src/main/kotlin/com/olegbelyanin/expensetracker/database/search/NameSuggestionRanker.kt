@@ -48,14 +48,13 @@ object NameSuggestionRanker {
             .take(limit)
     }
 
-    fun titleCase(normalized: String): String =
-        normalized.split(' ', '"')
-            .filter { it.isNotBlank() }
-            .joinToString(" ") { token ->
-                token.replaceFirstChar { ch ->
-                    if (ch.isLowerCase()) ch.titlecase(Locale.ROOT) else ch.toString()
-                }
+    fun titleCase(normalized: String): String = normalized.split(' ', '"')
+        .filter { it.isNotBlank() }
+        .joinToString(" ") { token ->
+            token.replaceFirstChar { ch ->
+                if (ch.isLowerCase()) ch.titlecase(Locale.ROOT) else ch.toString()
             }
+        }
 
     private fun itKey(suggestion: ExpenseNameSuggestion): String = suggestion.normalizedName
 

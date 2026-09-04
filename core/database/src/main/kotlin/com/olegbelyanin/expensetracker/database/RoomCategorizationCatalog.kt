@@ -115,11 +115,7 @@ class RoomCategorizationCatalog(
         return ResolvedKeyword(feature, keyword.id, vector)
     }
 
-    private data class ResolvedKeyword(
-        val feature: KeywordFeature,
-        val keywordId: Long,
-        val vector: CategoryVector,
-    )
+    private data class ResolvedKeyword(val feature: KeywordFeature, val keywordId: Long, val vector: CategoryVector)
 
     private suspend fun loadLocation(normalized: String, activeIds: Set<Long>): LocationLookup? {
         val location = database.locationDao().findByNormalizedName(normalized) ?: return null
