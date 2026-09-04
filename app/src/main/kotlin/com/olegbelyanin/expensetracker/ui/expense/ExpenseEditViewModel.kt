@@ -18,10 +18,12 @@ import com.olegbelyanin.expensetracker.domain.expense.SaveExpenseCommand
 import com.olegbelyanin.expensetracker.domain.expense.SaveExpenseResult
 import com.olegbelyanin.expensetracker.domain.expense.SaveExpenseUseCase
 import com.olegbelyanin.expensetracker.domain.expense.SuggestCategoryUseCase
+import com.olegbelyanin.expensetracker.domain.expense.SuggestExpenseNamesUseCase
 import com.olegbelyanin.expensetracker.domain.expense.SuggestLocationsUseCase
 import com.olegbelyanin.expensetracker.model.CategorizationResult
 import com.olegbelyanin.expensetracker.model.Category
 import com.olegbelyanin.expensetracker.model.CategoryAssignmentSource
+import com.olegbelyanin.expensetracker.model.ExpenseNameSuggestion
 import com.olegbelyanin.expensetracker.model.Location
 import com.olegbelyanin.expensetracker.ui.components.KeypadKey
 import com.olegbelyanin.expensetracker.ui.format.ExpenseFormat
@@ -67,6 +69,8 @@ data class ExpenseEditUiState(
     val originalSource: CategoryAssignmentSource? = null,
     val locationSuggestions: List<Location> = emptyList(),
     val locationFocused: Boolean = false,
+    val nameSuggestions: List<ExpenseNameSuggestion> = emptyList(),
+    val nameFocused: Boolean = false,
     val sheet: ExpenseEditSheet = ExpenseEditSheet.None,
     val categoryQuery: String = "",
     val createCategoryName: String = "",
@@ -88,6 +92,7 @@ class ExpenseEditViewModel(
     private val saveExpense: suspend (SaveExpenseCommand) -> SaveExpenseResult,
     private val deleteExpense: suspend (String) -> Unit,
     private val suggestLocations: suspend (String) -> List<Location>,
+    private val suggestNames: suspend (String) -> List<ExpenseNameSuggestion>,
     private val suggestCategory: suspend (String, String?) -> CategorizationResult,
     private val createCategory: suspend (String) -> CreateCategoryResult,
     private val validator: ExpenseInputValidator,
@@ -102,6 +107,7 @@ class ExpenseEditViewModel(
 
     private var suggestJob: Job? = null
     private var locationJob: Job? = null
+    private var nameJob: Job? = null
     private var noticeJob: Job? = null
 
     init {
@@ -175,7 +181,26 @@ class ExpenseEditViewModel(
     }
 
     fun onNameChange(value: String) {
-        _state.update { it.copy(name = value, nameTouched = true) }
+        _state.update { it.copy(name = value, nameTouched = true, nameFocused = true) }
+        scheduleNameAndCategory()
+    }
+
+    fun onNameFocus(focused: Boolean) {
+        _state.update { it.copy(nameFocused = focused) }
+        if (focused) {
+            scheduleNames(_state.value.name)
+        }
+    }
+
+    fun onNameSuggestion(suggestion: ExpenseNameSuggestion) {
+        _state.update {
+            it.copy(
+                name = suggestion.name,
+                nameSuggestions = emptyList(),
+                nameFocused = false,
+                nameTouched = true,
+            )
+        }
         scheduleSuggest()
     }
 
@@ -345,9 +370,28 @@ class ExpenseEditViewModel(
         suggestJob?.cancel()
         suggestJob =
             viewModelScope.launch {
-                delay(250)
+                delay(150)
                 applySuggestion(suggestCurrent(), replaceCategory = true)
             }
+    }
+
+    private fun scheduleNameAndCategory() {
+        nameJob?.cancel()
+        suggestJob?.cancel()
+        suggestJob =
+            viewModelScope.launch {
+                delay(150)
+                val typed = _state.value.name
+                val names = visibleNameSuggestions(typed, suggestNames(typed))
+                _state.update { it.copy(nameSuggestions = names) }
+                val lookup = uniqueCompletionName(typed, names) ?: typed
+                applySuggestion(suggest(lookup, _state.value.locationName), replaceCategory = true)
+            }
+    }
+
+    private fun uniqueCompletionName(typed: String, names: List<ExpenseNameSuggestion>): String? {
+        if (typed.trim().length < 2) return null
+        return names.distinctBy { it.normalizedName }.singleOrNull()?.name
     }
 
     private fun refreshSuggestion(replaceCategory: Boolean) {
@@ -366,6 +410,26 @@ class ExpenseEditViewModel(
                 val suggestions = suggestLocations(query)
                 _state.update { it.copy(locationSuggestions = suggestions) }
             }
+    }
+
+    private fun scheduleNames(query: String) {
+        nameJob?.cancel()
+        nameJob =
+            viewModelScope.launch {
+                delay(150)
+                val suggestions = visibleNameSuggestions(query, suggestNames(query))
+                _state.update { it.copy(nameSuggestions = suggestions) }
+            }
+    }
+
+    private fun visibleNameSuggestions(
+        query: String,
+        suggestions: List<ExpenseNameSuggestion>,
+    ): List<ExpenseNameSuggestion> {
+        val trimmed = query.trim()
+        if (trimmed.isEmpty()) return suggestions
+        if (suggestions.any { it.name.equals(trimmed, ignoreCase = true) }) return emptyList()
+        return suggestions
     }
 
     private suspend fun suggestCurrent(): CategorizationResult {
@@ -414,6 +478,7 @@ class ExpenseEditViewModel(
             saveExpense: SaveExpenseUseCase,
             deleteExpense: DeleteExpenseUseCase,
             suggestLocations: SuggestLocationsUseCase,
+            suggestNames: SuggestExpenseNamesUseCase,
             suggestCategory: SuggestCategoryUseCase,
             createCategory: CreateCategoryUseCase,
             clock: Clock,
@@ -429,6 +494,7 @@ class ExpenseEditViewModel(
                     saveExpense = saveExpense::invoke,
                     deleteExpense = deleteExpense::invoke,
                     suggestLocations = { query -> suggestLocations(query) },
+                    suggestNames = { query -> suggestNames(query) },
                     suggestCategory = { name, locationName -> suggestCategory(name, locationName) },
                     createCategory = { name -> createCategory(name) },
                     validator = ExpenseInputValidator(),

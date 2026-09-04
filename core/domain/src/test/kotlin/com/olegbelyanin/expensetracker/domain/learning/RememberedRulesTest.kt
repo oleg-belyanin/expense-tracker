@@ -29,8 +29,26 @@ class RememberedRulesTest {
     }
 
     @Test
+    fun seedStatCountIgnoresUserAndCategoryName() {
+        assertTrue(RememberedRules.countsSeedExact(RememberedRules.SEED))
+        assertTrue(RememberedRules.countsSeedStat(RememberedRules.SEED))
+        assertFalse(RememberedRules.countsSeedExact(RememberedRules.EXPLICIT))
+        assertFalse(RememberedRules.countsSeedStat(RememberedRules.USER_STAT))
+        assertFalse(RememberedRules.countsSeedStat("category_name"))
+        assertEquals(1, RememberedRules.countSeedStats(listOf("seed", "user", "seed", "category_name")))
+    }
+
+    @Test
     fun observeUseCaseForwardsRepositoryCounts() = runTest {
-        val counts = RememberedRuleCounts(exactRules = 3, keywordRules = 8, locationRules = 2)
+        val counts =
+            RememberedRuleCounts(
+                exactRules = 3,
+                keywordRules = 8,
+                locationRules = 2,
+                seedExactRules = 40,
+                seedKeywordRules = 100,
+                seedLocationRules = 12,
+            )
         val learning = FakeLearningRepository(counts)
         assertEquals(counts, ObserveRememberedRuleCountUseCase(learning)().first())
     }

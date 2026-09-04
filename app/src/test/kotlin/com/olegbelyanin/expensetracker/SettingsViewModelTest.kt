@@ -42,6 +42,20 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun exportCancelLeavesNoFile() = runTest(dispatcher) {
+        val documents = InMemorySettingsDocumentStore()
+        val viewModel = viewModel(documents = documents, exportCsv = { "id,name\n1,Латте" })
+
+        viewModel.onOpenExportConfirm()
+        assertEquals(SettingsDialog.ExportConfirm, viewModel.dialog.value)
+        viewModel.onDismissDialog()
+
+        assertEquals(SettingsDialog.None, viewModel.dialog.value)
+        assertTrue(documents.files.isEmpty())
+        assertEquals(null, viewModel.toast.value)
+    }
+
+    @Test
     fun exportWritesCsvAndShowsShareToast() = runTest(dispatcher) {
         val documents = InMemorySettingsDocumentStore()
         val viewModel =
@@ -50,13 +64,31 @@ class SettingsViewModelTest {
                 exportCsv = { "id,name\n1,Латте" },
             )
 
-        viewModel.onExportDocument("content://export.csv")
+        viewModel.onOpenExportConfirm()
+        viewModel.onConfirmExport()
         runCurrent()
 
-        assertEquals("id,name\n1,Латте", documents.files["content://export.csv"])
-        assertEquals(SettingsToast.ExportDone("content://export.csv"), viewModel.toast.value)
+        assertEquals("id,name\n1,Латте", documents.files["content://shared/expenses-2026-09-04.csv"])
+        assertEquals(
+            SettingsToast.ExportDone("content://shared/expenses-2026-09-04.csv"),
+            viewModel.toast.value,
+        )
         assertEquals(SettingsOverlay.None, viewModel.overlay.value)
         viewModel.onDismissToast()
+    }
+
+    @Test
+    fun backupCancelLeavesNoFile() = runTest(dispatcher) {
+        val documents = InMemorySettingsDocumentStore()
+        val viewModel = viewModel(documents = documents, createBackup = { "{}" })
+
+        viewModel.onOpenBackupConfirm()
+        assertEquals(SettingsDialog.BackupConfirm, viewModel.dialog.value)
+        viewModel.onDismissDialog()
+
+        assertEquals(SettingsDialog.None, viewModel.dialog.value)
+        assertTrue(documents.files.isEmpty())
+        assertEquals(null, viewModel.toast.value)
     }
 
     @Test
@@ -64,7 +96,8 @@ class SettingsViewModelTest {
         val documents = InMemorySettingsDocumentStore(writeShouldFail = true)
         val viewModel = viewModel(documents = documents, createBackup = { "{}" })
 
-        viewModel.onBackupDocument("content://backup.json")
+        viewModel.onOpenBackupConfirm()
+        viewModel.onConfirmBackup()
         runCurrent()
 
         assertTrue(documents.files.isEmpty())
@@ -169,6 +202,13 @@ private class InMemorySettingsDocumentStore(
     override suspend fun writeText(uri: String, text: String) {
         if (writeShouldFail) error("disk")
         files[uri] = text
+    }
+
+    override suspend fun writeSharedFile(fileName: String, text: String): String {
+        if (writeShouldFail) error("disk")
+        val uri = "content://shared/$fileName"
+        files[uri] = text
+        return uri
     }
 
     override suspend fun readText(uri: String): String = files.getValue(uri)

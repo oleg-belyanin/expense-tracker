@@ -43,6 +43,10 @@ sealed interface SettingsOverlay {
 sealed interface SettingsDialog {
     data object None : SettingsDialog
 
+    data object ExportConfirm : SettingsDialog
+
+    data object BackupConfirm : SettingsDialog
+
     data object ClearConfirm : SettingsDialog
 }
 
@@ -89,16 +93,30 @@ class SettingsViewModel(
 
     fun backupFileName(): String = SettingsFileNames.backup(clock, zoneId)
 
-    fun onExportDocument(uri: String) {
+    fun onOpenExportConfirm() {
+        if (overlayState.value is SettingsOverlay.Busy) return
+        dialogState.value = SettingsDialog.ExportConfirm
+    }
+
+    fun onOpenBackupConfirm() {
+        if (overlayState.value is SettingsOverlay.Busy) return
+        dialogState.value = SettingsDialog.BackupConfirm
+    }
+
+    fun onConfirmExport() {
+        if (overlayState.value is SettingsOverlay.Busy) return
+        dialogState.value = SettingsDialog.None
         runFileJob(SettingsBusyKind.Export) {
-            documents.writeText(uri, exportCsv())
+            val uri = documents.writeSharedFile(csvFileName(), exportCsv())
             showToast(SettingsToast.ExportDone(uri))
         }
     }
 
-    fun onBackupDocument(uri: String) {
+    fun onConfirmBackup() {
+        if (overlayState.value is SettingsOverlay.Busy) return
+        dialogState.value = SettingsDialog.None
         runFileJob(SettingsBusyKind.Backup) {
-            documents.writeText(uri, createBackup())
+            val uri = documents.writeSharedFile(backupFileName(), createBackup())
             showToast(SettingsToast.BackupDone(uri))
         }
     }

@@ -12,6 +12,7 @@ import com.olegbelyanin.expensetracker.model.CategorizationResult
 import com.olegbelyanin.expensetracker.model.Category
 import com.olegbelyanin.expensetracker.model.CategoryAssignmentSource
 import com.olegbelyanin.expensetracker.model.Expense
+import com.olegbelyanin.expensetracker.model.ExpenseNameSuggestion
 import com.olegbelyanin.expensetracker.model.Location
 import com.olegbelyanin.expensetracker.model.Money
 import com.olegbelyanin.expensetracker.ui.components.KeypadKey
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -92,38 +94,93 @@ class ExpenseEditViewModelTest {
         assertEquals(ExpenseEditNotice.DeleteFailed, viewModel.state.value.notice)
     }
 
+    @Test
+    fun namePrefixShowsSuggestionsAndSelectionFillsName() = runTest(dispatcher) {
+        val ketosteril = ExpenseNameSuggestion(
+            name = "Кетостерил",
+            normalizedName = "кетостер",
+            usageCount = 2,
+            lastUsedAt = Instant.parse("2026-09-04T00:00:00Z"),
+        )
+        val ketchup = ExpenseNameSuggestion(
+            name = "Кетчуп",
+            normalizedName = "кетчуп",
+            usageCount = 1,
+            lastUsedAt = Instant.parse("2026-07-25T00:00:00Z"),
+        )
+        val viewModel =
+            viewModel(
+                suggestNames = { query ->
+                    when {
+                        query.startsWith("Кетост") -> listOf(ketosteril)
+                        query.startsWith("Кет") -> listOf(ketosteril, ketchup)
+                        else -> emptyList()
+                    }
+                },
+                suggestCategory = { name, _ ->
+                    if (name == "Кетостерил") HEALTH_RESULT else FALLBACK
+                },
+            )
+        runCurrent()
+
+        viewModel.onNameChange("Кет")
+        advanceTimeBy(150)
+        runCurrent()
+
+        assertEquals(listOf("Кетостерил", "Кетчуп"), viewModel.state.value.nameSuggestions.map { it.name })
+        assertEquals(OTHER.id, viewModel.state.value.category?.id)
+
+        viewModel.onNameChange("Кетост")
+        advanceTimeBy(150)
+        runCurrent()
+
+        assertEquals(listOf("Кетостерил"), viewModel.state.value.nameSuggestions.map { it.name })
+        assertEquals(HEALTH.id, viewModel.state.value.category?.id)
+
+        viewModel.onNameSuggestion(ketosteril)
+        advanceTimeBy(150)
+        runCurrent()
+
+        assertEquals("Кетостерил", viewModel.state.value.name)
+        assertTrue(viewModel.state.value.nameSuggestions.isEmpty())
+        assertEquals(HEALTH.id, viewModel.state.value.category?.id)
+    }
+
     private fun viewModel(
         expenseId: String? = null,
         expenses: ExpenseRepository = FakeExpenses(),
         saveExpense: suspend (SaveExpenseCommand) -> SaveExpenseResult = { error("unused") },
         deleteExpense: suspend (String) -> Unit = {},
+        suggestNames: suspend (String) -> List<ExpenseNameSuggestion> = { emptyList() },
+        suggestCategory: suspend (String, String?) -> CategorizationResult = { _, _ -> FALLBACK },
     ) = ExpenseEditViewModel(
         expenseId = expenseId,
         expenses = expenses,
-        categories = FakeCategories(OTHER),
+        categories = FakeCategories(OTHER, HEALTH),
         locations = FakeLocations(),
         saveExpense = saveExpense,
         deleteExpense = deleteExpense,
         suggestLocations = { emptyList() },
-        suggestCategory = { _, _ -> FALLBACK },
+        suggestNames = suggestNames,
+        suggestCategory = suggestCategory,
         createCategory = { error("unused") },
         validator = ExpenseInputValidator(),
         clock = clock,
         zoneId = ZoneOffset.UTC,
     )
 
-    private class FakeCategories(private val category: Category) : CategoryRepository {
-        override suspend fun getActiveCategories() = listOf(category)
+    private class FakeCategories(private vararg val categories: Category) : CategoryRepository {
+        override suspend fun getActiveCategories() = categories.toList()
 
-        override fun observeActiveCategories() = MutableStateFlow(listOf(category))
+        override fun observeActiveCategories() = MutableStateFlow(categories.toList())
 
         override fun observeArchivedCategories() = MutableStateFlow(emptyList<Category>())
 
-        override fun observeAll() = MutableStateFlow(listOf(category))
+        override fun observeAll() = MutableStateFlow(categories.toList())
 
-        override suspend fun findById(id: Long) = category.takeIf { it.id == id }
+        override suspend fun findById(id: Long) = categories.find { it.id == id }
 
-        override suspend fun requireFallback() = category
+        override suspend fun requireFallback() = categories.first()
 
         override suspend fun createUserCategory(name: String, color: String, icon: String) = error("unused")
 
@@ -185,6 +242,17 @@ class ExpenseEditViewModelTest {
                 categoryAssignmentSource = CategoryAssignmentSource.FALLBACK,
                 dedupKey = "user:e1",
             )
+        private val HEALTH =
+            Category(
+                id = 4,
+                code = "HEALTH",
+                name = "Здоровье",
+                normalizedName = "здоровье",
+                color = "#E57373",
+                icon = "health",
+                isBuiltin = true,
+                archivedAt = null,
+            )
         private val FALLBACK =
             CategorizationResult(
                 selectedCategoryId = 1,
@@ -193,6 +261,15 @@ class ExpenseEditViewModelTest {
                 confidence = 0.0,
                 matchedFeatures = emptyList(),
                 usedFallback = true,
+            )
+        private val HEALTH_RESULT =
+            CategorizationResult(
+                selectedCategoryId = 4,
+                orderedCandidates = emptyList(),
+                source = CategoryAssignmentSource.PROBABILISTIC,
+                confidence = 0.9,
+                matchedFeatures = emptyList(),
+                usedFallback = false,
             )
     }
 }

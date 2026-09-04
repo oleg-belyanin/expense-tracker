@@ -111,6 +111,26 @@ interface LearningDao {
 
     @Query(
         """
+        SELECT * FROM exact_category_rule
+        WHERE normalized_name LIKE :prefix ESCAPE '\'
+        ORDER BY length(normalized_name) ASC, normalized_name ASC
+        LIMIT :limit
+        """,
+    )
+    suspend fun findExactRulesByPrefix(prefix: String, limit: Int): List<ExactCategoryRuleEntity>
+
+    @Query(
+        """
+        SELECT * FROM name_category_context
+        WHERE normalized_name LIKE :prefix ESCAPE '\'
+        ORDER BY length(normalized_name) ASC, normalized_name ASC
+        LIMIT :limit
+        """,
+    )
+    suspend fun findNameContextsByPrefix(prefix: String, limit: Int): List<NameCategoryContextEntity>
+
+    @Query(
+        """
         SELECT COUNT(*) FROM exact_category_rule
         WHERE source IN ('explicit', 'correction')
         """,
@@ -122,6 +142,15 @@ interface LearningDao {
 
     @Query("SELECT COUNT(DISTINCT location_id) FROM location_category_stat WHERE source = 'user'")
     fun observeUserLocationRuleCount(): Flow<Long>
+
+    @Query("SELECT COUNT(*) FROM exact_category_rule WHERE source = 'seed'")
+    fun observeSeedExactRuleCount(): Flow<Long>
+
+    @Query("SELECT COUNT(DISTINCT keyword_id) FROM keyword_category_stat WHERE source = 'seed'")
+    fun observeSeedKeywordRuleCount(): Flow<Long>
+
+    @Query("SELECT COUNT(DISTINCT location_id) FROM location_category_stat WHERE source = 'seed'")
+    fun observeSeedLocationRuleCount(): Flow<Long>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertExactRule(entity: ExactCategoryRuleEntity)

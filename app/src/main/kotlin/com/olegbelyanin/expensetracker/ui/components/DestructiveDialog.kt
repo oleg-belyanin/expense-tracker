@@ -22,6 +22,7 @@ fun DestructiveDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
     confirmEnabled: Boolean = true,
+    confirmTone: ButtonTone = ButtonTone.Destructive,
 ) {
     val colors = ExpenseTheme.colors
     val typography = ExpenseTheme.typography
@@ -57,7 +58,7 @@ fun DestructiveDialog(
                     label = confirmLabel,
                     onClick = onConfirm,
                     enabled = confirmEnabled,
-                    tone = ButtonTone.Destructive,
+                    tone = confirmTone,
                 )
                 PrimaryButton(
                     label = cancelLabel,

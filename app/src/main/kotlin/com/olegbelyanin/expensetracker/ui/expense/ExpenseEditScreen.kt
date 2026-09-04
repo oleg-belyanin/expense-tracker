@@ -142,12 +142,28 @@ fun ExpenseEditScreen(
                     kind = FormFieldKind.Date,
                     onClick = { viewModel.onOpenSheet(ExpenseEditSheet.Date) },
                 )
-                FormField(
+                PlaceAutocomplete(
+                    query = state.name,
+                    onQueryChange = viewModel::onNameChange,
                     label = stringResource(R.string.field_name),
-                    value = state.name,
-                    onValueChange = viewModel::onNameChange,
-                    kind = FormFieldKind.Text,
                     error = nameError?.toMessage(),
+                    suggestions =
+                    if (state.nameFocused) {
+                        state.nameSuggestions.map { suggestion ->
+                            PlaceSuggestion(
+                                name = suggestion.name,
+                                detail = ExpenseFormat.nameDetail(suggestion, today, zoneId),
+                            )
+                        }
+                    } else {
+                        emptyList()
+                    },
+                    onSuggestionClick = { suggestion ->
+                        state.nameSuggestions
+                            .firstOrNull { it.name == suggestion.name }
+                            ?.let(viewModel::onNameSuggestion)
+                    },
+                    onFocusChange = viewModel::onNameFocus,
                 )
                 if (category != null && visual != null) {
                     CategorySelector(

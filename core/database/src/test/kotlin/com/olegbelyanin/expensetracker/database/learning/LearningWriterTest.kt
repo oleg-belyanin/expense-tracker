@@ -192,11 +192,17 @@ class LearningWriterTest {
         learning.upsertKeywordStat(
             KeywordCategoryStatEntity(99, 2, LearningPlanner.SOURCE_SEED, observationCount = 40),
         )
+        learning.upsertKeywordStat(
+            KeywordCategoryStatEntity(99, 3, LearningPlanner.SOURCE_SEED, observationCount = 10),
+        )
         learning.upsertLocationStat(
             LocationCategoryStatEntity(77, 2, LearningPlanner.SOURCE_SEED, observationCount = 12),
         )
         assertEquals(1L, learning.observeUserKeywordRuleCount().first())
         assertEquals(1L, learning.observeUserLocationRuleCount().first())
+        assertEquals(1L, learning.observeSeedExactRuleCount().first())
+        assertEquals(1L, learning.observeSeedKeywordRuleCount().first())
+        assertEquals(1L, learning.observeSeedLocationRuleCount().first())
     }
 
     @Test

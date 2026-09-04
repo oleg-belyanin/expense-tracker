@@ -27,6 +27,7 @@ fun PlaceAutocomplete(
     suggestions: List<PlaceSuggestion>,
     onSuggestionClick: (PlaceSuggestion) -> Unit,
     modifier: Modifier = Modifier,
+    label: String = stringResource(R.string.field_place),
     error: String? = null,
     onFocusChange: ((Boolean) -> Unit)? = null,
 ) {
@@ -38,7 +39,7 @@ fun PlaceAutocomplete(
         verticalArrangement = Arrangement.spacedBy(spacing.xxs),
     ) {
         FormField(
-            label = stringResource(R.string.field_place),
+            label = label,
             value = query,
             onValueChange = onQueryChange,
             kind = FormFieldKind.Text,

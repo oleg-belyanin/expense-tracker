@@ -24,6 +24,19 @@ internal class FakeKeywordDao : KeywordDao {
     override suspend fun find(kind: String, value: String): KeywordEntity? =
         rows.find { it.kind == kind && it.value == value }
 
+    override suspend fun findByKindAndPrefix(kind: String, prefix: String): List<KeywordEntity> {
+        val stem = prefix.removeSuffix("%").replace("\\%", "%").replace("\\_", "_").replace("\\\\", "\\")
+        return rows.filter { it.kind == kind && it.value.startsWith(stem) }
+            .sortedWith(compareByDescending<KeywordEntity> { it.value.length }.thenBy { it.value })
+    }
+
+    override suspend fun suggestByPrefix(prefix: String, limit: Int): List<KeywordEntity> {
+        val stem = prefix.removeSuffix("%").replace("\\%", "%").replace("\\_", "_").replace("\\\\", "\\")
+        return rows.filter { it.value.startsWith(stem) }
+            .sortedWith(compareBy<KeywordEntity> { it.value.length }.thenBy { it.value })
+            .take(limit)
+    }
+
     override suspend fun getAll(): List<KeywordEntity> = rows.toList()
 
     override suspend fun insert(entity: KeywordEntity): Long {
@@ -53,6 +66,9 @@ internal class FakeLearningDao : LearningDao {
     private val userExactRuleCount = MutableStateFlow(0L)
     private val userKeywordRuleCount = MutableStateFlow(0L)
     private val userLocationRuleCount = MutableStateFlow(0L)
+    private val seedExactRuleCount = MutableStateFlow(0L)
+    private val seedKeywordRuleCount = MutableStateFlow(0L)
+    private val seedLocationRuleCount = MutableStateFlow(0L)
 
     override suspend fun findExampleByExpenseId(expenseId: String): LearningExampleEntity? =
         examples.values.find { it.expenseId == expenseId }
@@ -144,11 +160,36 @@ internal class FakeLearningDao : LearningDao {
 
     override suspend fun findExactRule(normalizedName: String): ExactCategoryRuleEntity? = exactRules[normalizedName]
 
+    override suspend fun findExactRulesByPrefix(prefix: String, limit: Int): List<ExactCategoryRuleEntity> {
+        val stem = prefixStem(prefix)
+        return exactRules.values.filter { it.normalizedName.startsWith(stem) }
+            .sortedWith(compareBy<ExactCategoryRuleEntity> { it.normalizedName.length }.thenBy { it.normalizedName })
+            .take(limit)
+    }
+
+    override suspend fun findNameContextsByPrefix(prefix: String, limit: Int): List<NameCategoryContextEntity> {
+        val stem = prefixStem(prefix)
+        return nameContexts.values.filter { it.normalizedName.startsWith(stem) }
+            .sortedWith(
+                compareBy<NameCategoryContextEntity> { it.normalizedName.length }.thenBy { it.normalizedName },
+            )
+            .take(limit)
+    }
+
+    private fun prefixStem(prefix: String): String =
+        prefix.removeSuffix("%").replace("\\%", "%").replace("\\_", "_").replace("\\\\", "\\")
+
     override fun observeUserExactRuleCount(): Flow<Long> = userExactRuleCount
 
     override fun observeUserKeywordRuleCount(): Flow<Long> = userKeywordRuleCount
 
     override fun observeUserLocationRuleCount(): Flow<Long> = userLocationRuleCount
+
+    override fun observeSeedExactRuleCount(): Flow<Long> = seedExactRuleCount
+
+    override fun observeSeedKeywordRuleCount(): Flow<Long> = seedKeywordRuleCount
+
+    override fun observeSeedLocationRuleCount(): Flow<Long> = seedLocationRuleCount
 
     override suspend fun upsertExactRule(entity: ExactCategoryRuleEntity) {
         exactRules[entity.normalizedName] = entity
@@ -190,25 +231,29 @@ internal class FakeLearningDao : LearningDao {
 
     private fun refreshRememberedCount() {
         userExactRuleCount.value = exactRules.values.count { RememberedRules.countsExact(it.source) }.toLong()
+        seedExactRuleCount.value = exactRules.values.count { RememberedRules.countsSeedExact(it.source) }.toLong()
     }
 
     private fun refreshKeywordCount() {
-        userKeywordRuleCount.value = keywordStats.values
-            .filter { RememberedRules.countsUserStat(it.source) }
-            .map { it.keywordId }
-            .toSet()
-            .size
-            .toLong()
+        userKeywordRuleCount.value =
+            uniqueIds(keywordStats.values, { it.source }, { it.keywordId }, RememberedRules::countsUserStat)
+        seedKeywordRuleCount.value =
+            uniqueIds(keywordStats.values, { it.source }, { it.keywordId }, RememberedRules::countsSeedStat)
     }
 
     private fun refreshLocationCount() {
-        userLocationRuleCount.value = locationStats.values
-            .filter { RememberedRules.countsUserStat(it.source) }
-            .map { it.locationId }
-            .toSet()
-            .size
-            .toLong()
+        userLocationRuleCount.value =
+            uniqueIds(locationStats.values, { it.source }, { it.locationId }, RememberedRules::countsUserStat)
+        seedLocationRuleCount.value =
+            uniqueIds(locationStats.values, { it.source }, { it.locationId }, RememberedRules::countsSeedStat)
     }
+
+    private fun <T> uniqueIds(
+        rows: Iterable<T>,
+        source: (T) -> String,
+        id: (T) -> Long,
+        sourceOk: (String) -> Boolean,
+    ): Long = rows.filter { sourceOk(source(it)) }.map { id(it) }.toSet().size.toLong()
 
     override suspend fun insertTransition(entity: CategoryTransitionEntity) {
         transitions += entity

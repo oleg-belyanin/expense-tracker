@@ -112,6 +112,25 @@ interface KeywordDao {
     @Query("SELECT * FROM keyword WHERE kind = :kind AND value = :value LIMIT 1")
     suspend fun find(kind: String, value: String): KeywordEntity?
 
+    @Query(
+        """
+        SELECT * FROM keyword
+        WHERE kind = :kind AND value LIKE :prefix ESCAPE '\'
+        ORDER BY length(value) DESC, value ASC
+        """,
+    )
+    suspend fun findByKindAndPrefix(kind: String, prefix: String): List<KeywordEntity>
+
+    @Query(
+        """
+        SELECT * FROM keyword
+        WHERE value LIKE :prefix ESCAPE '\'
+        ORDER BY length(value) ASC, value ASC
+        LIMIT :limit
+        """,
+    )
+    suspend fun suggestByPrefix(prefix: String, limit: Int): List<KeywordEntity>
+
     @Query("SELECT * FROM keyword ORDER BY id ASC")
     suspend fun getAll(): List<KeywordEntity>
 

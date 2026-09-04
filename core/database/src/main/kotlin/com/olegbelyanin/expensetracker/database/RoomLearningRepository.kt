@@ -9,14 +9,22 @@ class RoomLearningRepository(private val database: AppDatabase) : LearningReposi
     override fun observeRememberedRuleCounts(): Flow<RememberedRuleCounts> {
         val learning = database.learningDao()
         return combine(
-            learning.observeUserExactRuleCount(),
-            learning.observeUserKeywordRuleCount(),
-            learning.observeUserLocationRuleCount(),
-        ) { exact, keywords, locations ->
+            listOf(
+                learning.observeUserExactRuleCount(),
+                learning.observeUserKeywordRuleCount(),
+                learning.observeUserLocationRuleCount(),
+                learning.observeSeedExactRuleCount(),
+                learning.observeSeedKeywordRuleCount(),
+                learning.observeSeedLocationRuleCount(),
+            ),
+        ) { values ->
             RememberedRuleCounts(
-                exactRules = exact.toInt(),
-                keywordRules = keywords.toInt(),
-                locationRules = locations.toInt(),
+                exactRules = values[0].toInt(),
+                keywordRules = values[1].toInt(),
+                locationRules = values[2].toInt(),
+                seedExactRules = values[3].toInt(),
+                seedKeywordRules = values[4].toInt(),
+                seedLocationRules = values[5].toInt(),
             )
         }
     }

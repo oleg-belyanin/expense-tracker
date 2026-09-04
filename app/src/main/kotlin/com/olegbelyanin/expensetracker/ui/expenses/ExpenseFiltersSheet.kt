@@ -79,7 +79,7 @@ fun ExpenseFiltersSheet(
                     onClick = { onPeriod(ExpensePeriodPreset.CURRENT_MONTH) },
                 )
                 FilterChip(
-                    label = stringResource(R.string.filter_year),
+                    label = ExpenseFormat.periodChip(ExpensePeriodPreset.YEAR, today),
                     selected = draftPreset == ExpensePeriodPreset.YEAR,
                     onClick = { onPeriod(ExpensePeriodPreset.YEAR) },
                 )

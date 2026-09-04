@@ -21,6 +21,9 @@ class TextNormalizer(
 
     fun normalizePlain(raw: String): String = prepare(raw)
 
+    /** Токены без стемминга — для prefix-поиска по первым буквам. */
+    fun plainTokens(raw: String): List<String> = tokenize(prepare(raw)).filter { it !in stopWords }
+
     fun analyze(raw: String): NormalizationResult {
         val prepared = prepare(raw)
         val nameParts = mutableListOf<String>()

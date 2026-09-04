@@ -9,11 +9,17 @@ import com.olegbelyanin.expensetracker.categorization.CategoryVector
 import com.olegbelyanin.expensetracker.categorization.ExactMatch
 import com.olegbelyanin.expensetracker.categorization.FeatureCount
 import com.olegbelyanin.expensetracker.categorization.KeywordFeature
+import com.olegbelyanin.expensetracker.categorization.NormalizationResult
+import com.olegbelyanin.expensetracker.categorization.PrefixCandidate
+import com.olegbelyanin.expensetracker.categorization.PrefixFeatureResolver
 import com.olegbelyanin.expensetracker.categorization.TextNormalizer
 import com.olegbelyanin.expensetracker.database.entities.KeywordCategoryStatEntity
+import com.olegbelyanin.expensetracker.database.entities.KeywordEntity
 import com.olegbelyanin.expensetracker.database.entities.LocationCategoryStatEntity
 import com.olegbelyanin.expensetracker.database.learning.ActiveTransitionLoader
+import com.olegbelyanin.expensetracker.database.search.LikeQuery
 import com.olegbelyanin.expensetracker.model.BuiltinCategories
+import com.olegbelyanin.expensetracker.model.KeywordKind
 
 class RoomCategorizationCatalog(
     private val database: AppDatabase,
@@ -38,16 +44,20 @@ class RoomCategorizationCatalog(
         }
         val featureVectors = linkedMapOf<KeywordFeature, CategoryVector>()
         val keywordIdsByFeature = linkedMapOf<KeywordFeature, Long>()
-        analysis.features.forEach { feature ->
-            val keyword = database.keywordDao().find(feature.kind.name.lowercase(), feature.value) ?: return@forEach
-            keywordIdsByFeature[feature] = keyword.id
-            val counts = database.learningDao().statsForKeyword(keyword.id).toFeatureCounts()
-            val vector = CategoryVector.fromCounts(counts, activeIds, config) ?: return@forEach
-            featureVectors[feature] = vector
+        val resolvedFeatures = linkedSetOf<KeywordFeature>()
+        resolveTokens(analysis, name).forEach { token ->
+            val resolved = resolveKeyword(token, activeIds) ?: return@forEach
+            resolvedFeatures += resolved.feature
+            keywordIdsByFeature[resolved.feature] = resolved.keywordId
+            featureVectors[resolved.feature] = resolved.vector
         }
         val locationVector = locationNormalized?.let { loadLocationVector(it, activeIds) }
         return CategorizationLookup(
-            query = CategorizationQuery(analysis.normalizedName, analysis.features, locationNormalized),
+            query = CategorizationQuery(
+                analysis.normalizedName,
+                resolvedFeatures.toList().ifEmpty { analysis.features },
+                locationNormalized,
+            ),
             snapshot = CategorizationSnapshot(
                 fallbackCategoryId = fallback.id,
                 activeCategoryIds = activeIds,
@@ -60,6 +70,53 @@ class RoomCategorizationCatalog(
             ),
         )
     }
+
+    private fun resolveTokens(analysis: NormalizationResult, rawName: String): List<KeywordFeature> {
+        val tokens = linkedSetOf<KeywordFeature>()
+        analysis.features.forEach { tokens += it }
+        normalizer.plainTokens(rawName).forEach { token ->
+            tokens += KeywordFeature(token, KeywordKind.WORD)
+        }
+        return tokens.toList()
+    }
+
+    private suspend fun resolveKeyword(token: KeywordFeature, activeIds: Set<Long>): ResolvedKeyword? {
+        val kind = token.kind.name.lowercase()
+        val exact = database.keywordDao().find(kind, token.value)
+        if (exact != null) return vectorFor(token, exact, activeIds)
+        val stem = PrefixFeatureResolver.lookupStem(token.value) ?: return null
+        val candidates = database.keywordDao().findByKindAndPrefix(kind, LikeQuery.prefix(stem))
+        val scored = candidates.mapNotNull { keyword ->
+            val counts = database.learningDao().statsForKeyword(keyword.id).toFeatureCounts()
+            val vector = CategoryVector.fromCounts(counts, activeIds, config) ?: return@mapNotNull null
+            val top = vector.argMax() ?: return@mapNotNull null
+            PrefixCandidate(
+                value = keyword.value,
+                topCategoryId = top,
+                support = counts.sumOf { it.count },
+                payload = keyword to vector,
+            )
+        }
+        val chosen = PrefixFeatureResolver.choose(token.value, scored) ?: return null
+        val (keyword, vector) = chosen.payload
+        return ResolvedKeyword(KeywordFeature(keyword.value, token.kind), keyword.id, vector)
+    }
+
+    private suspend fun vectorFor(
+        feature: KeywordFeature,
+        keyword: KeywordEntity,
+        activeIds: Set<Long>,
+    ): ResolvedKeyword? {
+        val counts = database.learningDao().statsForKeyword(keyword.id).toFeatureCounts()
+        val vector = CategoryVector.fromCounts(counts, activeIds, config) ?: return null
+        return ResolvedKeyword(feature, keyword.id, vector)
+    }
+
+    private data class ResolvedKeyword(
+        val feature: KeywordFeature,
+        val keywordId: Long,
+        val vector: CategoryVector,
+    )
 
     private suspend fun loadLocationVector(normalized: String, activeIds: Set<Long>): CategoryVector? {
         val location = database.locationDao().findByNormalizedName(normalized) ?: return null

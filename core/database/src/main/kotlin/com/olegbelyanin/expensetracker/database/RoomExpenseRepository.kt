@@ -1,6 +1,7 @@
 package com.olegbelyanin.expensetracker.database
 
 import androidx.room3.withWriteTransaction
+import com.olegbelyanin.expensetracker.categorization.PrefixFeatureResolver
 import com.olegbelyanin.expensetracker.categorization.TextNormalizer
 import com.olegbelyanin.expensetracker.database.entities.ExpenseEntity
 import com.olegbelyanin.expensetracker.database.entities.ExpenseFtsEntity
@@ -11,10 +12,12 @@ import com.olegbelyanin.expensetracker.database.learning.LearningPlanner
 import com.olegbelyanin.expensetracker.database.learning.LearningWriter
 import com.olegbelyanin.expensetracker.database.search.FtsQuery
 import com.olegbelyanin.expensetracker.database.search.LikeQuery
+import com.olegbelyanin.expensetracker.database.search.NameSuggestionRanker
 import com.olegbelyanin.expensetracker.domain.ExpenseRepository
 import com.olegbelyanin.expensetracker.domain.PersistExpenseRequest
 import com.olegbelyanin.expensetracker.domain.expense.ExpenseSearchQuery
 import com.olegbelyanin.expensetracker.model.Expense
+import com.olegbelyanin.expensetracker.model.ExpenseNameSuggestion
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.Clock
@@ -38,6 +41,35 @@ class RoomExpenseRepository(
         database.expenseDao().observeAll().map { rows -> rows.map { it.toDomain() } }
 
     override fun observeCount(): Flow<Int> = database.expenseDao().observeCount()
+
+    override suspend fun suggestNames(query: String, limit: Int): List<ExpenseNameSuggestion> {
+        val trimmed = query.trim()
+        val fetchLimit = (limit * 4).coerceAtLeast(limit)
+        if (trimmed.isEmpty()) {
+            return NameSuggestionRanker.merge(
+                queryNormalized = "",
+                history = NameSuggestionRanker.fromExpenses(
+                    database.expenseDao().recentForNames(fetchLimit).map { it.toDomain() },
+                ),
+                dictionary = emptyList(),
+                limit = limit,
+            )
+        }
+        val normalized = normalizer.normalizePlain(trimmed)
+        val prefixHits = database.expenseDao()
+            .suggestNamesByPrefix(LikeQuery.prefix(normalized), LikeQuery.prefix(trimmed), fetchLimit)
+            .map { it.toDomain() }
+        val match = FtsQuery.prefixMatch(normalized)
+        val ftsHits = if (match == null) {
+            emptyList()
+        } else {
+            runCatching { database.expenseFtsDao().search(match, fetchLimit) }
+                .getOrDefault(emptyList())
+                .map { it.toDomain() }
+        }
+        val history = NameSuggestionRanker.fromExpenses(prefixHits + ftsHits)
+        return NameSuggestionRanker.merge(normalized, history, dictionaryNames(normalized, limit), limit)
+    }
 
     override fun observeMatching(query: ExpenseSearchQuery): Flow<List<Expense>> {
         val categoryIds = query.categoryIds.toList().ifEmpty { listOf(UNUSED_ID) }
@@ -82,6 +114,29 @@ class RoomExpenseRepository(
             }
         }
         return rows.map { entities -> entities.map { it.toDomain() } }
+    }
+
+    private suspend fun dictionaryNames(normalized: String, limit: Int): List<ExpenseNameSuggestion> {
+        val stem = PrefixFeatureResolver.lookupStem(normalized) ?: return emptyList()
+        val prefix = LikeQuery.prefix(stem)
+        val fromContexts = database.learningDao().findNameContextsByPrefix(prefix, limit)
+            .map { it.normalizedName }
+        val fromRules = database.learningDao().findExactRulesByPrefix(prefix, limit)
+            .map { it.normalizedName }
+        val fromKeywords = database.keywordDao().suggestByPrefix(prefix, limit)
+            .map { it.value }
+        return (fromContexts + fromRules + fromKeywords)
+            .distinct()
+            .filter { PrefixFeatureResolver.matches(normalized, it) }
+            .map { value ->
+                ExpenseNameSuggestion(
+                    name = NameSuggestionRanker.titleCase(value),
+                    normalizedName = value,
+                    usageCount = 0,
+                    lastUsedAt = null,
+                    fromDictionary = true,
+                )
+            }
     }
 
     override suspend fun persist(request: PersistExpenseRequest): Expense = database.withWriteTransaction {

@@ -39,6 +39,7 @@ import com.olegbelyanin.expensetracker.R
 import com.olegbelyanin.expensetracker.data.theme.ThemePreference
 import com.olegbelyanin.expensetracker.ui.components.BackAction
 import com.olegbelyanin.expensetracker.ui.components.BottomSheetSize
+import com.olegbelyanin.expensetracker.ui.components.ButtonTone
 import com.olegbelyanin.expensetracker.ui.components.DestructiveDialog
 import com.olegbelyanin.expensetracker.ui.components.ExpenseBottomSheet
 import com.olegbelyanin.expensetracker.ui.components.ExpenseToast
@@ -71,16 +72,6 @@ fun SettingsScreen(
     val dialog by viewModel.dialog.collectAsStateWithLifecycle()
     val toast by viewModel.toast.collectAsStateWithLifecycle()
     var showThemeSheet by remember { mutableStateOf(false) }
-    val createCsv =
-        rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(SettingsFileNames.CSV_MIME)) { uri ->
-            uri?.let { viewModel.onExportDocument(it.toString()) }
-        }
-    val createBackup =
-        rememberLauncherForActivityResult(
-            ActivityResultContracts.CreateDocument(SettingsFileNames.BACKUP_MIME),
-        ) { uri ->
-            uri?.let { viewModel.onBackupDocument(it.toString()) }
-        }
     val openBackup =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             uri?.let { viewModel.onRestoreDocument(it.toString()) }
@@ -140,13 +131,13 @@ fun SettingsScreen(
                     title = stringResource(R.string.settings_export),
                     subtitle = stringResource(R.string.settings_export_subtitle),
                     value = "›",
-                    onClick = { createCsv.launch(viewModel.csvFileName()) },
+                    onClick = viewModel::onOpenExportConfirm,
                 )
                 SettingsRow(
                     title = stringResource(R.string.settings_backup),
                     subtitle = stringResource(R.string.settings_backup_subtitle),
                     value = "›",
-                    onClick = { createBackup.launch(viewModel.backupFileName()) },
+                    onClick = viewModel::onOpenBackupConfirm,
                 )
                 SettingsRow(
                     title = stringResource(R.string.settings_restore),
@@ -169,6 +160,22 @@ fun SettingsScreen(
                     title = stringResource(R.string.settings_rules_locations),
                     subtitle = stringResource(R.string.settings_rules_locations_subtitle),
                     value = stringResource(R.string.settings_rules_value, rememberedRuleCounts.locationRules),
+                )
+                SectionLabel(stringResource(R.string.settings_section_seed))
+                SettingsRow(
+                    title = stringResource(R.string.settings_rules_seed_exact),
+                    subtitle = stringResource(R.string.settings_rules_seed_exact_subtitle),
+                    value = stringResource(R.string.settings_rules_value, rememberedRuleCounts.seedExactRules),
+                )
+                SettingsRow(
+                    title = stringResource(R.string.settings_rules_seed_keywords),
+                    subtitle = stringResource(R.string.settings_rules_seed_keywords_subtitle),
+                    value = stringResource(R.string.settings_rules_value, rememberedRuleCounts.seedKeywordRules),
+                )
+                SettingsRow(
+                    title = stringResource(R.string.settings_rules_seed_locations),
+                    subtitle = stringResource(R.string.settings_rules_seed_locations_subtitle),
+                    value = stringResource(R.string.settings_rules_value, rememberedRuleCounts.seedLocationRules),
                 )
                 SettingsRow(
                     title = stringResource(R.string.settings_clear),
@@ -216,15 +223,40 @@ fun SettingsScreen(
                 )
         }
     }
-    if (dialog == SettingsDialog.ClearConfirm) {
-        DestructiveDialog(
-            title = stringResource(R.string.settings_clear_title),
-            description = stringResource(R.string.settings_clear_description),
-            confirmLabel = stringResource(R.string.settings_clear_confirm),
-            cancelLabel = stringResource(R.string.cancel),
-            onConfirm = viewModel::onConfirmClearHistory,
-            onDismiss = viewModel::onDismissDialog,
-        )
+    when (dialog) {
+        SettingsDialog.None -> Unit
+
+        SettingsDialog.ExportConfirm ->
+            DestructiveDialog(
+                title = stringResource(R.string.settings_export_confirm_title),
+                description = stringResource(R.string.settings_export_confirm_description),
+                confirmLabel = stringResource(R.string.settings_export_confirm),
+                cancelLabel = stringResource(R.string.cancel),
+                onConfirm = viewModel::onConfirmExport,
+                onDismiss = viewModel::onDismissDialog,
+                confirmTone = ButtonTone.Primary,
+            )
+
+        SettingsDialog.BackupConfirm ->
+            DestructiveDialog(
+                title = stringResource(R.string.settings_backup_confirm_title),
+                description = stringResource(R.string.settings_backup_confirm_description),
+                confirmLabel = stringResource(R.string.settings_backup_confirm),
+                cancelLabel = stringResource(R.string.cancel),
+                onConfirm = viewModel::onConfirmBackup,
+                onDismiss = viewModel::onDismissDialog,
+                confirmTone = ButtonTone.Primary,
+            )
+
+        SettingsDialog.ClearConfirm ->
+            DestructiveDialog(
+                title = stringResource(R.string.settings_clear_title),
+                description = stringResource(R.string.settings_clear_description),
+                confirmLabel = stringResource(R.string.settings_clear_confirm),
+                cancelLabel = stringResource(R.string.cancel),
+                onConfirm = viewModel::onConfirmClearHistory,
+                onDismiss = viewModel::onDismissDialog,
+            )
     }
     if (showThemeSheet) {
         ExpenseBottomSheet(

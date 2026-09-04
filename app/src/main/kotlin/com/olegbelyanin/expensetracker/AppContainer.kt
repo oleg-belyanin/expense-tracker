@@ -40,6 +40,7 @@ import com.olegbelyanin.expensetracker.domain.expense.ObserveExpenseListUseCase
 import com.olegbelyanin.expensetracker.domain.expense.RecalculateCategoriesUseCase
 import com.olegbelyanin.expensetracker.domain.expense.SaveExpenseUseCase
 import com.olegbelyanin.expensetracker.domain.expense.SuggestCategoryUseCase
+import com.olegbelyanin.expensetracker.domain.expense.SuggestExpenseNamesUseCase
 import com.olegbelyanin.expensetracker.domain.expense.SuggestLocationsUseCase
 import com.olegbelyanin.expensetracker.domain.learning.ObserveRememberedRuleCountUseCase
 import com.olegbelyanin.expensetracker.ui.analytics.AnalyticsViewModel
@@ -95,6 +96,7 @@ class AppContainer(context: Context) {
     val deleteExpense: DeleteExpenseUseCase = DeleteExpenseUseCase(expenseRepository)
     val clearExpenseHistory: ClearExpenseHistoryUseCase = ClearExpenseHistoryUseCase(expenseRepository)
     val suggestLocations: SuggestLocationsUseCase = SuggestLocationsUseCase(locationRepository)
+    val suggestNames: SuggestExpenseNamesUseCase = SuggestExpenseNamesUseCase(expenseRepository)
     val suggestCategory: SuggestCategoryUseCase = SuggestCategoryUseCase(
         catalog = RoomCategorizationCatalog(database, textNormalizer, categorizationConfig),
         engine = CategorizationEngine(categorizationConfig),
@@ -137,7 +139,7 @@ class AppContainer(context: Context) {
     val themeRepository: ThemeRepository = ThemeRepository(context)
     val expenseListFilterStore: ExpenseListFilterRepository = ExpenseListFilterRepository(context)
     val settingsDocumentStore: SettingsDocumentStore =
-        AndroidSettingsDocumentStore(context.applicationContext.contentResolver)
+        AndroidSettingsDocumentStore(context.applicationContext)
 
     private val startupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val startupState = MutableStateFlow<AppStartup>(AppStartup.Loading)
@@ -193,6 +195,7 @@ class AppContainer(context: Context) {
         saveExpense = saveExpense,
         deleteExpense = deleteExpense,
         suggestLocations = suggestLocations,
+        suggestNames = suggestNames,
         suggestCategory = suggestCategory,
         createCategory = createCategory,
         clock = clock,

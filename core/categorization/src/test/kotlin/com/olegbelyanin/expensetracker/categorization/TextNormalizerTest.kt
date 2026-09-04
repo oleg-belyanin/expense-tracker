@@ -40,6 +40,13 @@ class TextNormalizerTest {
     }
 
     @Test
+    fun plainTokensSkipStemmingForPrefixSearch() {
+        assertEquals(listOf("кетостерил"), normalizer.plainTokens("Кетостерил"))
+        assertEquals(listOf("кет"), normalizer.plainTokens("Кет"))
+        assertEquals("кетостер", normalizer.analyze("Кетостерил").normalizedName)
+    }
+
+    @Test
     fun stemsOrdinaryCyrillicWords() {
         val result = normalizer.analyze("Стоматология и ортодонтия")
         assertEquals("стоматолог ортодонт", result.normalizedName)

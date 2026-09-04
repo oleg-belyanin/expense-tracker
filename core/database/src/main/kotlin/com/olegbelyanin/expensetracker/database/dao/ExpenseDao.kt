@@ -31,6 +31,20 @@ interface ExpenseDao {
     @Query(
         """
         SELECT * FROM expense
+        WHERE normalized_name LIKE :prefix ESCAPE '\'
+           OR name LIKE :rawPrefix ESCAPE '\'
+        ORDER BY spent_at DESC, created_at DESC
+        LIMIT :limit
+        """,
+    )
+    suspend fun suggestNamesByPrefix(prefix: String, rawPrefix: String, limit: Int): List<ExpenseEntity>
+
+    @Query("SELECT * FROM expense ORDER BY spent_at DESC, created_at DESC LIMIT :limit")
+    suspend fun recentForNames(limit: Int): List<ExpenseEntity>
+
+    @Query(
+        """
+        SELECT * FROM expense
         WHERE (:fromMs IS NULL OR spent_at >= :fromMs)
           AND (:toMsExclusive IS NULL OR spent_at < :toMsExclusive)
           AND (:hasCategories = 0 OR category_id IN (:categoryIds))

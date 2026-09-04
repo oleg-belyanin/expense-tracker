@@ -2,6 +2,7 @@ package com.olegbelyanin.expensetracker.ui.format
 
 import com.olegbelyanin.expensetracker.domain.expense.DayRelative
 import com.olegbelyanin.expensetracker.domain.expense.ExpensePeriodPreset
+import com.olegbelyanin.expensetracker.model.ExpenseNameSuggestion
 import com.olegbelyanin.expensetracker.model.Location
 import com.olegbelyanin.expensetracker.model.Period
 import java.text.DecimalFormat
@@ -153,6 +154,19 @@ object ExpenseFormat {
     fun calendarDay(date: LocalDate): String {
         val month = MONTHS_GENITIVE[date.monthValue - 1]
         return "${date.dayOfMonth} $month"
+    }
+
+    fun nameDetail(suggestion: ExpenseNameSuggestion, today: LocalDate, zoneId: ZoneId): String {
+        val lastUsed = suggestion.lastUsedAt?.atZone(zoneId)?.toLocalDate()
+        return when (lastUsed) {
+            today -> "Последнее использование — сегодня"
+            today.minusDays(1) -> "Последнее использование — вчера"
+            else -> if (suggestion.fromDictionary && suggestion.usageCount == 0) {
+                "По словарю"
+            } else {
+                usages(suggestion.usageCount)
+            }
+        }
     }
 
     fun locationDetail(location: Location, today: LocalDate, zoneId: ZoneId): String {

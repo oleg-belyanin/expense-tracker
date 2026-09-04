@@ -56,4 +56,6 @@ set_ini showDeviceFrame yes
 echo
 echo "AVD $AVD_NAME готов."
 echo "Запуск: emulator -avd $AVD_NAME"
+echo "После загрузки — две раскладки Gboard (EN/RU):"
+echo "  $(dirname "$0")/configure-emulator-keyboards.sh"
 echo "Первый запуск: Settings → System → Gestures → System navigation → Gesture navigation"

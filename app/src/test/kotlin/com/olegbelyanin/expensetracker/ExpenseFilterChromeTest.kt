@@ -37,6 +37,10 @@ class ExpenseFilterChromeTest {
             chips(ExpenseListFilter(preset = ExpensePeriodPreset.CURRENT_MONTH)),
         )
         assertEquals(
+            listOf("2026"),
+            chips(ExpenseListFilter(preset = ExpensePeriodPreset.YEAR)),
+        )
+        assertEquals(
             listOf("Сен", "Кафе"),
             chips(ExpenseListFilter(preset = ExpensePeriodPreset.CURRENT_MONTH, categoryIds = setOf(2))),
         )

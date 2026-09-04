@@ -161,51 +161,15 @@ gh release download debug-apk --repo oleg-belyanin/expense-tracker --pattern '*.
 gh run download --name app-debug --repo oleg-belyanin/expense-tracker
 ```
 
-## Эмулятор (AVD `ExpenseTracker_360`)
+## Эмулятор
 
-Основной AVD для ежедневной разработки и инструментальных тестов.
-Соответствует макету Figma: **360×800 dp**, **420 dpi** (945×2100 px).
-
-| Параметр | Значение |
-|---|---|
-| Имя AVD | `ExpenseTracker_360` |
-| API | 34, Google APIs, x86_64 |
-| Базовый профиль | Pixel 4 (punch-hole в рамке) |
-| RAM | 3 ГБ |
-| Навигация | жестовая (настроить один раз в эмуляторе) |
-
-### Создание AVD
-
-Нужны пакеты `emulator` и `system-images;android-34;google_apis;x86_64`.
-Скрипт ставит их при необходимости и создаёт AVD:
-
-```bash
-export JAVA_HOME=~/.local/jdk-17   # или ваш путь к JDK 17
-export ANDROID_HOME=~/Android/Sdk
-./scripts/create-expense-tracker-avd.sh
-```
-
-Через Device Manager в Android Studio: **Pixel 4**, API 34 Google APIs x86_64,
-имя `ExpenseTracker_360`, затем в `~/.android/avd/ExpenseTracker_360.avd/config.ini`
-задать `hw.lcd.width=945`, `hw.lcd.height=2100`, `hw.lcd.density=420`,
-`hw.ramSize=3072`.
-
-### Запуск и установка
+Полная инструкция: [`docs/emulator.md`](docs/emulator.md) (AVD `ExpenseTracker_360`, 360×800).
 
 ```bash
 export ANDROID_HOME=~/Android/Sdk
 $ANDROID_HOME/emulator/emulator -avd ExpenseTracker_360 &
 ./gradlew :app:installDebug
 ```
-
-Первый запуск на новом AVD:
-
-1. **Settings → System → Gestures → System navigation → Gesture navigation**
-2. При необходимости safe area: **Developer options → Simulate a display with a cutout → Punch hole**
-
-На эмуляторе проверяют режим полёта (F-08), системную светлую/тёмную тему
-и SAF для экспорта/backup. Инструментальные тесты Room/FTS и Compose UI
-гоняют только на этом AVD, не в CI.
 
 ## Категоризация
 
@@ -220,6 +184,10 @@ $ANDROID_HOME/emulator/emulator -avd ExpenseTracker_360 &
 3. seed exact rule;
 4. средний вектор слов названия, затем смесь с вектором места;
 5. fallback «Прочее».
+
+Пока слово набирается, токен ищется по префиксу в том же словаре (как места:
+«Ригл» → «Ригла»). Категория подставляется, если префикс однозначен; иначе
+показываются подсказки названия из истории и словаря.
 
 Cold start: 800 train + 200 validation строк в [`seed-data/raw/`](seed-data/raw/).
 Генерация артефакта:
@@ -297,3 +265,4 @@ learning examples, транзиты, пользовательские агрег
 | [`docs/categorization-architecture.md`](docs/categorization-architecture.md) | Алгоритм категоризации и поиск мест |
 | [`docs/seed-dataset-plan.md`](docs/seed-dataset-plan.md) | Seed-датасет 1 000 строк, генератор, поставка |
 | [`docs/implementation-work-plan.md`](docs/implementation-work-plan.md) | План работ по этапам |
+| [`docs/emulator.md`](docs/emulator.md) | Запуск AVD, установка APK, первичная настройка |

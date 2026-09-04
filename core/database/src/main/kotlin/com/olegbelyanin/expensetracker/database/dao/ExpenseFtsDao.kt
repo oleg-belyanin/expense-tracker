@@ -4,6 +4,7 @@ import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
+import com.olegbelyanin.expensetracker.database.entities.ExpenseEntity
 import com.olegbelyanin.expensetracker.database.entities.ExpenseFtsEntity
 
 @Dao
@@ -16,4 +17,14 @@ interface ExpenseFtsDao {
 
     @Query("DELETE FROM expense_fts")
     suspend fun deleteAll()
+
+    @Query(
+        """
+        SELECT expense.* FROM expense
+        INNER JOIN expense_fts ON expense.rowid = expense_fts.rowid
+        WHERE expense_fts MATCH :match
+        LIMIT :limit
+        """,
+    )
+    suspend fun search(match: String, limit: Int): List<ExpenseEntity>
 }

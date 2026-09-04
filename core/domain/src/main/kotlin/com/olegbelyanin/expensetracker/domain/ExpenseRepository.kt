@@ -3,6 +3,7 @@ package com.olegbelyanin.expensetracker.domain
 import com.olegbelyanin.expensetracker.domain.expense.ExpenseSearchQuery
 import com.olegbelyanin.expensetracker.model.CategoryAssignmentSource
 import com.olegbelyanin.expensetracker.model.Expense
+import com.olegbelyanin.expensetracker.model.ExpenseNameSuggestion
 import com.olegbelyanin.expensetracker.model.Money
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -34,6 +35,8 @@ interface ExpenseRepository {
     fun observeCount(): Flow<Int> = observeAll().map { it.size }
 
     fun observeMatching(query: ExpenseSearchQuery): Flow<List<Expense>> = observeAll()
+
+    suspend fun suggestNames(query: String, limit: Int): List<ExpenseNameSuggestion> = emptyList()
 
     suspend fun persist(request: PersistExpenseRequest): Expense
 
