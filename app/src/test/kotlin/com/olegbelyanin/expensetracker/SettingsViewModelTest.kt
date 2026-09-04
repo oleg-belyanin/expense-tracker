@@ -7,6 +7,7 @@ import com.olegbelyanin.expensetracker.ui.settings.SettingsBusyKind
 import com.olegbelyanin.expensetracker.ui.settings.SettingsDialog
 import com.olegbelyanin.expensetracker.ui.settings.SettingsOverlay
 import com.olegbelyanin.expensetracker.ui.settings.SettingsToast
+import com.olegbelyanin.expensetracker.domain.learning.RememberedRuleCounts
 import com.olegbelyanin.expensetracker.ui.settings.SettingsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -154,7 +155,7 @@ class SettingsViewModelTest {
         createBackup = createBackup,
         restoreBackup = restoreBackup,
         clearHistory = clearHistory,
-        rememberedRuleCount = MutableStateFlow(12),
+        rememberedRuleCounts = MutableStateFlow(RememberedRuleCounts(12, 8, 3)),
         documents = documents,
         clock = clock,
         zoneId = ZoneOffset.UTC,

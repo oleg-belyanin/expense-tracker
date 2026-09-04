@@ -73,4 +73,20 @@ class ExpenseFormatTest {
         assertEquals("9%", ExpenseFormat.scorePercent(0.09))
         assertEquals("2%", ExpenseFormat.scorePercent(0.02))
     }
+
+    @Test
+    fun periodChipUsesThreeLetterMonth() {
+        assertEquals("Все", ExpenseFormat.periodChip(ExpensePeriodPreset.ALL, today))
+        assertEquals("Сен", ExpenseFormat.periodChip(ExpensePeriodPreset.CURRENT_MONTH, today))
+        assertEquals("Авг", ExpenseFormat.periodChip(ExpensePeriodPreset.PREVIOUS_MONTH, today))
+        assertEquals("2026", ExpenseFormat.periodChip(ExpensePeriodPreset.YEAR, today))
+        assertEquals(
+            "Сен",
+            ExpenseFormat.periodChip(
+                ExpensePeriodPreset.CUSTOM,
+                today,
+                Period.of(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 4)),
+            ),
+        )
+    }
 }

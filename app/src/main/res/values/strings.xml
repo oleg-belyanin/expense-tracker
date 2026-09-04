@@ -71,8 +71,12 @@
     <string name="settings_backup_subtitle">Все расходы, категории и правила</string>
     <string name="settings_restore">Восстановить</string>
     <string name="settings_restore_subtitle">Из файла резервной копии</string>
-    <string name="settings_rules">Запомненные правила</string>
-    <string name="settings_rules_subtitle">Для автоподстановки</string>
+    <string name="settings_rules_exact">Обучение на исправлениях</string>
+    <string name="settings_rules_exact_subtitle">Точные правила для полного названия</string>
+    <string name="settings_rules_keywords">Ключевые слова</string>
+    <string name="settings_rules_keywords_subtitle">Статистика по словам в названии</string>
+    <string name="settings_rules_locations">Места траты</string>
+    <string name="settings_rules_locations_subtitle">Статистика по местам</string>
     <string name="settings_rules_value">%1$d ›</string>
     <string name="settings_clear">Очистить историю</string>
     <string name="settings_clear_subtitle">Категории и правила сохранятся</string>

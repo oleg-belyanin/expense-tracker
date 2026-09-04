@@ -51,6 +51,8 @@ internal class FakeLearningDao : LearningDao {
     private val transitionKeywords = mutableMapOf<Pair<String, Long>, CategoryTransitionKeywordEntity>()
     val transitions = mutableListOf<CategoryTransitionEntity>()
     private val userExactRuleCount = MutableStateFlow(0L)
+    private val userKeywordRuleCount = MutableStateFlow(0L)
+    private val userLocationRuleCount = MutableStateFlow(0L)
 
     override suspend fun findExampleByExpenseId(expenseId: String): LearningExampleEntity? =
         examples.values.find { it.expenseId == expenseId }
@@ -84,10 +86,12 @@ internal class FakeLearningDao : LearningDao {
 
     override suspend fun upsertKeywordStat(entity: KeywordCategoryStatEntity) {
         keywordStats[Triple(entity.keywordId, entity.categoryId, entity.source)] = entity
+        refreshKeywordCount()
     }
 
     override suspend fun deleteKeywordStat(keywordId: Long, categoryId: Long, source: String) {
         keywordStats.remove(Triple(keywordId, categoryId, source))
+        refreshKeywordCount()
     }
 
     override suspend fun countKeywordStats(categoryId: Long, source: String): Long =
@@ -95,6 +99,7 @@ internal class FakeLearningDao : LearningDao {
 
     override suspend fun deleteKeywordStats(categoryId: Long, source: String) {
         keywordStats.entries.removeIf { it.value.categoryId == categoryId && it.value.source == source }
+        refreshKeywordCount()
     }
 
     override suspend fun findLocationStat(
@@ -105,10 +110,12 @@ internal class FakeLearningDao : LearningDao {
 
     override suspend fun upsertLocationStat(entity: LocationCategoryStatEntity) {
         locationStats[Triple(entity.locationId, entity.categoryId, entity.source)] = entity
+        refreshLocationCount()
     }
 
     override suspend fun deleteLocationStat(locationId: Long, categoryId: Long, source: String) {
         locationStats.remove(Triple(locationId, categoryId, source))
+        refreshLocationCount()
     }
 
     override suspend fun findNameContext(normalizedName: String): NameCategoryContextEntity? =
@@ -139,6 +146,10 @@ internal class FakeLearningDao : LearningDao {
 
     override fun observeUserExactRuleCount(): Flow<Long> = userExactRuleCount
 
+    override fun observeUserKeywordRuleCount(): Flow<Long> = userKeywordRuleCount
+
+    override fun observeUserLocationRuleCount(): Flow<Long> = userLocationRuleCount
+
     override suspend fun upsertExactRule(entity: ExactCategoryRuleEntity) {
         exactRules[entity.normalizedName] = entity
         refreshRememberedCount()
@@ -146,10 +157,12 @@ internal class FakeLearningDao : LearningDao {
 
     override suspend fun deleteKeywordStatsBySource(source: String) {
         keywordStats.entries.removeIf { it.value.source == source }
+        refreshKeywordCount()
     }
 
     override suspend fun deleteLocationStatsBySource(source: String) {
         locationStats.entries.removeIf { it.value.source == source }
+        refreshLocationCount()
     }
 
     override suspend fun nameContextNamesBySource(source: String): List<String> =
@@ -176,7 +189,25 @@ internal class FakeLearningDao : LearningDao {
         transitionKeywords.values.filter { it.active }.map { it.keywordId }
 
     private fun refreshRememberedCount() {
-        userExactRuleCount.value = exactRules.values.count { RememberedRules.counts(it.source) }.toLong()
+        userExactRuleCount.value = exactRules.values.count { RememberedRules.countsExact(it.source) }.toLong()
+    }
+
+    private fun refreshKeywordCount() {
+        userKeywordRuleCount.value = keywordStats.values
+            .filter { RememberedRules.countsUserStat(it.source) }
+            .map { it.keywordId }
+            .toSet()
+            .size
+            .toLong()
+    }
+
+    private fun refreshLocationCount() {
+        userLocationRuleCount.value = locationStats.values
+            .filter { RememberedRules.countsUserStat(it.source) }
+            .map { it.locationId }
+            .toSet()
+            .size
+            .toLong()
     }
 
     override suspend fun insertTransition(entity: CategoryTransitionEntity) {

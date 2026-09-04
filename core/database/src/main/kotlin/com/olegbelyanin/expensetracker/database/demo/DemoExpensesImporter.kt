@@ -11,7 +11,9 @@ import java.io.IOException
 
 /**
  * Debug-only CSV из `assets/demo/`. Release-сборка файла не содержит.
- * Повторно не импортирует после очистки истории.
+ * Ставит флаг после первой попытки: очистка истории демо не возвращает.
+ * Уже сохранённые пользователем расходы не мешают импорту — дубли отсекает
+ * `ImportExpensesUseCase` по id и `dedup_key`.
  */
 class DemoExpensesImporter(
     private val database: AppDatabase,
@@ -22,9 +24,7 @@ class DemoExpensesImporter(
     suspend fun importIfNeeded() {
         if (database.metaDao().get(META_KEY) == IMPORTED) return
         val csv = readAssetOrNull(ASSET) ?: return
-        if (expenses.getAll().isEmpty()) {
-            importExpenses(DemoExpenseCsv.toDrafts(ExpenseCsv.parse(csv)))
-        }
+        importExpenses(DemoExpenseCsv.toDrafts(ExpenseCsv.parse(csv)))
         database.metaDao().put(AppMetaEntity(META_KEY, IMPORTED))
     }
 

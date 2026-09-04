@@ -1,9 +1,10 @@
 package com.olegbelyanin.expensetracker.ui.expenses
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -73,7 +74,7 @@ fun ExpenseFiltersSheet(
             )
             FilterSection(title = stringResource(R.string.filter_period)) {
                 FilterChip(
-                    label = stringResource(R.string.filter_month),
+                    label = ExpenseFormat.periodChip(ExpensePeriodPreset.CURRENT_MONTH, today),
                     selected = draftPreset == ExpensePeriodPreset.CURRENT_MONTH,
                     onClick = { onPeriod(ExpensePeriodPreset.CURRENT_MONTH) },
                 )
@@ -142,8 +143,9 @@ fun ExpenseFiltersSheet(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FilterSection(title: String, content: @Composable () -> Unit) {
+private fun FilterSection(title: String, content: @Composable FlowRowScope.() -> Unit) {
     val spacing = ExpenseTheme.spacing
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -154,11 +156,11 @@ private fun FilterSection(title: String, content: @Composable () -> Unit) {
             style = ExpenseTheme.typography.labelControl,
             color = ExpenseTheme.colors.textPrimary,
         )
-        Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-        ) {
-            content()
-        }
+            verticalArrangement = Arrangement.spacedBy(spacing.sm),
+            content = content,
+        )
     }
 }

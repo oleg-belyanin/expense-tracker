@@ -117,6 +117,12 @@ interface LearningDao {
     )
     fun observeUserExactRuleCount(): Flow<Long>
 
+    @Query("SELECT COUNT(DISTINCT keyword_id) FROM keyword_category_stat WHERE source = 'user'")
+    fun observeUserKeywordRuleCount(): Flow<Long>
+
+    @Query("SELECT COUNT(DISTINCT location_id) FROM location_category_stat WHERE source = 'user'")
+    fun observeUserLocationRuleCount(): Flow<Long>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertExactRule(entity: ExactCategoryRuleEntity)
 

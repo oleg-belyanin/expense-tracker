@@ -8,6 +8,7 @@ import com.olegbelyanin.expensetracker.database.entities.CategoryTransitionEntit
 import com.olegbelyanin.expensetracker.database.entities.CategoryTransitionKeywordEntity
 import com.olegbelyanin.expensetracker.database.entities.ExactCategoryRuleEntity
 import com.olegbelyanin.expensetracker.database.entities.KeywordCategoryStatEntity
+import com.olegbelyanin.expensetracker.database.entities.LocationCategoryStatEntity
 import com.olegbelyanin.expensetracker.database.entities.NameCategoryContextEntity
 import com.olegbelyanin.expensetracker.database.entities.NameCategoryContextKeywordEntity
 import com.olegbelyanin.expensetracker.model.CategoryAssignmentSource
@@ -50,6 +51,9 @@ class LearningWriterTest {
         assertEquals(1, keywordStat?.observationCount)
         assertEquals(1, learning.findLocationStat(10, 2, LearningPlanner.SOURCE_USER)?.observationCount)
         assertNull(learning.findExactRule("латт"))
+        assertEquals(0L, learning.observeUserExactRuleCount().first())
+        assertEquals(1L, learning.observeUserKeywordRuleCount().first())
+        assertEquals(1L, learning.observeUserLocationRuleCount().first())
         assertTrue(learning.transitions.isEmpty())
     }
 
@@ -185,6 +189,14 @@ class LearningWriterTest {
             ExactCategoryRuleEntity("латт", 2, LearningPlanner.SOURCE_SEED, createdAt = 1, updatedAt = 1),
         )
         assertEquals(0L, learning.observeUserExactRuleCount().first())
+        learning.upsertKeywordStat(
+            KeywordCategoryStatEntity(99, 2, LearningPlanner.SOURCE_SEED, observationCount = 40),
+        )
+        learning.upsertLocationStat(
+            LocationCategoryStatEntity(77, 2, LearningPlanner.SOURCE_SEED, observationCount = 12),
+        )
+        assertEquals(1L, learning.observeUserKeywordRuleCount().first())
+        assertEquals(1L, learning.observeUserLocationRuleCount().first())
     }
 
     @Test
@@ -208,6 +220,35 @@ class LearningWriterTest {
             now = 1_000L,
         )
         assertEquals(1L, learning.observeUserExactRuleCount().first())
+        assertEquals(1L, learning.observeUserKeywordRuleCount().first())
+        assertEquals(1L, learning.observeUserLocationRuleCount().first())
+    }
+
+    @Test
+    fun distinctPurchasesCountSeparateKeywordRulesAndSharedLocationOnce() = runTest {
+        val learning = FakeLearningDao()
+        val keywords = FakeKeywordDao()
+        applyAccepted(learning, keywords, CategoryAssignmentSource.PROBABILISTIC)
+        writer(learning, keywords).apply(
+            expenseId = "e2",
+            normalizedName = "молок",
+            rawName = "Молоко",
+            categoryId = 3,
+            locationId = 10,
+            proposedCategoryId = 3,
+            plan = LearningPlanner.plan(
+                hadExpense = false,
+                previous = null,
+                next = LearningFingerprint("молок", 3, 10),
+                source = CategoryAssignmentSource.PROBABILISTIC,
+                interactive = true,
+                proposedCategoryId = 3,
+            ),
+            now = 2_000L,
+        )
+        assertEquals(0L, learning.observeUserExactRuleCount().first())
+        assertEquals(2L, learning.observeUserKeywordRuleCount().first())
+        assertEquals(1L, learning.observeUserLocationRuleCount().first())
     }
 
     @Test

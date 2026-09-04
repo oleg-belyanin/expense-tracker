@@ -38,6 +38,10 @@ android {
         abortOnError = true
         checkReleaseBuilds = true
     }
+
+    sourceSets {
+        getByName("debug").assets.srcDir("src/debug/assets")
+    }
 }
 
 kotlin {

@@ -8,6 +8,7 @@ import com.olegbelyanin.expensetracker.categorization.CategoryIconSuggester
 import com.olegbelyanin.expensetracker.categorization.TextNormalizer
 import com.olegbelyanin.expensetracker.data.files.AndroidSettingsDocumentStore
 import com.olegbelyanin.expensetracker.data.files.SettingsDocumentStore
+import com.olegbelyanin.expensetracker.data.filters.ExpenseListFilterRepository
 import com.olegbelyanin.expensetracker.data.theme.ThemeRepository
 import com.olegbelyanin.expensetracker.database.AppDatabase
 import com.olegbelyanin.expensetracker.database.RoomBackupRepository
@@ -134,6 +135,7 @@ class AppContainer(context: Context) {
         zoneId = zoneId,
     )
     val themeRepository: ThemeRepository = ThemeRepository(context)
+    val expenseListFilterStore: ExpenseListFilterRepository = ExpenseListFilterRepository(context)
     val settingsDocumentStore: SettingsDocumentStore =
         AndroidSettingsDocumentStore(context.applicationContext.contentResolver)
 
@@ -147,6 +149,7 @@ class AppContainer(context: Context) {
         suggestLocations,
         categoryRepository,
         locationRepository,
+        expenseListFilterStore,
         clock,
         zoneId,
     )

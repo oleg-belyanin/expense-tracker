@@ -25,7 +25,6 @@ import com.olegbelyanin.expensetracker.domain.expense.ExpenseListItem
 import com.olegbelyanin.expensetracker.domain.expense.ExpensePeriodPreset
 import com.olegbelyanin.expensetracker.model.Category
 import com.olegbelyanin.expensetracker.model.Location
-import com.olegbelyanin.expensetracker.model.Period
 import com.olegbelyanin.expensetracker.ui.components.CategoryGlyphKey
 import com.olegbelyanin.expensetracker.ui.components.DateHeader
 import com.olegbelyanin.expensetracker.ui.components.ExpenseDatePicker
@@ -143,9 +142,7 @@ fun ExpensesScreen(
                     locations = usedLocations,
                     today = today,
                     onQueryChange = viewModel::onQueryChange,
-                    onPreset = viewModel::onPeriodPreset,
                     onOpenFilters = viewModel::onOpenFilters,
-                    onOpenPeriodFilters = viewModel::onOpenPeriodFilters,
                     onResetFilters = viewModel::onResetFilters,
                 )
                 StatePanel(
@@ -173,9 +170,7 @@ fun ExpensesScreen(
                     locations = usedLocations,
                     today = today,
                     onQueryChange = viewModel::onQueryChange,
-                    onPreset = viewModel::onPeriodPreset,
                     onOpenFilters = viewModel::onOpenFilters,
-                    onOpenPeriodFilters = viewModel::onOpenPeriodFilters,
                     onResetFilters = viewModel::onResetFilters,
                 )
                 if (current.isFilterEmpty) {
@@ -290,13 +285,18 @@ private fun SearchAndChips(
     locations: List<Location>,
     today: LocalDate,
     onQueryChange: (String) -> Unit,
-    onPreset: (ExpensePeriodPreset) -> Unit,
     onOpenFilters: () -> Unit,
-    onOpenPeriodFilters: () -> Unit,
     onResetFilters: () -> Unit,
 ) {
     val spacing = ExpenseTheme.spacing
-    val compact = ExpenseFilterChrome.isCompact(filter)
+    val chips = ExpenseFilterChrome.statusChipLabels(
+        filter = filter,
+        categories = categories,
+        locations = locations,
+        today = today,
+        categoryFallback = stringResource(R.string.filter_category),
+        placeFallback = stringResource(R.string.filter_place),
+    )
     Column(
         modifier = Modifier.fillMaxWidth().padding(top = spacing.xs),
         verticalArrangement = Arrangement.spacedBy(spacing.xs),
@@ -306,21 +306,8 @@ private fun SearchAndChips(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(spacing.xs),
         ) {
-            if (compact) {
-                CompactFilterChips(
-                    filter = filter,
-                    categories = categories,
-                    locations = locations,
-                    today = today,
-                    onOpenFilters = onOpenFilters,
-                )
-            } else {
-                IdleFilterChips(
-                    preset = filter.preset,
-                    onPreset = onPreset,
-                    onOpenFilters = onOpenFilters,
-                    onOpenPeriodFilters = onOpenPeriodFilters,
-                )
+            chips.forEach { label ->
+                FilterChip(label = label, selected = true, onClick = onOpenFilters)
             }
         }
         if (filter.hasActiveConstraints) {
@@ -330,63 +317,5 @@ private fun SearchAndChips(
                 modifier = Modifier.align(Alignment.End),
             )
         }
-    }
-}
-
-@Composable
-private fun IdleFilterChips(
-    preset: ExpensePeriodPreset,
-    onPreset: (ExpensePeriodPreset) -> Unit,
-    onOpenFilters: () -> Unit,
-    onOpenPeriodFilters: () -> Unit,
-) {
-    FilterChip(
-        label = stringResource(R.string.filter_all),
-        selected = preset == ExpensePeriodPreset.ALL,
-        onClick = { onPreset(ExpensePeriodPreset.ALL) },
-    )
-    FilterChip(
-        label = stringResource(R.string.filter_month),
-        selected = preset == ExpensePeriodPreset.CURRENT_MONTH,
-        onClick = onOpenPeriodFilters,
-    )
-    FilterChip(
-        label = stringResource(R.string.filter_category),
-        selected = false,
-        onClick = onOpenFilters,
-    )
-}
-
-@Composable
-private fun CompactFilterChips(
-    filter: ExpenseListFilter,
-    categories: List<Category>,
-    locations: List<Location>,
-    today: LocalDate,
-    onOpenFilters: () -> Unit,
-) {
-    if (filter.preset != ExpensePeriodPreset.ALL) {
-        FilterChip(
-            label = ExpenseFormat.periodChip(filter.preset, today, filter.customPeriod),
-            selected = true,
-            onClick = onOpenFilters,
-        )
-    }
-    if (filter.categoryIds.isNotEmpty()) {
-        val label =
-            if (filter.categoryIds.size == 1) {
-                categories.firstOrNull { it.id == filter.categoryIds.first() }?.name
-                    ?: stringResource(R.string.filter_category)
-            } else {
-                ExpenseFormat.categoryCount(filter.categoryIds.size)
-            }
-        FilterChip(label = label, selected = true, onClick = onOpenFilters)
-    }
-    filter.locationId?.let { id ->
-        FilterChip(
-            label = locations.firstOrNull { it.id == id }?.name ?: stringResource(R.string.filter_place),
-            selected = true,
-            onClick = onOpenFilters,
-        )
     }
 }

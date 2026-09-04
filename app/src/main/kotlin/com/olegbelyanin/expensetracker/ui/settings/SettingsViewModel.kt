@@ -11,6 +11,7 @@ import com.olegbelyanin.expensetracker.domain.backup.ExportExpensesCsvUseCase
 import com.olegbelyanin.expensetracker.domain.backup.RestoreBackupUseCase
 import com.olegbelyanin.expensetracker.domain.expense.ClearExpenseHistoryUseCase
 import com.olegbelyanin.expensetracker.domain.learning.ObserveRememberedRuleCountUseCase
+import com.olegbelyanin.expensetracker.domain.learning.RememberedRuleCounts
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -64,7 +65,7 @@ class SettingsViewModel(
     private val createBackup: suspend () -> String,
     private val restoreBackup: suspend (String) -> BackupRestoreResult,
     private val clearHistory: suspend () -> Int,
-    rememberedRuleCount: Flow<Int>,
+    rememberedRuleCounts: Flow<RememberedRuleCounts>,
     private val documents: SettingsDocumentStore,
     private val clock: Clock,
     private val zoneId: ZoneId,
@@ -74,8 +75,12 @@ class SettingsViewModel(
     private val toastState = MutableStateFlow<SettingsToast?>(null)
     private var toastJob: Job? = null
 
-    val rememberedRuleCount: StateFlow<Int> =
-        rememberedRuleCount.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+    val rememberedRuleCounts: StateFlow<RememberedRuleCounts> =
+        rememberedRuleCounts.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            RememberedRuleCounts(),
+        )
     val overlay: StateFlow<SettingsOverlay> = overlayState.asStateFlow()
     val dialog: StateFlow<SettingsDialog> = dialogState.asStateFlow()
     val toast: StateFlow<SettingsToast?> = toastState.asStateFlow()
@@ -194,7 +199,7 @@ class SettingsViewModel(
                     createBackup = createBackup::invoke,
                     restoreBackup = restoreBackup::invoke,
                     clearHistory = clearHistory::invoke,
-                    rememberedRuleCount = observeRememberedRuleCount(),
+                    rememberedRuleCounts = observeRememberedRuleCount(),
                     documents = documents,
                     clock = clock,
                     zoneId = zoneId,

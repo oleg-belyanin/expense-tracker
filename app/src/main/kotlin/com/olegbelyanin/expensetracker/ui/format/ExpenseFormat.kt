@@ -111,7 +111,7 @@ object ExpenseFormat {
     fun periodChip(preset: ExpensePeriodPreset, today: LocalDate, custom: Period? = null): String = when (preset) {
         ExpensePeriodPreset.ALL -> "Все"
 
-        ExpensePeriodPreset.CURRENT_MONTH -> "Месяц"
+        ExpensePeriodPreset.CURRENT_MONTH -> MONTHS_SHORT[today.monthValue - 1]
 
         ExpensePeriodPreset.PREVIOUS_MONTH ->
             MONTHS_SHORT[today.minusMonths(1).monthValue - 1]

@@ -4,15 +4,40 @@ import com.olegbelyanin.expensetracker.domain.expense.ExpenseListFilter
 import com.olegbelyanin.expensetracker.domain.expense.ExpensePeriodPreset
 import com.olegbelyanin.expensetracker.model.Category
 import com.olegbelyanin.expensetracker.model.Location
+import com.olegbelyanin.expensetracker.ui.format.ExpenseFormat
+import java.time.LocalDate
 
 object ExpenseFilterChrome {
     const val COLLAPSED_CATEGORY_LIMIT = 2
 
-    fun isCompact(filter: ExpenseListFilter): Boolean = filter.categoryIds.isNotEmpty() ||
-        filter.locationId != null ||
-        filter.preset == ExpensePeriodPreset.YEAR ||
-        filter.preset == ExpensePeriodPreset.CUSTOM ||
-        filter.preset == ExpensePeriodPreset.PREVIOUS_MONTH
+    fun statusChipLabels(
+        filter: ExpenseListFilter,
+        categories: List<Category>,
+        locations: List<Location>,
+        today: LocalDate,
+        categoryFallback: String,
+        placeFallback: String,
+    ): List<String> {
+        if (!hasVisualConstraints(filter)) {
+            return listOf(ExpenseFormat.periodChip(ExpensePeriodPreset.ALL, today))
+        }
+        val chips = mutableListOf<String>()
+        if (filter.preset != ExpensePeriodPreset.ALL) {
+            chips += ExpenseFormat.periodChip(filter.preset, today, filter.customPeriod)
+        }
+        if (filter.categoryIds.isNotEmpty()) {
+            chips +=
+                if (filter.categoryIds.size == 1) {
+                    categories.firstOrNull { it.id == filter.categoryIds.first() }?.name ?: categoryFallback
+                } else {
+                    ExpenseFormat.categoryCount(filter.categoryIds.size)
+                }
+        }
+        filter.locationId?.let { id ->
+            chips += locations.firstOrNull { it.id == id }?.name ?: placeFallback
+        }
+        return chips
+    }
 
     fun visibleCategories(categories: List<Category>, selectedIds: Set<Long>, expanded: Boolean): List<Category> {
         if (expanded || !showsMoreCategories(categories, expanded = false)) {
@@ -36,4 +61,8 @@ object ExpenseFilterChrome {
         }
         return locations.firstOrNull { it.name.equals(trimmed, ignoreCase = true) }?.id
     }
+
+    private fun hasVisualConstraints(filter: ExpenseListFilter): Boolean = filter.preset != ExpensePeriodPreset.ALL ||
+        filter.categoryIds.isNotEmpty() ||
+        filter.locationId != null
 }

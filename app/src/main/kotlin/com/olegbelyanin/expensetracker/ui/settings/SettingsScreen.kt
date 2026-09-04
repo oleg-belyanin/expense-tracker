@@ -66,7 +66,7 @@ fun SettingsScreen(
     val container = LocalAppContainer.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val rememberedRuleCount by viewModel.rememberedRuleCount.collectAsStateWithLifecycle()
+    val rememberedRuleCounts by viewModel.rememberedRuleCounts.collectAsStateWithLifecycle()
     val overlay by viewModel.overlay.collectAsStateWithLifecycle()
     val dialog by viewModel.dialog.collectAsStateWithLifecycle()
     val toast by viewModel.toast.collectAsStateWithLifecycle()
@@ -156,9 +156,19 @@ fun SettingsScreen(
                 )
                 SectionLabel(stringResource(R.string.settings_section_privacy))
                 SettingsRow(
-                    title = stringResource(R.string.settings_rules),
-                    subtitle = stringResource(R.string.settings_rules_subtitle),
-                    value = stringResource(R.string.settings_rules_value, rememberedRuleCount),
+                    title = stringResource(R.string.settings_rules_exact),
+                    subtitle = stringResource(R.string.settings_rules_exact_subtitle),
+                    value = stringResource(R.string.settings_rules_value, rememberedRuleCounts.exactRules),
+                )
+                SettingsRow(
+                    title = stringResource(R.string.settings_rules_keywords),
+                    subtitle = stringResource(R.string.settings_rules_keywords_subtitle),
+                    value = stringResource(R.string.settings_rules_value, rememberedRuleCounts.keywordRules),
+                )
+                SettingsRow(
+                    title = stringResource(R.string.settings_rules_locations),
+                    subtitle = stringResource(R.string.settings_rules_locations_subtitle),
+                    value = stringResource(R.string.settings_rules_value, rememberedRuleCounts.locationRules),
                 )
                 SettingsRow(
                     title = stringResource(R.string.settings_clear),

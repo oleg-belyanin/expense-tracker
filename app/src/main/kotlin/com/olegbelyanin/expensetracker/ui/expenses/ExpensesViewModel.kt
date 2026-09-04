@@ -3,6 +3,7 @@ package com.olegbelyanin.expensetracker.ui.expenses
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.olegbelyanin.expensetracker.data.filters.ExpenseListFilterStore
 import com.olegbelyanin.expensetracker.domain.CategoryRepository
 import com.olegbelyanin.expensetracker.domain.LocationRepository
 import com.olegbelyanin.expensetracker.domain.expense.DeleteExpenseUseCase
@@ -51,6 +52,7 @@ class ExpensesViewModel(
     private val suggestLocations: SuggestLocationsUseCase,
     categories: CategoryRepository,
     locations: LocationRepository,
+    private val filterStore: ExpenseListFilterStore,
     clock: Clock,
     val zoneId: ZoneId,
 ) : ViewModel() {
@@ -72,6 +74,7 @@ class ExpensesViewModel(
     private val locationFocused = MutableStateFlow(false)
     private var toastJob: Job? = null
     private var locationJob: Job? = null
+    private var constraintsTouched = false
 
     val queryText: StateFlow<String> = query.asStateFlow()
     val periodPreset: StateFlow<ExpensePeriodPreset> = preset.asStateFlow()
@@ -142,35 +145,26 @@ class ExpensesViewModel(
             if (filter == null) flowOf(null) else observeList.observe(filter)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    init {
+        viewModelScope.launch {
+            val saved = filterStore.load()
+            if (!constraintsTouched) {
+                applyConstraints(saved, persist = false)
+            }
+        }
+    }
+
     fun onQueryChange(value: String) {
         query.value = value
     }
 
-    fun onPeriodPreset(value: ExpensePeriodPreset) {
-        preset.value = value
-        if (value != ExpensePeriodPreset.CUSTOM) {
-            customPeriod.value = null
-        }
-    }
-
     fun applyFromAnalytics(filter: ExpenseListFilter) {
         query.value = ""
-        preset.value = filter.preset
-        customPeriod.value = filter.customPeriod
-        categoryIds.value = filter.categoryIds
-        locationId.value = filter.locationId
+        applyConstraints(filter, persist = true)
     }
 
     fun onOpenFilters() {
         copyAppliedToDraft()
-        dialog.value = ExpensesDialog.Filters
-    }
-
-    fun onOpenPeriodFilters() {
-        copyAppliedToDraft()
-        if (draftPreset.value == ExpensePeriodPreset.ALL) {
-            draftPreset.value = ExpensePeriodPreset.CURRENT_MONTH
-        }
         dialog.value = ExpensesDialog.Filters
     }
 
@@ -257,19 +251,21 @@ class ExpensesViewModel(
             selectedId = draftLocationId.value,
             locations = usedLocations.value,
         )
-        preset.value = draftPreset.value
-        customPeriod.value = if (draftPreset.value == ExpensePeriodPreset.CUSTOM) draftCustom.value else null
-        categoryIds.value = draftCategoryIds.value
-        locationId.value = resolved
+        applyConstraints(
+            ExpenseListFilter(
+                preset = draftPreset.value,
+                customPeriod = if (draftPreset.value == ExpensePeriodPreset.CUSTOM) draftCustom.value else null,
+                categoryIds = draftCategoryIds.value,
+                locationId = resolved,
+            ),
+            persist = true,
+        )
         onDismissDialog()
     }
 
     fun onResetFilters() {
         query.value = ""
-        preset.value = ExpensePeriodPreset.ALL
-        customPeriod.value = null
-        categoryIds.value = emptySet()
-        locationId.value = null
+        applyConstraints(ExpenseListFilter(), persist = true)
         onResetDraftFilters()
     }
 
@@ -304,6 +300,28 @@ class ExpensesViewModel(
             }
     }
 
+    private fun applyConstraints(filter: ExpenseListFilter, persist: Boolean) {
+        if (persist) {
+            constraintsTouched = true
+        }
+        preset.value = filter.preset
+        customPeriod.value = filter.customPeriod
+        categoryIds.value = filter.categoryIds
+        locationId.value = filter.locationId
+        if (persist) {
+            viewModelScope.launch {
+                filterStore.save(
+                    ExpenseListFilter(
+                        preset = filter.preset,
+                        customPeriod = filter.customPeriod,
+                        categoryIds = filter.categoryIds,
+                        locationId = filter.locationId,
+                    ),
+                )
+            }
+        }
+    }
+
     private fun copyAppliedToDraft() {
         draftPreset.value = preset.value
         draftCustom.value = when (preset.value) {
@@ -335,6 +353,7 @@ class ExpensesViewModel(
             suggestLocations: SuggestLocationsUseCase,
             categories: CategoryRepository,
             locations: LocationRepository,
+            filterStore: ExpenseListFilterStore,
             clock: Clock,
             zoneId: ZoneId,
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
@@ -346,6 +365,7 @@ class ExpensesViewModel(
                     suggestLocations,
                     categories,
                     locations,
+                    filterStore,
                     clock,
                     zoneId,
                 ) as T

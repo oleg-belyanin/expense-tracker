@@ -12,23 +12,32 @@ import org.junit.Test
 
 class RememberedRulesTest {
     @Test
-    fun countsOnlyUserExactSources() {
-        assertTrue(RememberedRules.counts(RememberedRules.EXPLICIT))
-        assertTrue(RememberedRules.counts(RememberedRules.CORRECTION))
-        assertFalse(RememberedRules.counts("seed"))
-        assertFalse(RememberedRules.counts("auto_accepted"))
+    fun exactCountUsesOnlyUserExactSources() {
+        assertTrue(RememberedRules.countsExact(RememberedRules.EXPLICIT))
+        assertTrue(RememberedRules.countsExact(RememberedRules.CORRECTION))
+        assertFalse(RememberedRules.countsExact("seed"))
+        assertFalse(RememberedRules.countsExact("auto_accepted"))
         assertEquals(2, RememberedRules.count(listOf("explicit", "seed", "correction", "seed")))
     }
 
     @Test
-    fun observeUseCaseForwardsRepositoryCount() = runTest {
-        val learning = FakeLearningRepository(3)
-        assertEquals(3, ObserveRememberedRuleCountUseCase(learning)().first())
+    fun userStatCountIgnoresSeedAndCategoryName() {
+        assertTrue(RememberedRules.countsUserStat(RememberedRules.USER_STAT))
+        assertFalse(RememberedRules.countsUserStat("seed"))
+        assertFalse(RememberedRules.countsUserStat("category_name"))
+        assertEquals(1, RememberedRules.countUserStats(listOf("user", "seed", "user", "category_name")))
+    }
+
+    @Test
+    fun observeUseCaseForwardsRepositoryCounts() = runTest {
+        val counts = RememberedRuleCounts(exactRules = 3, keywordRules = 8, locationRules = 2)
+        val learning = FakeLearningRepository(counts)
+        assertEquals(counts, ObserveRememberedRuleCountUseCase(learning)().first())
     }
 }
 
-private class FakeLearningRepository(count: Int) : LearningRepository {
-    private val count = MutableStateFlow(count)
+private class FakeLearningRepository(counts: RememberedRuleCounts) : LearningRepository {
+    private val counts = MutableStateFlow(counts)
 
-    override fun observeRememberedRuleCount(): Flow<Int> = count
+    override fun observeRememberedRuleCounts(): Flow<RememberedRuleCounts> = counts
 }
