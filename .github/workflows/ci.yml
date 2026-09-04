@@ -32,6 +32,22 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      # Runners ship API 37 as platforms/android-37.0; AGP still looks up android-37
+      # unless minorApiLevel is set. Keep a folder alias for aapt/lint as well.
+      - name: Ensure Android API 37.0 platform
+        run: |
+          set -euo pipefail
+          : "${ANDROID_HOME:?ANDROID_HOME is not set}"
+          mkdir -p "$ANDROID_HOME/platforms"
+          if [ ! -d "$ANDROID_HOME/platforms/android-37.0" ]; then
+            sdkmanager "platforms;android-37.0"
+          fi
+          if [ ! -e "$ANDROID_HOME/platforms/android-37" ]; then
+            ln -s android-37.0 "$ANDROID_HOME/platforms/android-37"
+          fi
+          echo "sdk.dir=${ANDROID_HOME}" > local.properties
+          ls "$ANDROID_HOME/platforms"
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
@@ -39,7 +55,9 @@ jobs:
       # of every module. B3/B6 tests enter here automatically; do not add
       # a second `test` command.
       - name: Check
-        run: ./gradlew check
+        run: |
+          set -o pipefail
+          ./gradlew check --stacktrace --console=plain | tee check.log
 
       # B3 / I3: regenerate seed with the same CLI as local builds and
       # fail if committed assets or frozen config drifted.
@@ -84,6 +102,7 @@ jobs:
         with:
           name: check-reports
           path: |
+            check.log
             **/build/reports/tests/
             **/build/test-results/
             **/build/reports/ktlint/
