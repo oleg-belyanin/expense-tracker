@@ -382,7 +382,10 @@ class ExpenseEditViewModel(
             viewModelScope.launch {
                 delay(150)
                 val typed = _state.value.name
-                val names = visibleNameSuggestions(typed, suggestNames(typed))
+                val names = visibleNameSuggestions(
+                    typed,
+                    suggestNames(typed).take(SuggestExpenseNamesUseCase.limitFor(typed)),
+                )
                 _state.update { it.copy(nameSuggestions = names) }
                 val lookup = uniqueCompletionName(typed, names) ?: typed
                 applySuggestion(suggest(lookup, _state.value.locationName), replaceCategory = true)
@@ -407,7 +410,7 @@ class ExpenseEditViewModel(
         locationJob =
             viewModelScope.launch {
                 delay(150)
-                val suggestions = suggestLocations(query)
+                val suggestions = suggestLocations(query).take(SuggestLocationsUseCase.limitFor(query))
                 _state.update { it.copy(locationSuggestions = suggestions) }
             }
     }
@@ -417,7 +420,10 @@ class ExpenseEditViewModel(
         nameJob =
             viewModelScope.launch {
                 delay(150)
-                val suggestions = visibleNameSuggestions(query, suggestNames(query))
+                val suggestions = visibleNameSuggestions(
+                    query,
+                    suggestNames(query).take(SuggestExpenseNamesUseCase.limitFor(query)),
+                )
                 _state.update { it.copy(nameSuggestions = suggestions) }
             }
     }
@@ -493,8 +499,12 @@ class ExpenseEditViewModel(
                     locations = locations,
                     saveExpense = saveExpense::invoke,
                     deleteExpense = deleteExpense::invoke,
-                    suggestLocations = { query -> suggestLocations(query) },
-                    suggestNames = { query -> suggestNames(query) },
+                    suggestLocations = { query ->
+                        suggestLocations(query, SuggestLocationsUseCase.limitFor(query))
+                    },
+                    suggestNames = { query ->
+                        suggestNames(query, SuggestExpenseNamesUseCase.limitFor(query))
+                    },
                     suggestCategory = { name, locationName -> suggestCategory(name, locationName) },
                     createCategory = { name -> createCategory(name) },
                     validator = ExpenseInputValidator(),

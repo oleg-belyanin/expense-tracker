@@ -146,12 +146,55 @@ class ExpenseEditViewModelTest {
         assertEquals(HEALTH.id, viewModel.state.value.category?.id)
     }
 
+    @Test
+    fun emptyFocusKeepsThreeRecentSuggestions() = runTest(dispatcher) {
+        val names = (1..8).map { index ->
+            ExpenseNameSuggestion(
+                name = "Название $index",
+                normalizedName = "название $index",
+                usageCount = 1,
+                lastUsedAt = Instant.parse("2026-09-04T00:00:00Z"),
+            )
+        }
+        val places = (1..8).map { index ->
+            Location(
+                id = index.toLong(),
+                name = "Место $index",
+                normalizedName = "место $index",
+                usageCount = 1,
+                lastUsedAt = Instant.parse("2026-09-04T00:00:00Z"),
+                archivedAt = null,
+            )
+        }
+        val viewModel =
+            viewModel(
+                suggestNames = { query -> if (query.isEmpty()) names else emptyList() },
+                suggestLocations = { query -> if (query.isEmpty()) places else emptyList() },
+            )
+        runCurrent()
+
+        viewModel.onNameFocus(true)
+        viewModel.onLocationFocus(true)
+        advanceTimeBy(150)
+        runCurrent()
+
+        assertEquals(
+            listOf("Название 1", "Название 2", "Название 3"),
+            viewModel.state.value.nameSuggestions.map { it.name },
+        )
+        assertEquals(
+            listOf("Место 1", "Место 2", "Место 3"),
+            viewModel.state.value.locationSuggestions.map { it.name },
+        )
+    }
+
     private fun viewModel(
         expenseId: String? = null,
         expenses: ExpenseRepository = FakeExpenses(),
         saveExpense: suspend (SaveExpenseCommand) -> SaveExpenseResult = { error("unused") },
         deleteExpense: suspend (String) -> Unit = {},
         suggestNames: suspend (String) -> List<ExpenseNameSuggestion> = { emptyList() },
+        suggestLocations: suspend (String) -> List<Location> = { emptyList() },
         suggestCategory: suspend (String, String?) -> CategorizationResult = { _, _ -> FALLBACK },
     ) = ExpenseEditViewModel(
         expenseId = expenseId,
@@ -160,7 +203,7 @@ class ExpenseEditViewModelTest {
         locations = FakeLocations(),
         saveExpense = saveExpense,
         deleteExpense = deleteExpense,
-        suggestLocations = { emptyList() },
+        suggestLocations = suggestLocations,
         suggestNames = suggestNames,
         suggestCategory = suggestCategory,
         createCategory = { error("unused") },

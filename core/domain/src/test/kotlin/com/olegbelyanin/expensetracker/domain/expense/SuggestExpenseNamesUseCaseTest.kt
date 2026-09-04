@@ -38,5 +38,7 @@ class SuggestExpenseNamesUseCaseTest {
         val result = SuggestExpenseNamesUseCase(repo)("Кет")
         assertEquals(listOf("Кетостерил"), result.map { it.name })
         assertEquals(SuggestExpenseNamesUseCase.DEFAULT_LIMIT, repo.lastLimit)
+        assertEquals(SuggestExpenseNamesUseCase.EMPTY_FOCUS_LIMIT, SuggestExpenseNamesUseCase.limitFor(""))
+        assertEquals(SuggestExpenseNamesUseCase.DEFAULT_LIMIT, SuggestExpenseNamesUseCase.limitFor("Кет"))
     }
 }
