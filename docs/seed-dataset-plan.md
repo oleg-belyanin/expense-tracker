@@ -422,7 +422,7 @@ Seed **не** создаёт записи в `location`. При первом в�
 |---|---|
 | **B0** | `seed-data/` каркас, `categories.yaml`, полный train 800 + validation 200, stub assets |
 | **B3** | `:seed-generator`, полный train 800 + validation 200, подбор параметров, финальный assets |
-| **B6** | golden-тесты на seed; demo-данные для UI **отдельно** от seed (не путать) |
+| **B6** | golden-тесты на seed; demo-данные для UI **отдельно** от seed (не путать). Сделано 2026-09-04. |
 | **I3** | CI: `generateSeed` + diff assets + categorization tests |
 
 Demo-набор для списка/аналитики (B6) и seed-датасет — **разные сущности**:

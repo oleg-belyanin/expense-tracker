@@ -80,6 +80,7 @@ abstract class AppDatabase : RoomDatabase() {
         fun create(context: Context): AppDatabase = Room.databaseBuilder<AppDatabase>(context, NAME)
             .setDriver(BundledSQLiteDriver())
             .setQueryCoroutineContext(Dispatchers.IO)
+            .addMigrations(*AppMigrations.all)
             .build()
     }
 }

@@ -33,6 +33,9 @@ render.experimental.xml
 # Transient Snowball tarball while vendoring the official Java stemmer
 .tmp-snowball/
 
+# Local NFR-2 expense dump (generate with :seed-generator:generateNfrDemo)
+demo-data/local/
+
 # Python
 __pycache__/
 *.py[cod]

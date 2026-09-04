@@ -22,7 +22,7 @@
 :core:categorization  TextNormalizer + Snowball 3.1.1, CategorizationEngine (§10.1)
 :core:domain          use case и интерфейсы repository
 :core:database        Room 3, Bundled SQLite, FTS5, seed import
-:seed-generator       CLI: train/validation CSV → assets/seed/
+:seed-generator       CLI: seed-артефакт и демо-расходы (не путать)
 ```
 
 Встроенные категории — [`seed-data/categories.yaml`](seed-data/categories.yaml).
@@ -101,6 +101,8 @@ Seed-артефакт: [`app/src/main/assets/seed/`](app/src/main/assets/seed/).
 ./gradlew ktlintCheck
 ./gradlew ktlintFormat
 ./gradlew :app:installDebug
+./gradlew :seed-generator:generateDemo
+./gradlew :seed-generator:generateNfrDemo
 ```
 
 `installDebug` ставит APK на подключённое устройство или эмулятор.
@@ -199,6 +201,32 @@ Cold start: 800 train + 200 validation строк в [`seed-data/raw/`](seed-dat
 
 Записанные параметры — [`seed-data/categorization-config.json`](seed-data/categorization-config.json)
 (копия в assets). Validation seed v1: top-1 **85 %**, fallback **10 %**.
+
+## Демо-данные и NFR-2
+
+`seed-data/` — только словарь категоризации, без сумм и дат.
+Демо для списка и аналитики — [`demo-data/expenses-ui.csv`](demo-data/expenses-ui.csv):
+300 расходов в формате экспорта F-09, имена взяты из train.csv.
+
+Debug-сборка кладёт копию в `app/src/debug/assets/demo/` и при первом запуске
+импортирует её, если расходов ещё нет. Очистка истории повторно демо не подставляет.
+Release-APK файла не содержит — пустой список остаётся пустым.
+
+```bash
+./gradlew :seed-generator:generateDemo
+./gradlew :seed-generator:generateNfrDemo
+```
+
+Набор на 5 000 записей (NFR-2) пишется в `demo-data/local/` и не коммитится.
+Чтобы прогнать его на эмуляторе, укажите этот CSV как `--output` debug-assets
+и переустановите debug APK.
+
+## Миграции (F-08)
+
+Схема Room версии 1 экспортируется в `core/database/schemas/`.
+Список миграций — `AppMigrations.all`; `fallbackToDestructiveMigration` нет.
+Неизвестная версия падает, данные не стираются. Следующий релиз добавляет
+`Migration(1, 2)`, поднимает `@Database(version)` и коммитит `2.json`.
 
 ## Экспорт, копия и дедупликация
 

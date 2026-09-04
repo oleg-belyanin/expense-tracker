@@ -16,6 +16,7 @@ import com.olegbelyanin.expensetracker.database.RoomCategoryRepository
 import com.olegbelyanin.expensetracker.database.RoomExpenseRepository
 import com.olegbelyanin.expensetracker.database.RoomLearningRepository
 import com.olegbelyanin.expensetracker.database.RoomLocationRepository
+import com.olegbelyanin.expensetracker.database.demo.DemoExpensesImporter
 import com.olegbelyanin.expensetracker.database.seed.SeedImporter
 import com.olegbelyanin.expensetracker.domain.BackupRepository
 import com.olegbelyanin.expensetracker.domain.CategoryRepository
@@ -189,6 +190,12 @@ class AppContainer(context: Context) {
                 database = database,
                 assets = context.applicationContext.assets,
                 normalizer = textNormalizer,
+            ).importIfNeeded()
+            DemoExpensesImporter(
+                database = database,
+                assets = context.applicationContext.assets,
+                importExpenses = importExpenses,
+                expenses = expenseRepository,
             ).importIfNeeded()
         }
     }
