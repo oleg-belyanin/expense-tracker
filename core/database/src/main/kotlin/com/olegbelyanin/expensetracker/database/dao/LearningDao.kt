@@ -204,6 +204,33 @@ interface LearningDao {
         """,
     )
     suspend fun activeTransitionsForKeywords(keywordIds: List<Long>): List<ActiveKeywordTransitionRow>
+
+    @Query("SELECT * FROM exact_category_rule")
+    suspend fun getAllExactRules(): List<ExactCategoryRuleEntity>
+
+    @Query("SELECT * FROM name_category_context")
+    suspend fun getAllNameContexts(): List<NameCategoryContextEntity>
+
+    @Query("SELECT * FROM name_category_context_keyword")
+    suspend fun getAllNameContextKeywords(): List<NameCategoryContextKeywordEntity>
+
+    @Query("SELECT * FROM learning_example")
+    suspend fun getAllExamples(): List<LearningExampleEntity>
+
+    @Query("SELECT * FROM learning_example_keyword")
+    suspend fun getAllExampleKeywords(): List<LearningExampleKeywordEntity>
+
+    @Query("SELECT * FROM category_transition")
+    suspend fun getAllTransitions(): List<CategoryTransitionEntity>
+
+    @Query("SELECT * FROM category_transition_keyword")
+    suspend fun getAllTransitionKeywords(): List<CategoryTransitionKeywordEntity>
+
+    @Query("SELECT * FROM keyword_category_stat")
+    suspend fun getAllKeywordStats(): List<KeywordCategoryStatEntity>
+
+    @Query("SELECT * FROM location_category_stat")
+    suspend fun getAllLocationStats(): List<LocationCategoryStatEntity>
 }
 
 data class ActiveKeywordTransitionRow(

@@ -6,18 +6,25 @@ import com.olegbelyanin.expensetracker.categorization.CategorizationConfig
 import com.olegbelyanin.expensetracker.categorization.CategorizationEngine
 import com.olegbelyanin.expensetracker.categorization.CategoryIconSuggester
 import com.olegbelyanin.expensetracker.categorization.TextNormalizer
+import com.olegbelyanin.expensetracker.data.files.AndroidSettingsDocumentStore
+import com.olegbelyanin.expensetracker.data.files.SettingsDocumentStore
 import com.olegbelyanin.expensetracker.data.theme.ThemeRepository
 import com.olegbelyanin.expensetracker.database.AppDatabase
+import com.olegbelyanin.expensetracker.database.RoomBackupRepository
 import com.olegbelyanin.expensetracker.database.RoomCategorizationCatalog
 import com.olegbelyanin.expensetracker.database.RoomCategoryRepository
 import com.olegbelyanin.expensetracker.database.RoomExpenseRepository
 import com.olegbelyanin.expensetracker.database.RoomLearningRepository
 import com.olegbelyanin.expensetracker.database.RoomLocationRepository
 import com.olegbelyanin.expensetracker.database.seed.SeedImporter
+import com.olegbelyanin.expensetracker.domain.BackupRepository
 import com.olegbelyanin.expensetracker.domain.CategoryRepository
 import com.olegbelyanin.expensetracker.domain.ExpenseRepository
 import com.olegbelyanin.expensetracker.domain.LearningRepository
 import com.olegbelyanin.expensetracker.domain.LocationRepository
+import com.olegbelyanin.expensetracker.domain.backup.CreateBackupUseCase
+import com.olegbelyanin.expensetracker.domain.backup.ExportExpensesCsvUseCase
+import com.olegbelyanin.expensetracker.domain.backup.RestoreBackupUseCase
 import com.olegbelyanin.expensetracker.domain.category.ArchiveCategoryUseCase
 import com.olegbelyanin.expensetracker.domain.category.CreateCategoryUseCase
 import com.olegbelyanin.expensetracker.domain.category.RestoreCategoryUseCase
@@ -38,6 +45,7 @@ import com.olegbelyanin.expensetracker.ui.categories.CategoriesViewModel
 import com.olegbelyanin.expensetracker.ui.categories.CategoryFormViewModel
 import com.olegbelyanin.expensetracker.ui.expense.ExpenseEditViewModel
 import com.olegbelyanin.expensetracker.ui.expenses.ExpensesViewModel
+import com.olegbelyanin.expensetracker.ui.settings.SettingsViewModel
 import kotlinx.coroutines.runBlocking
 import java.time.Clock
 import java.time.ZoneId
@@ -57,6 +65,14 @@ class AppContainer(context: Context) {
     val expenseRepository: ExpenseRepository = RoomExpenseRepository(database, textNormalizer, clock)
     val locationRepository: LocationRepository = RoomLocationRepository(database, textNormalizer)
     val learningRepository: LearningRepository = RoomLearningRepository(database)
+    val backupRepository: BackupRepository = RoomBackupRepository(database, textNormalizer, clock)
+    val exportExpensesCsv: ExportExpensesCsvUseCase = ExportExpensesCsvUseCase(
+        expenses = expenseRepository,
+        categories = categoryRepository,
+        locations = locationRepository,
+    )
+    val createBackup: CreateBackupUseCase = CreateBackupUseCase(backupRepository, clock)
+    val restoreBackup: RestoreBackupUseCase = RestoreBackupUseCase(backupRepository)
     val observeRememberedRuleCount: ObserveRememberedRuleCountUseCase =
         ObserveRememberedRuleCountUseCase(learningRepository)
     val saveExpense: SaveExpenseUseCase = SaveExpenseUseCase(
@@ -109,10 +125,13 @@ class AppContainer(context: Context) {
         zoneId = zoneId,
     )
     val themeRepository: ThemeRepository = ThemeRepository(context)
+    val settingsDocumentStore: SettingsDocumentStore =
+        AndroidSettingsDocumentStore(context.applicationContext.contentResolver)
 
     fun expensesViewModelFactory() = ExpensesViewModel.factory(
         observeExpenseList,
         deleteExpense,
+        suggestLocations,
         categoryRepository,
         locationRepository,
         clock,
@@ -137,6 +156,17 @@ class AppContainer(context: Context) {
         updateCategory = updateCategory,
         iconSuggester = categoryIconSuggester,
         normalizer = textNormalizer,
+    )
+
+    fun settingsViewModelFactory() = SettingsViewModel.factory(
+        exportCsv = exportExpensesCsv,
+        createBackup = createBackup,
+        restoreBackup = restoreBackup,
+        clearHistory = clearExpenseHistory,
+        observeRememberedRuleCount = observeRememberedRuleCount,
+        documents = settingsDocumentStore,
+        clock = clock,
+        zoneId = zoneId,
     )
 
     fun expenseEditViewModelFactory(expenseId: String?) = ExpenseEditViewModel.factory(

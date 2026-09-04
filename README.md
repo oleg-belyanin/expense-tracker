@@ -85,6 +85,8 @@ Seed-артефакт: [`app/src/main/assets/seed/`](app/src/main/assets/seed/).
 ```
 
 `check` = ktlint + Android Lint + JVM unit-тесты всех модулей.
+Новые тесты B3/B6 (нормализатор, движок, seed, агрегация, CSV/JSON)
+входят в тот же `check` — отдельная команда в CI не нужна.
 Инструментальные тесты на эмуляторе в `check` не входят.
 
 Порог — ноль ошибок. Baseline Lint не заведён: свой код должен быть чистым.
@@ -115,7 +117,8 @@ Seed-артефакт: [`app/src/main/assets/seed/`](app/src/main/assets/seed/).
 3. `./gradlew :seed-generator:generateSeed` и сверка `app/src/main/assets/seed/`
    с генерацией;
 4. `./gradlew :app:assembleDebug`;
-5. debug APK как artifact (хранение 7 дней).
+5. debug APK как artifact (хранение 7 дней);
+6. отчёты `check` как artifact `check-reports` (даже если шаг красный).
 
 В CI нет эмулятора, instrumentation, `assembleRelease` и публикации в магазины.
 Падение теста или lint делает PR красным.
@@ -196,6 +199,27 @@ Cold start: 800 train + 200 validation строк в [`seed-data/raw/`](seed-dat
 
 Записанные параметры — [`seed-data/categorization-config.json`](seed-data/categorization-config.json)
 (копия в assets). Validation seed v1: top-1 **85 %**, fallback **10 %**.
+
+## Экспорт, копия и дедупликация
+
+Экспорт (F-09) — CSV расходов: дата, сумма (рубли и копейки), название,
+категория и её код, место, комментарий, источник назначения, `dedup_key`.
+
+Резервная копия (F-10) — один JSON с полем `format=expense-tracker-backup`:
+расходы, категории, места, пользовательские exact rules и контексты имён,
+learning examples, транзиты, пользовательские агрегаты, версии схемы,
+нормализатора и seed. Seed-счётчики в файл не дублируются.
+
+Восстановление сначала проверяет весь файл. Запись идёт одной транзакцией.
+Дубликаты пропускаются по `expense.id` (UUID) и `dedup_key`. Повтор той же
+копии не удваивает историю и примеры. Битый или чужой файл даёт понятную
+ошибку, существующие данные не меняются.
+
+Дедупликация импорта (F-08): `import:<имя>|<spentAt>|<amount>|<место>`.
+Расходы, введённые вручную, получают `user:<uuid>`.
+
+Очистка истории (F-11) удаляет расходы и обнуляет `learning_example.expense_id`.
+Пользовательские категории и правила категоризации остаются.
 
 ## Документация
 

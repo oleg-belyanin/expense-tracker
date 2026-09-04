@@ -75,6 +75,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
         const val NAME = "expense-tracker.db"
+        const val SCHEMA_VERSION = 1
 
         fun create(context: Context): AppDatabase = Room.databaseBuilder<AppDatabase>(context, NAME)
             .setDriver(BundledSQLiteDriver())

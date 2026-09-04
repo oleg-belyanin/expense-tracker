@@ -11,6 +11,7 @@ import com.olegbelyanin.expensetracker.domain.expense.ExpenseListSlice
 import com.olegbelyanin.expensetracker.domain.expense.ExpensePeriodPreset
 import com.olegbelyanin.expensetracker.domain.expense.ExpensePeriodResolver
 import com.olegbelyanin.expensetracker.domain.expense.ObserveExpenseListUseCase
+import com.olegbelyanin.expensetracker.domain.expense.SuggestLocationsUseCase
 import com.olegbelyanin.expensetracker.model.Category
 import com.olegbelyanin.expensetracker.model.Location
 import com.olegbelyanin.expensetracker.model.Period
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Clock
@@ -33,9 +35,7 @@ data class SavedExpenseToast(val expenseId: String)
 
 enum class ExpensesDialog {
     None,
-    Categories,
-    Locations,
-    Periods,
+    Filters,
     CustomStart,
     CustomEnd,
 }
@@ -43,10 +43,11 @@ enum class ExpensesDialog {
 class ExpensesViewModel(
     private val observeList: ObserveExpenseListUseCase,
     private val deleteExpense: DeleteExpenseUseCase,
+    private val suggestLocations: SuggestLocationsUseCase,
     categories: CategoryRepository,
     locations: LocationRepository,
     clock: Clock,
-    zoneId: ZoneId,
+    val zoneId: ZoneId,
 ) : ViewModel() {
     val today: LocalDate = LocalDate.now(clock.withZone(zoneId))
 
@@ -59,7 +60,13 @@ class ExpensesViewModel(
     private val dialog = MutableStateFlow(ExpensesDialog.None)
     private val draftPreset = MutableStateFlow(ExpensePeriodPreset.ALL)
     private val draftCustom = MutableStateFlow<Period?>(null)
+    private val draftCategoryIds = MutableStateFlow<Set<Long>>(emptySet())
+    private val draftLocationId = MutableStateFlow<Long?>(null)
+    private val draftLocationName = MutableStateFlow("")
+    private val locationSuggestions = MutableStateFlow<List<Location>>(emptyList())
+    private val locationFocused = MutableStateFlow(false)
     private var toastJob: Job? = null
+    private var locationJob: Job? = null
 
     val queryText: StateFlow<String> = query.asStateFlow()
     val periodPreset: StateFlow<ExpensePeriodPreset> = preset.asStateFlow()
@@ -70,6 +77,10 @@ class ExpensesViewModel(
     val dialogState: StateFlow<ExpensesDialog> = dialog.asStateFlow()
     val draftPresetState: StateFlow<ExpensePeriodPreset> = draftPreset.asStateFlow()
     val draftCustomState: StateFlow<Period?> = draftCustom.asStateFlow()
+    val draftCategoryIdsState: StateFlow<Set<Long>> = draftCategoryIds.asStateFlow()
+    val draftLocationNameState: StateFlow<String> = draftLocationName.asStateFlow()
+    val locationSuggestionsState: StateFlow<List<Location>> = locationSuggestions.asStateFlow()
+    val locationFocusedState: StateFlow<Boolean> = locationFocused.asStateFlow()
 
     val activeCategories: StateFlow<List<Category>> =
         categories.observeActiveCategories().stateIn(
@@ -85,8 +96,7 @@ class ExpensesViewModel(
             emptyList(),
         )
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val slice: StateFlow<ExpenseListSlice?> =
+    private val appliedFilter =
         combine(query, preset, customPeriod, categoryIds, locationId) { text, period, custom, ids, place ->
             ExpenseListFilter(
                 query = text,
@@ -95,8 +105,37 @@ class ExpensesViewModel(
                 categoryIds = ids,
                 locationId = place,
             )
-        }.flatMapLatest { observeList.observe(it) }
+        }
+
+    private val draftFilter =
+        combine(
+            query,
+            draftPreset,
+            draftCustom,
+            draftCategoryIds,
+            draftLocationId,
+        ) { text, period, custom, ids, place ->
+            ExpenseListFilter(
+                query = text,
+                preset = period,
+                customPeriod = custom,
+                categoryIds = ids,
+                locationId = place,
+            )
+        }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val slice: StateFlow<ExpenseListSlice?> =
+        appliedFilter.flatMapLatest { observeList.observe(it) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val draftSlice: StateFlow<ExpenseListSlice?> =
+        combine(dialog, draftFilter) { current, filter ->
+            current.takeUnless { it == ExpensesDialog.None }?.let { filter }
+        }.flatMapLatest { filter ->
+            if (filter == null) flowOf(null) else observeList.observe(filter)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun onQueryChange(value: String) {
         query.value = value
@@ -117,63 +156,99 @@ class ExpensesViewModel(
         locationId.value = filter.locationId
     }
 
-    fun onToggleCategory(id: Long) {
-        val next = categoryIds.value.toMutableSet()
-        if (!next.add(id)) {
-            next.remove(id)
-        }
-        categoryIds.value = next
+    fun onOpenFilters() {
+        copyAppliedToDraft()
+        dialog.value = ExpensesDialog.Filters
     }
 
-    fun onSelectLocation(id: Long) {
-        locationId.value = id.takeIf { it != locationId.value }
-    }
-
-    fun onOpenCategoryFilter() {
-        dialog.value = ExpensesDialog.Categories
-    }
-
-    fun onOpenLocationFilter() {
-        dialog.value = ExpensesDialog.Locations
-    }
-
-    fun onOpenPeriodFilter() {
-        draftPreset.value = preset.value
-        draftCustom.value = customPeriod.value ?: ExpensePeriodResolver.defaultCustom(today)
-        dialog.value = ExpensesDialog.Periods
+    fun onReturnToFilters() {
+        dialog.value = ExpensesDialog.Filters
     }
 
     fun onDismissDialog() {
         dialog.value = ExpensesDialog.None
+        locationFocused.value = false
+        locationSuggestions.value = emptyList()
     }
 
-    fun onDraftPreset(value: ExpensePeriodPreset) {
+    fun onDraftPeriod(value: ExpensePeriodPreset) {
         draftPreset.value = value
         if (value == ExpensePeriodPreset.CUSTOM) {
             if (draftCustom.value == null) {
                 draftCustom.value = ExpensePeriodResolver.defaultCustom(today)
             }
             dialog.value = ExpensesDialog.CustomStart
+        } else {
+            draftCustom.value = null
         }
     }
 
     fun onCustomStart(date: LocalDate) {
         val end = draftCustom.value?.endInclusive ?: today
         draftCustom.value = Period.of(date, end)
+        draftPreset.value = ExpensePeriodPreset.CUSTOM
         dialog.value = ExpensesDialog.CustomEnd
     }
 
     fun onCustomEnd(date: LocalDate) {
         val start = draftCustom.value?.startInclusive ?: today
         draftCustom.value = Period.of(start, date)
-        dialog.value = ExpensesDialog.Periods
+        draftPreset.value = ExpensePeriodPreset.CUSTOM
+        dialog.value = ExpensesDialog.Filters
     }
 
-    fun onApplyPeriod() {
-        val next = draftPreset.value
-        preset.value = next
-        customPeriod.value = if (next == ExpensePeriodPreset.CUSTOM) draftCustom.value else null
-        dialog.value = ExpensesDialog.None
+    fun onToggleDraftCategory(id: Long) {
+        val next = draftCategoryIds.value.toMutableSet()
+        if (!next.add(id)) {
+            next.remove(id)
+        }
+        draftCategoryIds.value = next
+    }
+
+    fun onDraftLocationQuery(value: String) {
+        draftLocationName.value = value
+        val selected = usedLocations.value.firstOrNull { it.id == draftLocationId.value }
+        if (selected == null || !selected.name.equals(value.trim(), ignoreCase = true)) {
+            draftLocationId.value = null
+        }
+        locationFocused.value = true
+        scheduleLocations(value)
+    }
+
+    fun onDraftLocationFocus(focused: Boolean) {
+        locationFocused.value = focused
+        if (focused) {
+            scheduleLocations(draftLocationName.value)
+        }
+    }
+
+    fun onDraftLocationSuggestion(location: Location) {
+        draftLocationName.value = location.name
+        draftLocationId.value = location.id
+        locationSuggestions.value = emptyList()
+        locationFocused.value = false
+    }
+
+    fun onResetDraftFilters() {
+        draftPreset.value = ExpensePeriodPreset.ALL
+        draftCustom.value = null
+        draftCategoryIds.value = emptySet()
+        draftLocationId.value = null
+        draftLocationName.value = ""
+        locationSuggestions.value = emptyList()
+    }
+
+    fun onApplyFilters() {
+        val resolved = ExpenseFilterChrome.resolveLocationId(
+            name = draftLocationName.value,
+            selectedId = draftLocationId.value,
+            locations = usedLocations.value,
+        )
+        preset.value = draftPreset.value
+        customPeriod.value = if (draftPreset.value == ExpensePeriodPreset.CUSTOM) draftCustom.value else null
+        categoryIds.value = draftCategoryIds.value
+        locationId.value = resolved
+        onDismissDialog()
     }
 
     fun onResetFilters() {
@@ -182,6 +257,7 @@ class ExpensesViewModel(
         customPeriod.value = null
         categoryIds.value = emptySet()
         locationId.value = null
+        onResetDraftFilters()
     }
 
     fun onExpenseSaved(expenseId: String) {
@@ -203,10 +279,35 @@ class ExpensesViewModel(
         viewModelScope.launch { deleteExpense(id) }
     }
 
+    private fun copyAppliedToDraft() {
+        draftPreset.value = preset.value
+        draftCustom.value = when (preset.value) {
+            ExpensePeriodPreset.CUSTOM -> customPeriod.value ?: ExpensePeriodResolver.defaultCustom(today)
+            else -> customPeriod.value
+        }
+        draftCategoryIds.value = categoryIds.value
+        draftLocationId.value = locationId.value
+        draftLocationName.value = locationId.value
+            ?.let { id -> usedLocations.value.firstOrNull { it.id == id }?.name }
+            .orEmpty()
+        locationSuggestions.value = emptyList()
+        locationFocused.value = false
+    }
+
+    private fun scheduleLocations(value: String) {
+        locationJob?.cancel()
+        locationJob =
+            viewModelScope.launch {
+                delay(120)
+                locationSuggestions.value = suggestLocations(value)
+            }
+    }
+
     companion object {
         fun factory(
             observeList: ObserveExpenseListUseCase,
             deleteExpense: DeleteExpenseUseCase,
+            suggestLocations: SuggestLocationsUseCase,
             categories: CategoryRepository,
             locations: LocationRepository,
             clock: Clock,
@@ -217,6 +318,7 @@ class ExpensesViewModel(
                 return ExpensesViewModel(
                     observeList,
                     deleteExpense,
+                    suggestLocations,
                     categories,
                     locations,
                     clock,

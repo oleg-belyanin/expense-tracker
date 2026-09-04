@@ -7,6 +7,7 @@ buildscript {
 }
 
 plugins {
+    base
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.kotlin.compose) apply false
@@ -36,4 +37,14 @@ fun org.gradle.api.Project.configureKtlint() {
             exclude("**/org/tartarus/snowball/**")
         }
     }
+}
+
+// I2: `./gradlew :check` must still run every module. Intermediate
+// projects like `:core` have no `check` of their own.
+tasks.named("check") {
+    dependsOn(
+        subprojects
+            .filter { it.childProjects.isEmpty() }
+            .map { "${it.path}:check" },
+    )
 }

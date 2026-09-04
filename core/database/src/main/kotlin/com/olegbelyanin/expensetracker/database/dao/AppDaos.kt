@@ -25,6 +25,9 @@ interface CategoryDao {
     fun observeActive(): Flow<List<CategoryEntity>>
 
     @Query("SELECT * FROM category ORDER BY id ASC")
+    suspend fun getAll(): List<CategoryEntity>
+
+    @Query("SELECT * FROM category ORDER BY id ASC")
     fun observeAll(): Flow<List<CategoryEntity>>
 
     @Query("SELECT * FROM category WHERE archived_at IS NOT NULL ORDER BY archived_at DESC, id ASC")
@@ -51,6 +54,9 @@ interface CategoryDao {
 
 @Dao
 interface LocationDao {
+    @Query("SELECT * FROM location ORDER BY id ASC")
+    suspend fun getAll(): List<LocationEntity>
+
     @Query("SELECT * FROM location ORDER BY id ASC")
     fun observeAll(): Flow<List<LocationEntity>>
 
@@ -105,6 +111,9 @@ interface LocationDao {
 interface KeywordDao {
     @Query("SELECT * FROM keyword WHERE kind = :kind AND value = :value LIMIT 1")
     suspend fun find(kind: String, value: String): KeywordEntity?
+
+    @Query("SELECT * FROM keyword ORDER BY id ASC")
+    suspend fun getAll(): List<KeywordEntity>
 
     @Insert
     suspend fun insert(entity: KeywordEntity): Long

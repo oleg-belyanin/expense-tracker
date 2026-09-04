@@ -24,6 +24,8 @@ internal class FakeKeywordDao : KeywordDao {
     override suspend fun find(kind: String, value: String): KeywordEntity? =
         rows.find { it.kind == kind && it.value == value }
 
+    override suspend fun getAll(): List<KeywordEntity> = rows.toList()
+
     override suspend fun insert(entity: KeywordEntity): Long {
         val id = nextId++
         rows += entity.copy(id = id)
@@ -219,4 +221,29 @@ internal class FakeLearningDao : LearningDao {
             ActiveKeywordTransitionRow(link.keywordId, transition.fromCategoryId, transition.toCategoryId)
         }
     }
+
+    override suspend fun getAllExactRules(): List<ExactCategoryRuleEntity> = exactRules.values.toList()
+
+    override suspend fun getAllNameContexts(): List<NameCategoryContextEntity> = nameContexts.values.toList()
+
+    override suspend fun getAllNameContextKeywords(): List<NameCategoryContextKeywordEntity> =
+        nameContextKeywords.flatMap { (name, ids) ->
+            ids.map { NameCategoryContextKeywordEntity(name, it) }
+        }
+
+    override suspend fun getAllExamples(): List<LearningExampleEntity> = examples.values.toList()
+
+    override suspend fun getAllExampleKeywords(): List<LearningExampleKeywordEntity> =
+        exampleKeywords.flatMap { (exampleId, ids) ->
+            ids.map { LearningExampleKeywordEntity(exampleId, it) }
+        }
+
+    override suspend fun getAllTransitions(): List<CategoryTransitionEntity> = transitions.toList()
+
+    override suspend fun getAllTransitionKeywords(): List<CategoryTransitionKeywordEntity> =
+        transitionKeywords.values.toList()
+
+    override suspend fun getAllKeywordStats(): List<KeywordCategoryStatEntity> = keywordStats.values.toList()
+
+    override suspend fun getAllLocationStats(): List<LocationCategoryStatEntity> = locationStats.values.toList()
 }

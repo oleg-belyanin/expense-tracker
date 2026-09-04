@@ -18,25 +18,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.olegbelyanin.expensetracker.R
+import com.olegbelyanin.expensetracker.domain.expense.ExpenseListFilter
 import com.olegbelyanin.expensetracker.domain.expense.ExpenseListItem
 import com.olegbelyanin.expensetracker.domain.expense.ExpensePeriodPreset
 import com.olegbelyanin.expensetracker.model.Category
 import com.olegbelyanin.expensetracker.model.Location
 import com.olegbelyanin.expensetracker.model.Period
-import com.olegbelyanin.expensetracker.ui.components.BottomSheetSize
 import com.olegbelyanin.expensetracker.ui.components.CategoryGlyphKey
 import com.olegbelyanin.expensetracker.ui.components.DateHeader
-import com.olegbelyanin.expensetracker.ui.components.ExpenseBottomSheet
 import com.olegbelyanin.expensetracker.ui.components.ExpenseDatePicker
 import com.olegbelyanin.expensetracker.ui.components.ExpenseRow
 import com.olegbelyanin.expensetracker.ui.components.ExpenseToast
 import com.olegbelyanin.expensetracker.ui.components.FilterChip
-import com.olegbelyanin.expensetracker.ui.components.PeriodSheet
 import com.olegbelyanin.expensetracker.ui.components.SearchField
-import com.olegbelyanin.expensetracker.ui.components.SelectionRow
 import com.olegbelyanin.expensetracker.ui.components.StatePanel
 import com.olegbelyanin.expensetracker.ui.components.StatePanelType
 import com.olegbelyanin.expensetracker.ui.components.TextAction
@@ -73,12 +69,24 @@ fun ExpensesScreen(
     val dialog by viewModel.dialogState.collectAsStateWithLifecycle()
     val draftPreset by viewModel.draftPresetState.collectAsStateWithLifecycle()
     val draftCustom by viewModel.draftCustomState.collectAsStateWithLifecycle()
+    val draftCategoryIds by viewModel.draftCategoryIdsState.collectAsStateWithLifecycle()
+    val draftLocationName by viewModel.draftLocationNameState.collectAsStateWithLifecycle()
+    val locationSuggestions by viewModel.locationSuggestionsState.collectAsStateWithLifecycle()
+    val locationFocused by viewModel.locationFocusedState.collectAsStateWithLifecycle()
+    val draftSlice by viewModel.draftSlice.collectAsStateWithLifecycle()
     val activeCategories by viewModel.activeCategories.collectAsStateWithLifecycle()
     val usedLocations by viewModel.usedLocations.collectAsStateWithLifecycle()
     val colors = ExpenseTheme.colors
     val typography = ExpenseTheme.typography
     val spacing = ExpenseTheme.spacing
     val current = slice
+    val filter = ExpenseListFilter(
+        query = query,
+        preset = preset,
+        customPeriod = customPeriod,
+        categoryIds = selectedCategoryIds,
+        locationId = selectedLocationId,
+    )
     val amountText =
         when {
             current == null -> stringResource(R.string.amount_loading)
@@ -122,19 +130,13 @@ fun ExpensesScreen(
         when {
             current == null -> {
                 SearchAndChips(
-                    query = query,
-                    onQueryChange = viewModel::onQueryChange,
-                    preset = preset,
-                    customPeriod = customPeriod,
-                    selectedCategoryIds = selectedCategoryIds,
-                    selectedLocationId = selectedLocationId,
+                    filter = filter,
                     categories = activeCategories,
                     locations = usedLocations,
                     today = today,
+                    onQueryChange = viewModel::onQueryChange,
                     onPreset = viewModel::onPeriodPreset,
-                    onOpenPeriodFilter = viewModel::onOpenPeriodFilter,
-                    onOpenCategoryFilter = viewModel::onOpenCategoryFilter,
-                    onOpenLocationFilter = viewModel::onOpenLocationFilter,
+                    onOpenFilters = viewModel::onOpenFilters,
                     onResetFilters = viewModel::onResetFilters,
                 )
                 StatePanel(
@@ -157,26 +159,30 @@ fun ExpensesScreen(
 
             else -> {
                 SearchAndChips(
-                    query = query,
-                    onQueryChange = viewModel::onQueryChange,
-                    preset = preset,
-                    customPeriod = customPeriod,
-                    selectedCategoryIds = selectedCategoryIds,
-                    selectedLocationId = selectedLocationId,
+                    filter = filter,
                     categories = activeCategories,
                     locations = usedLocations,
                     today = today,
+                    onQueryChange = viewModel::onQueryChange,
                     onPreset = viewModel::onPeriodPreset,
-                    onOpenPeriodFilter = viewModel::onOpenPeriodFilter,
-                    onOpenCategoryFilter = viewModel::onOpenCategoryFilter,
-                    onOpenLocationFilter = viewModel::onOpenLocationFilter,
+                    onOpenFilters = viewModel::onOpenFilters,
                     onResetFilters = viewModel::onResetFilters,
                 )
                 if (current.isFilterEmpty) {
                     StatePanel(
                         type = StatePanelType.NoResults,
                         title = stringResource(R.string.expenses_no_results_title),
-                        description = stringResource(R.string.expenses_no_results_description),
+                        description = stringResource(
+                            if (filter.query.isNotBlank() &&
+                                filter.categoryIds.isEmpty() &&
+                                filter.locationId == null &&
+                                filter.preset == ExpensePeriodPreset.ALL
+                            ) {
+                                R.string.expenses_no_results_search_description
+                            } else {
+                                R.string.expenses_no_results_description
+                            },
+                        ),
                         actionLabel = stringResource(R.string.reset_filters),
                         onAction = viewModel::onResetFilters,
                         modifier = Modifier.padding(top = spacing.sm),
@@ -213,39 +219,31 @@ fun ExpensesScreen(
                             }
                         }
                         item(key = "fab-space") {
-                            Spacer(Modifier.height(FabSize + spacing.lg))
+                            Spacer(Modifier.height(FabSize + ExpenseTheme.spacing.lg))
                         }
                     }
                 }
             }
         }
     }
-    if (dialog == ExpensesDialog.Categories) {
-        CategoryFilterSheet(
-            categories = activeCategories,
-            selectedIds = selectedCategoryIds,
-            onToggle = viewModel::onToggleCategory,
-            onDismiss = viewModel::onDismissDialog,
-        )
-    }
-    if (dialog == ExpensesDialog.Locations) {
-        LocationFilterSheet(
-            locations = usedLocations,
-            selectedId = selectedLocationId,
-            onSelect = viewModel::onSelectLocation,
-            onDismiss = viewModel::onDismissDialog,
-        )
-    }
-    if (dialog == ExpensesDialog.Periods ||
-        dialog == ExpensesDialog.CustomStart ||
-        dialog == ExpensesDialog.CustomEnd
-    ) {
-        PeriodSheet(
+    if (dialog != ExpensesDialog.None) {
+        ExpenseFiltersSheet(
             today = today,
+            zoneId = viewModel.zoneId,
             draftPreset = draftPreset,
-            draftCustom = draftCustom,
-            onPreset = viewModel::onDraftPreset,
-            onApply = viewModel::onApplyPeriod,
+            categories = activeCategories,
+            selectedCategoryIds = draftCategoryIds,
+            locationName = draftLocationName,
+            locationFocused = locationFocused,
+            locationSuggestions = locationSuggestions,
+            previewTotalMinor = draftSlice?.totalMinor,
+            onPeriod = viewModel::onDraftPeriod,
+            onToggleCategory = viewModel::onToggleDraftCategory,
+            onLocationQuery = viewModel::onDraftLocationQuery,
+            onLocationFocus = viewModel::onDraftLocationFocus,
+            onLocationSuggestion = viewModel::onDraftLocationSuggestion,
+            onReset = viewModel::onResetDraftFilters,
+            onApply = viewModel::onApplyFilters,
             onDismiss = viewModel::onDismissDialog,
         )
     }
@@ -254,7 +252,7 @@ fun ExpensesScreen(
             selected = draftCustom?.startInclusive ?: today.minusMonths(1).withDayOfMonth(1),
             today = today,
             onSelected = viewModel::onCustomStart,
-            onDismiss = viewModel::onOpenPeriodFilter,
+            onDismiss = viewModel::onReturnToFilters,
         )
     }
     if (dialog == ExpensesDialog.CustomEnd) {
@@ -262,7 +260,7 @@ fun ExpensesScreen(
             selected = draftCustom?.endInclusive ?: today,
             today = today,
             onSelected = viewModel::onCustomEnd,
-            onDismiss = viewModel::onOpenPeriodFilter,
+            onDismiss = viewModel::onReturnToFilters,
         )
     }
 }
@@ -277,82 +275,43 @@ private fun ExpenseListItem.toRowColor(colors: ExpenseColors, glyph: CategoryGly
 
 @Composable
 private fun SearchAndChips(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    preset: ExpensePeriodPreset,
-    customPeriod: Period?,
-    selectedCategoryIds: Set<Long>,
-    selectedLocationId: Long?,
+    filter: ExpenseListFilter,
     categories: List<Category>,
     locations: List<Location>,
     today: LocalDate,
+    onQueryChange: (String) -> Unit,
     onPreset: (ExpensePeriodPreset) -> Unit,
-    onOpenPeriodFilter: () -> Unit,
-    onOpenCategoryFilter: () -> Unit,
-    onOpenLocationFilter: () -> Unit,
+    onOpenFilters: () -> Unit,
     onResetFilters: () -> Unit,
 ) {
     val spacing = ExpenseTheme.spacing
-    val extraPeriod = preset != ExpensePeriodPreset.ALL && preset != ExpensePeriodPreset.CURRENT_MONTH
-    val hasFilters =
-        query.isNotBlank() ||
-            preset != ExpensePeriodPreset.ALL ||
-            customPeriod != null ||
-            selectedCategoryIds.isNotEmpty() ||
-            selectedLocationId != null
-    val categoryLabel =
-        when {
-            selectedCategoryIds.size == 1 ->
-                categories.firstOrNull { it.id == selectedCategoryIds.first() }?.name
-                    ?: stringResource(R.string.filter_category)
-
-            selectedCategoryIds.size > 1 -> ExpenseFormat.categoryCount(selectedCategoryIds.size)
-
-            else -> stringResource(R.string.filter_category)
-        }
-    val placeLabel =
-        selectedLocationId?.let { id -> locations.firstOrNull { it.id == id }?.name }
-            ?: stringResource(R.string.filter_place)
+    val compact = ExpenseFilterChrome.isCompact(filter)
     Column(
         modifier = Modifier.fillMaxWidth().padding(top = spacing.xs),
         verticalArrangement = Arrangement.spacedBy(spacing.xs),
     ) {
-        SearchField(query = query, onQueryChange = onQueryChange)
+        SearchField(query = filter.query, onQueryChange = onQueryChange)
         Row(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(spacing.xs),
         ) {
-            FilterChip(
-                label = stringResource(R.string.filter_all),
-                selected = preset == ExpensePeriodPreset.ALL && customPeriod == null,
-                onClick = { onPreset(ExpensePeriodPreset.ALL) },
-            )
-            FilterChip(
-                label = stringResource(R.string.filter_month),
-                selected = preset == ExpensePeriodPreset.CURRENT_MONTH,
-                onClick = { onPreset(ExpensePeriodPreset.CURRENT_MONTH) },
-            )
-            FilterChip(
-                label = if (extraPeriod) {
-                    ExpenseFormat.periodChip(preset, today, customPeriod)
-                } else {
-                    stringResource(R.string.filter_period)
-                },
-                selected = extraPeriod,
-                onClick = onOpenPeriodFilter,
-            )
-            FilterChip(
-                label = categoryLabel,
-                selected = selectedCategoryIds.isNotEmpty(),
-                onClick = onOpenCategoryFilter,
-            )
-            FilterChip(
-                label = placeLabel,
-                selected = selectedLocationId != null,
-                onClick = onOpenLocationFilter,
-            )
+            if (compact) {
+                CompactFilterChips(
+                    filter = filter,
+                    categories = categories,
+                    locations = locations,
+                    today = today,
+                    onOpenFilters = onOpenFilters,
+                )
+            } else {
+                IdleFilterChips(
+                    preset = filter.preset,
+                    onPreset = onPreset,
+                    onOpenFilters = onOpenFilters,
+                )
+            }
         }
-        if (hasFilters) {
+        if (filter.hasActiveConstraints) {
             TextAction(
                 label = stringResource(R.string.reset_filters),
                 onClick = onResetFilters,
@@ -363,75 +322,58 @@ private fun SearchAndChips(
 }
 
 @Composable
-private fun CategoryFilterSheet(
-    categories: List<Category>,
-    selectedIds: Set<Long>,
-    onToggle: (Long) -> Unit,
-    onDismiss: () -> Unit,
+private fun IdleFilterChips(
+    preset: ExpensePeriodPreset,
+    onPreset: (ExpensePeriodPreset) -> Unit,
+    onOpenFilters: () -> Unit,
 ) {
-    val colors = ExpenseTheme.colors
-    ExpenseBottomSheet(onDismiss = onDismiss, size = BottomSheetSize.Tall) {
-        Text(
-            text = stringResource(R.string.filter_category_title),
-            style = ExpenseTheme.typography.titleSection,
-            color = colors.textPrimary,
-        )
-        Text(
-            text = stringResource(R.string.filter_category_hint),
-            style = ExpenseTheme.typography.bodySecondary,
-            color = colors.textSecondary,
-            modifier = Modifier.padding(bottom = ExpenseTheme.spacing.xs),
-        )
-        categories.forEach { category ->
-            SelectionRow(
-                title = category.name,
-                subtitle = if (category.id in selectedIds) {
-                    stringResource(R.string.filter_category_selected)
-                } else {
-                    stringResource(R.string.filter_category_unselected)
-                },
-                selected = category.id in selectedIds,
-                onClick = { onToggle(category.id) },
-                modifier = Modifier.padding(bottom = ExpenseTheme.spacing.xs),
-            )
-        }
-    }
+    FilterChip(
+        label = stringResource(R.string.filter_all),
+        selected = preset == ExpensePeriodPreset.ALL,
+        onClick = { onPreset(ExpensePeriodPreset.ALL) },
+    )
+    FilterChip(
+        label = stringResource(R.string.filter_month),
+        selected = preset == ExpensePeriodPreset.CURRENT_MONTH,
+        onClick = { onPreset(ExpensePeriodPreset.CURRENT_MONTH) },
+    )
+    FilterChip(
+        label = stringResource(R.string.filter_category),
+        selected = false,
+        onClick = onOpenFilters,
+    )
 }
 
 @Composable
-private fun LocationFilterSheet(
+private fun CompactFilterChips(
+    filter: ExpenseListFilter,
+    categories: List<Category>,
     locations: List<Location>,
-    selectedId: Long?,
-    onSelect: (Long) -> Unit,
-    onDismiss: () -> Unit,
+    today: LocalDate,
+    onOpenFilters: () -> Unit,
 ) {
-    val colors = ExpenseTheme.colors
-    ExpenseBottomSheet(onDismiss = onDismiss, size = BottomSheetSize.Tall) {
-        Text(
-            text = stringResource(R.string.filter_place_title),
-            style = ExpenseTheme.typography.titleSection,
-            color = colors.textPrimary,
+    if (filter.preset != ExpensePeriodPreset.ALL) {
+        FilterChip(
+            label = ExpenseFormat.periodChip(filter.preset, today, filter.customPeriod),
+            selected = true,
+            onClick = onOpenFilters,
         )
-        Text(
-            text = stringResource(
-                if (locations.isEmpty()) R.string.filter_place_empty else R.string.filter_place_hint,
-            ),
-            style = ExpenseTheme.typography.bodySecondary,
-            color = colors.textSecondary,
-            modifier = Modifier.padding(bottom = ExpenseTheme.spacing.xs),
+    }
+    if (filter.categoryIds.isNotEmpty()) {
+        val label =
+            if (filter.categoryIds.size == 1) {
+                categories.firstOrNull { it.id == filter.categoryIds.first() }?.name
+                    ?: stringResource(R.string.filter_category)
+            } else {
+                ExpenseFormat.categoryCount(filter.categoryIds.size)
+            }
+        FilterChip(label = label, selected = true, onClick = onOpenFilters)
+    }
+    filter.locationId?.let { id ->
+        FilterChip(
+            label = locations.firstOrNull { it.id == id }?.name ?: stringResource(R.string.filter_place),
+            selected = true,
+            onClick = onOpenFilters,
         )
-        locations.forEach { location ->
-            SelectionRow(
-                title = location.name,
-                subtitle = if (location.id == selectedId) {
-                    stringResource(R.string.filter_place_selected)
-                } else {
-                    stringResource(R.string.filter_place_unselected)
-                },
-                selected = location.id == selectedId,
-                onClick = { onSelect(location.id) },
-                modifier = Modifier.padding(bottom = ExpenseTheme.spacing.xs),
-            )
-        }
     }
 }

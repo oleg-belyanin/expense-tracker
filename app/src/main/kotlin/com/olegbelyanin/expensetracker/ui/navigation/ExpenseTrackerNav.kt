@@ -21,6 +21,7 @@ import com.olegbelyanin.expensetracker.ui.expense.ExpenseEditViewModel
 import com.olegbelyanin.expensetracker.ui.expenses.ExpensesScreen
 import com.olegbelyanin.expensetracker.ui.expenses.ExpensesViewModel
 import com.olegbelyanin.expensetracker.ui.settings.SettingsScreen
+import com.olegbelyanin.expensetracker.ui.settings.SettingsViewModel
 
 @Composable
 fun ExpenseTrackerNav(themePreference: ThemePreference, modifier: Modifier = Modifier) {
@@ -140,8 +141,11 @@ fun ExpenseTrackerNav(themePreference: ThemePreference, modifier: Modifier = Mod
 
                 AppDestination.Settings ->
                     NavEntry(key) {
+                        val settingsViewModel: SettingsViewModel =
+                            viewModel(factory = container.settingsViewModelFactory())
                         SettingsScreen(
                             themePreference = themePreference,
+                            viewModel = settingsViewModel,
                             onBack = ::pop,
                         )
                     }

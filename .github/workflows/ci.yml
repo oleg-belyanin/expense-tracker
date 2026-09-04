@@ -33,9 +33,14 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      # I2: single mandatory gate — ktlint, Android Lint, JVM unit tests
+      # of every module. B3/B6 tests enter here automatically; do not add
+      # a second `test` command.
       - name: Check
         run: ./gradlew check
 
+      # B3 / I3: regenerate seed with the same CLI as local builds and
+      # fail if committed assets or frozen config drifted.
       - name: Generate and verify committed seed
         run: |
           ./gradlew :seed-generator:generateSeed
@@ -54,3 +59,16 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
           if-no-files-found: error
+
+      - name: Upload check reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-reports
+          path: |
+            **/build/reports/tests/
+            **/build/test-results/
+            **/build/reports/ktlint/
+            **/build/reports/lint-results*.html
+          retention-days: 7
+          if-no-files-found: ignore
