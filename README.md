@@ -1,6 +1,7 @@
 # Учёт расходов
 
 [![CI](https://github.com/oleg-belyanin/expense-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/oleg-belyanin/expense-tracker/actions/workflows/ci.yml)
+[![Debug APK](https://img.shields.io/github/v/release/oleg-belyanin/expense-tracker?label=debug%20apk)](https://github.com/oleg-belyanin/expense-tracker/releases/latest)
 
 Локальное Android-приложение для учёта личных трат. Серверной части нет:
 данные и правила категоризации живут на устройстве.
@@ -120,15 +121,22 @@ Seed-артефакт: [`app/src/main/assets/seed/`](app/src/main/assets/seed/).
    с генерацией;
 4. `./gradlew :app:assembleDebug`;
 5. debug APK как artifact (хранение 7 дней);
-6. отчёты `check` как artifact `check-reports` (даже если шаг красный).
+6. тот же APK в [Releases](https://github.com/oleg-belyanin/expense-tracker/releases/latest)
+   после успешного прогона на `main`;
+7. отчёты `check` как artifact `check-reports` (даже если шаг красный).
 
 В CI нет эмулятора, instrumentation, `assembleRelease` и публикации в магазины.
 Падение теста или lint делает PR красным.
 
-Debug APK без локальной машины: **Actions → CI → успешный прогон →
-Artifacts → `app-debug`**. Либо:
+Debug APK без локальной машины:
+
+- **[Releases → Debug APK](https://github.com/oleg-belyanin/expense-tracker/releases/latest)**
+  — актуальная сборка, файл `app-debug.apk`;
+- или **Actions → CI → успешный прогон → Artifacts → `app-debug`** (7 дней).
 
 ```bash
+gh release download debug-apk --repo oleg-belyanin/expense-tracker --pattern '*.apk'
+# либо артефакт прогона:
 gh run download --name app-debug --repo oleg-belyanin/expense-tracker
 ```
 

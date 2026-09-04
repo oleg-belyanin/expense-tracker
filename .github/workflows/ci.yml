@@ -17,6 +17,8 @@ jobs:
     name: check and assembleDebug
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -59,6 +61,22 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
           if-no-files-found: error
+
+      # I3 / ТЗ §9.3: debug APK на вкладке Releases только с зелёного main.
+      - name: Publish debug APK to Releases
+        if: success() && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: debug-apk
+          name: Debug APK
+          target_commitish: ${{ github.sha }}
+          body: |
+            Debug-сборка `${{ github.sha }}` с ветки `main`.
+            Подпись — стандартный debug keystore раннера CI.
+            Релизный ключ и публикация в магазины не настраиваются.
+          files: app/build/outputs/apk/debug/app-debug.apk
+          fail_on_unmatched_files: true
+          make_latest: true
 
       - name: Upload check reports
         if: always()
