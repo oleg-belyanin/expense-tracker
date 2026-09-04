@@ -18,4 +18,11 @@ class SettingsFileNamesTest {
             SettingsFileNames.backup(clock, ZoneOffset.UTC),
         )
     }
+
+    @Test
+    fun mimeTypeFollowsExtension() {
+        assertEquals("application/json", SettingsFileNames.mimeType("expense-tracker-backup-2026-09-04.json"))
+        assertEquals("text/csv", SettingsFileNames.mimeType("expenses-2026-09-04.csv"))
+        assertEquals("application/octet-stream", SettingsFileNames.mimeType("notes.txt"))
+    }
 }

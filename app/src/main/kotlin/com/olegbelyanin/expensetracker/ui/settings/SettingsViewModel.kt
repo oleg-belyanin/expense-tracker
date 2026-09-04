@@ -47,6 +47,8 @@ sealed interface SettingsDialog {
 
     data object BackupConfirm : SettingsDialog
 
+    data object RestoreConfirm : SettingsDialog
+
     data object ClearConfirm : SettingsDialog
 }
 
@@ -101,6 +103,11 @@ class SettingsViewModel(
     fun onOpenBackupConfirm() {
         if (overlayState.value is SettingsOverlay.Busy) return
         dialogState.value = SettingsDialog.BackupConfirm
+    }
+
+    fun onOpenRestoreConfirm() {
+        if (overlayState.value is SettingsOverlay.Busy) return
+        dialogState.value = SettingsDialog.RestoreConfirm
     }
 
     fun onConfirmExport() {

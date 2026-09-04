@@ -1,9 +1,13 @@
 package com.olegbelyanin.expensetracker.ui.settings
 
+import android.app.Activity
 import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -73,7 +77,7 @@ fun SettingsScreen(
     val toast by viewModel.toast.collectAsStateWithLifecycle()
     var showThemeSheet by remember { mutableStateOf(false) }
     val openBackup =
-        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        rememberLauncherForActivityResult(OpenRestoreDocument()) { uri ->
             uri?.let { viewModel.onRestoreDocument(it.toString()) }
         }
 
@@ -143,7 +147,7 @@ fun SettingsScreen(
                     title = stringResource(R.string.settings_restore),
                     subtitle = stringResource(R.string.settings_restore_subtitle),
                     value = "›",
-                    onClick = { openBackup.launch(SettingsFileNames.RESTORE_MIME_TYPES) },
+                    onClick = viewModel::onOpenRestoreConfirm,
                 )
                 SectionLabel(stringResource(R.string.settings_section_privacy))
                 SettingsRow(
@@ -218,7 +222,7 @@ fun SettingsScreen(
                     onDismiss = viewModel::onDismissOverlay,
                     onAction = {
                         viewModel.onDismissOverlay()
-                        openBackup.launch(SettingsFileNames.RESTORE_MIME_TYPES)
+                        openBackup.launch(Unit)
                     },
                 )
         }
@@ -244,6 +248,20 @@ fun SettingsScreen(
                 confirmLabel = stringResource(R.string.settings_backup_confirm),
                 cancelLabel = stringResource(R.string.cancel),
                 onConfirm = viewModel::onConfirmBackup,
+                onDismiss = viewModel::onDismissDialog,
+                confirmTone = ButtonTone.Primary,
+            )
+
+        SettingsDialog.RestoreConfirm ->
+            DestructiveDialog(
+                title = stringResource(R.string.settings_restore_confirm_title),
+                description = stringResource(R.string.settings_restore_confirm_description),
+                confirmLabel = stringResource(R.string.settings_restore_confirm),
+                cancelLabel = stringResource(R.string.cancel),
+                onConfirm = {
+                    viewModel.onDismissDialog()
+                    openBackup.launch(Unit)
+                },
                 onDismiss = viewModel::onDismissDialog,
                 confirmTone = ButtonTone.Primary,
             )
@@ -448,3 +466,18 @@ private val ThemePreference.labelRes: Int
             ThemePreference.Light -> R.string.theme_light
             ThemePreference.Dark -> R.string.theme_dark
         }
+
+private class OpenRestoreDocument : ActivityResultContract<Unit, Uri?>() {
+    override fun createIntent(context: Context, input: Unit): Intent {
+        val open =
+            Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = SettingsFileNames.BACKUP_MIME
+                putExtra(Intent.EXTRA_MIME_TYPES, SettingsFileNames.RESTORE_MIME_TYPES)
+            }
+        return Intent.createChooser(open, context.getString(R.string.settings_restore_pick_title))
+    }
+
+    override fun parseResult(resultCode: Int, intent: Intent?): Uri? =
+        intent?.data?.takeIf { resultCode == Activity.RESULT_OK }
+}

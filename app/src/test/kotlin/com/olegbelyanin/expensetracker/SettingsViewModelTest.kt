@@ -107,6 +107,27 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun restoreCancelLeavesNoRestoreJob() = runTest(dispatcher) {
+        var restoreCalls = 0
+        val viewModel =
+            viewModel(
+                restoreBackup = {
+                    restoreCalls += 1
+                    BackupRestoreResult(0, 0, 0, 0, 0, 0, 0)
+                },
+            )
+
+        viewModel.onOpenRestoreConfirm()
+        assertEquals(SettingsDialog.RestoreConfirm, viewModel.dialog.value)
+        viewModel.onDismissDialog()
+
+        assertEquals(SettingsDialog.None, viewModel.dialog.value)
+        assertEquals(0, restoreCalls)
+        assertEquals(SettingsOverlay.None, viewModel.overlay.value)
+        assertEquals(null, viewModel.toast.value)
+    }
+
+    @Test
     fun corruptedRestoreShowsFailedOverlayAndDoesNotApply() = runTest(dispatcher) {
         var restoreCalls = 0
         val documents = InMemorySettingsDocumentStore(files = mutableMapOf("content://bad.json" to "{}"))
