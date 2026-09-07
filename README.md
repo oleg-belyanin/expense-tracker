@@ -1,7 +1,7 @@
 # Учёт расходов
 
-![CI](https://github.com/oleg-belyanin/expense-tracker/actions/workflows/ci.yml/badge.svg)
-![Debug APK](https://img.shields.io/github/v/release/oleg-belyanin/expense-tracker?label=debug%20apk)
+[![CI](https://github.com/oleg-belyanin/expense-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/oleg-belyanin/expense-tracker/actions/workflows/ci.yml)
+[![Debug APK](https://img.shields.io/github/v/release/oleg-belyanin/expense-tracker?label=debug%20apk)](https://github.com/oleg-belyanin/expense-tracker/releases/latest)
 
 Android-приложение для личных трат: куда уходят деньги по категориям и по времени,
 а не только «сколько всего». Сервера нет. Данные и правила категоризации живут
@@ -42,7 +42,7 @@ Android-приложение для личных трат: куда уходят
 ```
 
 Правила — таблицы и файлы словаря, не условия в кнопках. Подробности формул —
-`[docs/categorization-architecture.md](docs/categorization-architecture.md)`.
+[`docs/categorization-architecture.md`](docs/categorization-architecture.md).
 
 ## Категоризация
 
@@ -71,8 +71,8 @@ Android-приложение для личных трат: куда уходят
 Правила переживают очистку истории и попадают в резервную копию.
 
 Словарь при первом запуске — около тысячи размеченных примеров
-(`[seed-data/](seed-data/)`), не скрытая модель. Параметры —
-`[seed-data/categorization-config.json](seed-data/categorization-config.json)`.
+([`seed-data/`](seed-data/)), не скрытая модель. Параметры —
+[`seed-data/categorization-config.json`](seed-data/categorization-config.json).
 На отложенной выборке seed v1: точное попадание **85 %**, в «Прочее» **10 %**.
 
 Дополнительно к четырём источникам из задания (не вместо них): если название
@@ -86,7 +86,7 @@ Android-приложение для личных трат: куда уходят
 ## Категории
 
 Десять встроенных: Продукты, Кафе, Транспорт, Здоровье, Жильё, Связь,
-Развлечения, Одежда, Дом, Прочее. Состав — `[seed-data/categories.yaml](seed-data/categories.yaml)`.
+Развлечения, Одежда, Дом, Прочее. Состав — [`seed-data/categories.yaml`](seed-data/categories.yaml).
 
 Свои категории: имя, цвет, значок. Встроенные тоже можно убрать в архив,
 кроме «Прочее». Расходы и правила остаются привязаны к той же категории;
@@ -127,7 +127,7 @@ cp local.properties.example local.properties   # прописать sdk.dir
 `local.properties` не коммитится. Debug подписывается стандартным
 `~/.android/debug.keystore`. Релизный ключ и магазин не настраиваются.
 
-Эмулятор 360×800: `[docs/emulator.md](docs/emulator.md)`.
+Эмулятор 360×800: [`docs/emulator.md`](docs/emulator.md).
 
 ```bash
 export ANDROID_HOME=~/Android/Sdk
@@ -143,7 +143,7 @@ $ANDROID_HOME/emulator/emulator -avd ExpenseTracker_360 &
 Эмулятора в CI нет. Падение теста или lint — красный PR.
 
 - [Releases](https://github.com/oleg-belyanin/expense-tracker/releases/latest) — актуальный `app-debug.apk`
-- Actions → успешный прогон → Artifacts → `app-debug` (7 дней)
+- [Actions](https://github.com/oleg-belyanin/expense-tracker/actions) → успешный прогон → Artifacts → `app-debug` (7 дней)
 
 ```bash
 gh release download debug-apk --repo oleg-belyanin/expense-tracker --pattern '*.apk'
@@ -155,7 +155,7 @@ gh release download debug-apk --repo oleg-belyanin/expense-tracker --pattern '*.
 
 Словарь категорий и демо-список — разные вещи. Словарь не содержит сумм и дат.
 Для проверки списка и аналитики debug-сборка при первом запуске импортирует
-`[demo-data/expenses-ui.csv](demo-data/expenses-ui.csv)` (300 строк).
+[`demo-data/expenses-ui.csv`](demo-data/expenses-ui.csv) (300 строк).
 Release-APK файла не содержит.
 
 Набор на 5 000 записей для проверки списка пишется в `demo-data/local/`
@@ -213,11 +213,11 @@ Android. В файле — дата, сумма, название, катего�
 ## Документация
 
 
-| Документ                                                                       | Содержание                            |
-| ------------------------------------------------------------------------------ | ------------------------------------- |
-| `[docs/testassignmentexpensetracker.md](docs/testassignmentexpensetracker.md)` | Текст задания и приёмка               |
-| `[docs/categorization-architecture.md](docs/categorization-architecture.md)`   | Формулы, обучение, поиск мест         |
-| `[docs/seed-dataset-plan.md](docs/seed-dataset-plan.md)`                       | Откуда берётся словарь на 1 000 строк |
-| `[docs/emulator.md](docs/emulator.md)`                                         | Эмулятор и установка APK              |
+| Документ | Содержание |
+| --- | --- |
+| [`docs/testassignmentexpensetracker.md`](docs/testassignmentexpensetracker.md) | Текст задания и приёмка |
+| [`docs/categorization-architecture.md`](docs/categorization-architecture.md) | Формулы, обучение, поиск мест |
+| [`docs/seed-dataset-plan.md`](docs/seed-dataset-plan.md) | Откуда берётся словарь на 1 000 строк |
+| [`docs/emulator.md`](docs/emulator.md) | Эмулятор и установка APK |
 
 
